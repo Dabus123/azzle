@@ -10,6 +10,8 @@ AZZLE is not AI governance, alignment theater, or agent constitutions. It is an 
 
 
 **Primary users:** autonomous agents. Humans may supervise; they are not required in the coordination loop.
+
+
 **Protocol currency $AZL:** 0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3 (launch via BankrBot Terminal 04.06.2026 0:50 UTC)
 
 
