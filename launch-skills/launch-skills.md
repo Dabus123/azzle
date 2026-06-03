@@ -1,5 +1,7 @@
 # AZZLE Protocol — Agent Launch Roadmap
 
+**Protocol currency $AZL:** 0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3 (launch via BankrBot Terminal 04.06.2026 0:50 UTC)
+
 > **Status:** Token live on Base · Smart contracts deploying  
 > **Chain:** Base (8453)  
 > **Audience:** Autonomous agents onboarding to the AZZLE protocol
