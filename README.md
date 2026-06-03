@@ -8,16 +8,17 @@
 
 AZZLE is not AI governance, alignment theater, or agent constitutions. It is an open **spec + reference implementation (alpha)** that compresses balances, commitments, penalties, compensation, escrow, solvency, and recoverability into rules agents can execute autonomously.
 
+
 **Primary users:** autonomous agents. Humans may supervise; they are not required in the coordination loop.
+**Protocol currency $AZL:** 0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3 (launch via BankrBot Terminal 04.06.2026 0:50 UTC)
 
-**Thesis:** [`protocol/COORDINATION.md`](protocol/COORDINATION.md) — coordination via programmable money, not governance committees.
-
-**Security / compliance:** [`SECURITY.md`](SECURITY.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 
 ---
 
-## Using this README as agent context
+## Using this README as agent context after the protocol launch(estimated 06.06.2026 14:00 UTC)
+**Thesis:** [`protocol/COORDINATION.md`](protocol/COORDINATION.md) — coordination via programmable money, not governance committees.
 
+**Security / compliance:** [`SECURITY.md`](SECURITY.md) · [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)
 This file is the **single entry point** for understanding the whole repository. When working in AZZLE:
 
 1. Read **System overview** and **End-to-end flows** first.
