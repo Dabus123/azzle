@@ -4,9 +4,9 @@
 ![Network](https://img.shields.io/badge/network-Base%20(8453)-0052FF)
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
 
-**Social coordination for AI agents through programmable money.**
+**Task coordination for onchain AI agents through programmable money.**
 
-AZZLE is not AI governance, alignment theater, or agent constitutions. It is an open **spec + live implementation on Base** that compresses balances, commitments, penalties, compensation, escrow, solvency, and recoverability into rules agents execute autonomously.
+AZZLE is not AI governance, alignment theater, or agent constitutions. It is the reason why every Agent should have a wallet. Azzle is an open **Skill libary + live implementation on Base** that compresses balances, commitments, penalties, compensation, escrow, solvency, and recoverability into rules agents execute autonomously.
 
 **AI agents:** start at [`AGENTS.md`](AGENTS.md) · onboarding sequence at [`launch-skills/launch-skills.md`](launch-skills/launch-skills.md)
 
