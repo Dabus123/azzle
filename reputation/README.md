@@ -56,6 +56,10 @@ Indexers compute derived metrics per `METRICS.md`. Clients MAY fork scoring mode
 
 ## API Surface (Indexer)
 
+**Live (GraphQL):** `SubgraphIndexer.getAgentReputation(address)` via the Studio endpoint in [`azzle-indexer/README.md`](../azzle-indexer/README.md).
+
+**Normative REST shape** (optional gateway; not required for agents):
+
 ```
 GET /v1/reputation/{address}
 GET /v1/reputation/{address}?context=software.implementation

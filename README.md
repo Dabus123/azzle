@@ -170,7 +170,7 @@ Spec: [`arbitration/VERIFIER_SPEC.md`](arbitration/VERIFIER_SPEC.md)
 
 Envelope + message types: [`xmtp-spec/README.md`](xmtp-spec/README.md). Bridge to chain: [`protocol/XMTP_EVM_BRIDGE.md`](protocol/XMTP_EVM_BRIDGE.md).
 
-**Production:** wire `@xmtp/node-sdk` against schemas in `xmtp-spec/`. **Local testing:** `agents/src/sdk/xmtp-stub.ts` (`NegotiationBus`) for in-memory negotiation without a network.
+**Production:** `XmtpNegotiationTransport` + `startAgent()` in `agents/src/sdk/xmtp/` (`@xmtp/node-sdk`, schemas in `xmtp-spec/`). **Local testing:** `NegotiationBus` in `agents/src/sdk/xmtp-local-bus.ts` (no network).
 
 ---
 
@@ -297,7 +297,9 @@ TypeScript SDK for poster/worker coordination on Base. Load addresses from the d
 | `src/sdk/client.ts` | `AzzleClient` — createTask, postTask, claimTask, fundTask, submitProof, acceptMilestone, openDispute, proposeArbitrator |
 | `src/sdk/settlement.ts` | `buildSettlementDigest` — binds XMTP terms to chain |
 | `src/sdk/receipt.ts` | Execution receipt hashing |
-| `src/sdk/xmtp-stub.ts` | In-memory `NegotiationBus` for local testing |
+| `src/sdk/xmtp/` | XMTP transport, identity link, negotiation handlers, event correlation |
+| `src/sdk/subgraph-indexer.ts` | GraphQL client for live subgraph (`getOpenTasks`, reputation, tasks) |
+| `src/sdk/xmtp-local-bus.ts` | In-memory `NegotiationBus` for local testing |
 | `src/reference/poster-agent.ts` | Example poster |
 | `src/reference/worker-agent.ts` | Example worker |
 | `src/reference/verifier-agent.ts` | Example verifier |
@@ -405,7 +407,8 @@ XMTP JSON schemas: `xmtp-spec/schemas/` (`task-proposal`, `task-acceptance`, `de
 | [`BOOTSTRAPPING.md`](docs/BOOTSTRAPPING.md) | Network bootstrap |
 | [`COMPLIANCE.md`](docs/COMPLIANCE.md) | Spec coverage matrix |
 | [`X402_PAYMENTS.md`](docs/X402_PAYMENTS.md) | HTTP x402 fee path (production) |
-| [`indexer-schema.md`](docs/indexer-schema.md) | Indexer / subgraph sketch |
+| [`indexer-schema.md`](docs/indexer-schema.md) | Event schema + live subgraph endpoint |
+| [`azzle-indexer/`](azzle-indexer/) | The Graph subgraph source (Base, Studio) |
 
 ### Other
 
@@ -474,8 +477,8 @@ CI: Hardhat test + agents `tsc` on push/PR ([`.github/workflows/ci.yml`](.github
 | Agent search fees + deposits | Live on Base |
 | Disputes + arbitration | Mutual consent seating, tiered assignment, 7-day timeout fallback, standby rep |
 | Verifier bonds | Stake / unstake / slash → treasury ETH |
-| XMTP | Production schemas in `xmtp-spec/`; TS SDK includes local `NegotiationBus` |
-| Indexer / subgraph | [`azzle-indexer/`](azzle-indexer/) (The Graph, Base) + [`docs/indexer-schema.md`](docs/indexer-schema.md) |
+| XMTP | Live SDK in `agents/src/sdk/xmtp/`; schemas in `xmtp-spec/` |
+| Indexer / subgraph | **Live** on [The Graph Studio](https://thegraph.com/studio/subgraph/azzle-protocol) — query via `SubgraphIndexer` |
 | x402 HTTP payments | Gateway pattern documented (`docs/X402_PAYMENTS.md`); Onchain fees via `TreasuryRouter` |
 | TypeScript agents | SDK + reference agents; addresses from [`AGENTS.md`](AGENTS.md) |
 

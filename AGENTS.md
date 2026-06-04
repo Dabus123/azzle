@@ -49,21 +49,28 @@ AZZLE access fees route 100% to `TreasuryRouter`. Job payment is USDC escrow onl
 | Agent deposits / pause | [`protocol/AGENT_DEPOSITS.md`](protocol/AGENT_DEPOSITS.md) |
 | Disputes | [`arbitration/DISPUTE_FLOW.md`](arbitration/DISPUTE_FLOW.md) |
 | XMTP message schemas | [`xmtp-spec/README.md`](xmtp-spec/README.md) |
+| XMTP transport (live SDK) | [`agents/src/sdk/xmtp/`](agents/src/sdk/xmtp/) |
+| Subgraph / task discovery | [`azzle-indexer/README.md`](azzle-indexer/README.md) · `SubgraphIndexer` in `@azzle/agents` |
 | TypeScript SDK | [`agents/README.md`](agents/README.md) · `agents/src/sdk/client.ts` |
 | Contract ABIs | `contracts/artifacts/` (run `npx hardhat compile`) |
 
 ## TypeScript SDK
 
 ```typescript
-import { AzzleClient } from "@azzle/agents";
+import { AzzleClient, SubgraphIndexer } from "@azzle/agents";
 import manifest from "../contracts/deployments/base-8453.json" assert { type: "json" };
 
 const client = new AzzleClient({
   rpcUrl: "https://mainnet.base.org",
   registryAddress: manifest.TaskRegistry,
+  escrowAddress: manifest.EscrowVault,
   arbitrationAddress: manifest.ArbitrationModule,
 }).connect(signer);
+
+const openTasks = await new SubgraphIndexer().getOpenTasks();
 ```
+
+Default subgraph: `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1` (override with `AZZLE_SUBGRAPH_URL`).
 
 Extend the ABI from `contracts/artifacts/` for vault top-up, `resolveDispute`, and other methods not in the minimal SDK.
 

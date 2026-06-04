@@ -11,30 +11,11 @@ Public indexer for AZZLE on [The Graph](https://thegraph.com/studio) — **Base*
 | ArbitrationModule | `0xaBAA2DCBF3A391cDAab7EeAE0CBd50C3128970cC` |
 | EscrowVault | `0x5e6DCE7ac4A805761be4B124277c43c33Ad3E825` |
 
-Update `startBlock` in `subgraph.yaml` to each contract’s deployment block before production deploy (currently `31000000` placeholder).
+Update `startBlock` in `subgraph.yaml` when re-deploying against new contract deployments (currently `31000000` placeholder).
 
-## Studio setup
+## Deployed (v0.1)
 
-1. Open https://thegraph.com/studio and connect a wallet.
-2. Create subgraph **azzle-protocol** on **Base**.
-3. Copy the **deploy key**.
-
-## Build & deploy
-
-```bash
-cd azzle-indexer
-npm install
-graph auth <DEPLOY_KEY>
-npm run codegen
-npm run build
-graph deploy azzle-protocol
-```
-
-`graph-cli` ≥ 0.97 dropped the `--studio` flag; Studio is the default deploy target after `graph auth`.
-
-When prompted, enter a **version label** (e.g. `v0.1.0`).
-
-**Live query endpoint (v0.1):**
+**Live query endpoint:**
 
 `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1`
 
@@ -56,6 +37,18 @@ Then use `SubgraphIndexer` from `@azzle/agents` (see `agents/src/sdk/subgraph-in
 - **Agent** — reputation aggregate per address
 - **Dispute** — arbitration lifecycle
 - **ReputationSignal** — individual signals
+
+## Redeploy
+
+```bash
+cd azzle-indexer
+npm install
+graph auth <DEPLOY_KEY>
+npm run codegen && npm run build
+graph deploy azzle-protocol
+```
+
+Use a new **version label** in Studio; update `AZZLE_SUBGRAPH_URL` / `DEFAULT_SUBGRAPH_URL` in the agent SDK when the query URL changes.
 
 ## Events indexed
 

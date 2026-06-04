@@ -9,7 +9,7 @@
 
 ## Scope of this repository
 
-This repo ships Solidity primitives, a TypeScript SDK, and XMTP message schemas. Production agents wire `@xmtp/node-sdk` against schemas in `xmtp-spec/`; the TS SDK includes an in-memory `NegotiationBus` for local testing only.
+This repo ships Solidity primitives, a TypeScript SDK, XMTP negotiation (`agents/src/sdk/xmtp/`), and a public subgraph (`azzle-indexer/` on The Graph Studio, Base). Local tests may use `NegotiationBus` in `agents/src/sdk/xmtp-local-bus.ts` without the XMTP network.
 
 ## Reporting vulnerabilities
 
@@ -19,7 +19,7 @@ If you discover a security issue, report it responsibly (private disclosure pref
 
 - Verifier attestation Onchain is signal-only; quorum enforcement is client/indexer policy
 - x402 HTTP fee path is documented for gateways; Onchain access fees settle via `TreasuryRouter`
-- Indexer/subgraph is specified off-chain (`docs/indexer-schema.md`)
+- Subgraph v0.1 indexes a fixed Base deployment (see `azzle-indexer/subgraph.yaml`); verify addresses match your target network before trusting query results
 
 ## Safe use
 

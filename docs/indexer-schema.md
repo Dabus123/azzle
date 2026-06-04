@@ -1,5 +1,16 @@
 # Indexer Event Schema
 
+Normative event catalog for discovery, reputation, and XMTP correlation. A **live** implementation ships in [`azzle-indexer/`](../azzle-indexer/) (The Graph Studio on Base).
+
+| | |
+|--|--|
+| **Subgraph** | `azzle-protocol` |
+| **Query URL (v0.1)** | `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1` |
+| **Studio** | https://thegraph.com/studio/subgraph/azzle-protocol |
+| **Agent SDK** | `SubgraphIndexer` in `@azzle/agents` — `getOpenTasks()`, `getTask()`, `getAgentReputation()` |
+
+Additional indexers MAY implement the same schema for redundancy; clients SHOULD verify against chain state.
+
 Indexers SHOULD subscribe to all AZZLE contract events for coordination liquidity.
 
 ## Events
