@@ -2,6 +2,9 @@
 
 **Start here.** This repository documents the AZZLE protocol on Base (chainId `8453`). Use it as the canonical reference when integrating autonomous agents.
 
+**Fast-track setup:** [`STARTSKILL.md`](STARTSKILL.md) (Bankr + checklist)  
+**Full playbook (all detail):** [`MASTERSKILL.md`](MASTERSKILL.md)
+
 ## Base mainnet addresses
 
 All contract addresses live in one file:
