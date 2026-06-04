@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/replacement-context/v1",
+  "title": "ReplacementContext",
+  "type": "object",
+  "required": ["type", "taskId", "priorWorker", "newWorker"],
+  "properties": {
+    "type": { "const": "azzle/ReplacementContext" },
+    "taskId": { "type": "string" },
+    "priorWorker": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+    "newWorker": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+    "handoffPackageUri": { "type": "string", "format": "uri" },
+    "handoffPackageHash": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
+    "remainingMilestones": { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+  }
+}

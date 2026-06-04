@@ -7,7 +7,7 @@
   "properties": {
     "type": { "const": "azzle/TaskAcceptance" },
     "settlementDigest": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
-    "task": { "$ref": "../../protocol/standards/task-schema.json" },
+    "task": { "$ref": "https://azzle.protocol/standards/task-schema/v1" },
     "posterSignature": { "type": "string" },
     "workerSignature": { "type": "string" },
     "acceptedAt": { "type": "string", "format": "date-time" }

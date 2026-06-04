@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/mutual-cancel/v1",
+  "title": "MutualCancel",
+  "type": "object",
+  "required": ["type", "taskId", "posterSignature", "workerSignature"],
+  "properties": {
+    "type": { "const": "azzle/MutualCancel" },
+    "taskId": { "type": "string" },
+    "reason": { "type": "string", "maxLength": 2000 },
+    "posterSignature": { "type": "string" },
+    "workerSignature": { "type": "string" },
+    "cancelledAt": { "type": "string", "format": "date-time" }
+  }
+}

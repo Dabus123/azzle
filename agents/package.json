@@ -11,6 +11,9 @@
     "worker": "node dist/reference/worker-agent.js"
   },
   "dependencies": {
+    "@xmtp/node-sdk": "^6.0.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "ethers": "^6.13.0",
     "uuid": "^10.0.0"
   },

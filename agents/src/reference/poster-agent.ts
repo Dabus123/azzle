@@ -1,29 +1,64 @@
 /**
  * Reference poster agent — funds escrow, monitors delivery, accepts milestones.
- * XMTP: wire @xmtp/node-sdk in production; uses NegotiationBus for local demo.
+ * Uses NegotiationBus locally; use startAgent() from ../sdk/xmtp for production XMTP.
  */
-import { NegotiationBus } from "../sdk/xmtp-stub.js";
+import { NegotiationBus } from "../sdk/xmtp-local-bus.js";
 import { buildSettlementDigest } from "../sdk/settlement.js";
+import { buildEnvelope } from "../sdk/xmtp/envelope.js";
 import type { TaskTerms } from "../sdk/types.js";
 
 export async function runPosterAgent(terms: TaskTerms) {
   const bus = new NegotiationBus();
   const negotiationId = bus.createNegotiation();
-
   const digest = buildSettlementDigest(terms);
 
-  bus.post(negotiationId, {
-    type: "azzle/TaskProposal",
-    task: { schemaVersion: "azzle-task-v1", title: "Reference task" },
-    settlementDigestPreview: digest,
-  });
+  await bus.send(
+    buildEnvelope({
+      type: "TaskProposal",
+      negotiationId,
+      sequence: 1,
+      sender: {
+        evmAddress: terms.poster.toLowerCase(),
+        xmtpPublicKey: "0x" + "01".repeat(32),
+      },
+      payload: {
+        type: "azzle/TaskProposal",
+        task: {
+          schemaVersion: "azzle-task-v1",
+          taskType: "software.implementation",
+          title: "Reference task",
+          acceptanceCriteria: {
+            mode: "deterministic",
+            specHash: terms.acceptanceCriteriaHash,
+          },
+          compensation: {
+            token: terms.token,
+            amount: terms.totalAmount.toString(),
+            escrowMode: terms.escrowMode,
+          },
+        },
+        settlementDigestPreview: digest,
+      },
+    })
+  );
 
-  bus.post(negotiationId, {
-    type: "azzle/TaskAcceptance",
-    settlementDigest: digest,
-    posterSignature: "0x",
-    workerSignature: "0x",
-  });
+  await bus.send(
+    buildEnvelope({
+      type: "TaskAcceptance",
+      negotiationId,
+      sequence: 2,
+      sender: {
+        evmAddress: terms.poster.toLowerCase(),
+        xmtpPublicKey: "0x" + "01".repeat(32),
+      },
+      payload: {
+        type: "azzle/TaskAcceptance",
+        settlementDigest: digest,
+        posterSignature: "0x",
+        workerSignature: "0x",
+      },
+    })
+  );
 
   console.log("[poster-agent] negotiation complete", { negotiationId, digest });
   return { negotiationId, digest };

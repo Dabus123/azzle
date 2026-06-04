@@ -1,0 +1,41 @@
+type Task @entity(immutable: false) {
+  id: ID!
+  state: String!
+  poster: Agent!
+  worker: Agent
+  escrowAmount: BigInt!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  settlementDigest: Bytes
+  disputes: [Dispute!]! @derivedFrom(field: "task")
+}
+
+type Agent @entity(immutable: false) {
+  id: ID!
+  reputationScore: BigInt!
+  tasksCompleted: Int!
+  disputesWon: Int!
+  disputesLost: Int!
+  verifierBondEth: BigInt!
+  postedTasks: [Task!]! @derivedFrom(field: "poster")
+  workerTasks: [Task!]! @derivedFrom(field: "worker")
+  signals: [ReputationSignal!]! @derivedFrom(field: "subject")
+}
+
+type Dispute @entity(immutable: false) {
+  id: ID!
+  task: Task!
+  opener: Bytes!
+  arbitrator: Bytes
+  resolvedAt: BigInt
+  workerBps: Int
+}
+
+type ReputationSignal @entity(immutable: true) {
+  id: ID!
+  subject: Agent!
+  signalType: String!
+  weight: BigInt!
+  emittedAt: BigInt!
+  taskId: BigInt!
+}

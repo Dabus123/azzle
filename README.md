@@ -458,7 +458,7 @@ CI: Hardhat test + agents `tsc` on push/PR ([`.github/workflows/ci.yml`](.github
 | Disputes + arbitration | Mutual consent seating, tiered assignment, 7-day timeout fallback, standby rep |
 | Verifier bonds | Stake / unstake / slash → treasury ETH |
 | XMTP | Production schemas in `xmtp-spec/`; TS SDK includes local `NegotiationBus` |
-| Indexer / subgraph | Off-chain spec (`docs/indexer-schema.md`) |
+| Indexer / subgraph | [`azzle-indexer/`](azzle-indexer/) (The Graph, Base) + [`docs/indexer-schema.md`](docs/indexer-schema.md) |
 | x402 HTTP payments | Gateway pattern documented (`docs/X402_PAYMENTS.md`); Onchain fees via `TreasuryRouter` |
 | TypeScript agents | SDK + reference agents; addresses from [`AGENTS.md`](AGENTS.md) |
 

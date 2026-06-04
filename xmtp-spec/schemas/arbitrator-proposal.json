@@ -1,12 +1,12 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://azzle.dev/schemas/arbitrator-proposal/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/arbitrator-proposal/v1",
   "title": "ArbitratorProposal",
   "description": "Off-chain coordination for mutual-consent arbitrator selection (maps to proposeArbitrator Onchain)",
   "type": "object",
-  "required": ["schemaVersion", "disputeId", "taskId", "proposedArbitrator", "proposer"],
+  "required": ["type", "disputeId", "taskId", "proposedArbitrator", "proposer"],
   "properties": {
-    "schemaVersion": { "const": "azzle-arbitrator-proposal-v1" },
+    "type": { "const": "azzle/ArbitratorProposal" },
     "disputeId": { "type": "string", "pattern": "^[0-9]+$" },
     "taskId": { "type": "string", "pattern": "^[0-9]+$" },
     "proposedArbitrator": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },

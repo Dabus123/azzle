@@ -1,30 +1,14 @@
-import { v4 as uuidv4 } from "uuid";
+/**
+ * @deprecated Import from `./xmtp/index.js` instead.
+ * This module re-exports the real XMTP transport for backward-compatible paths.
+ */
+export {
+  XmtpNegotiationTransport,
+  createNegotiationTransport,
+  startAgent,
+  linkIdentity,
+  NegotiationHandlers,
+  ChainEventIndexer,
+} from "./xmtp/index.js";
 
-/** In-memory negotiation bus for testing without XMTP network */
-export class NegotiationBus {
-  private threads = new Map<string, unknown[]>();
-
-  post(negotiationId: string, message: unknown) {
-    const thread = this.threads.get(negotiationId) ?? [];
-    thread.push(message);
-    this.threads.set(negotiationId, thread);
-  }
-
-  getThread(negotiationId: string) {
-    return this.threads.get(negotiationId) ?? [];
-  }
-
-  createNegotiation() {
-    return uuidv4();
-  }
-}
-
-export interface TaskProposalMessage {
-  type: "azzle/TaskProposal";
-  task: Record<string, unknown>;
-}
-
-export interface TaskAcceptanceMessage {
-  type: "azzle/TaskAcceptance";
-  settlementDigest: string;
-}
+export { NegotiationBus } from "./xmtp-local-bus.js";

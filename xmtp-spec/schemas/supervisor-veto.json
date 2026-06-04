@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/supervisor-veto/v1",
+  "title": "SupervisorVeto",
+  "type": "object",
+  "required": ["type", "taskId", "supervisor", "reason"],
+  "properties": {
+    "type": { "const": "azzle/SupervisorVeto" },
+    "taskId": { "type": "string" },
+    "supervisor": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+    "reason": { "type": "string", "maxLength": 4000 },
+    "vetoedAt": { "type": "string", "format": "date-time" }
+  }
+}

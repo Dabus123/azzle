@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/accept-delivery/v1",
+  "title": "AcceptDelivery",
+  "type": "object",
+  "required": ["type", "taskId", "milestoneIndex"],
+  "properties": {
+    "type": { "const": "azzle/AcceptDelivery" },
+    "taskId": { "type": "string" },
+    "milestoneIndex": { "type": "integer", "minimum": 0 },
+    "receiptHash": { "type": "string" },
+    "acceptedAt": { "type": "string", "format": "date-time" }
+  }
+}

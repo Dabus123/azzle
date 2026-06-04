@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/payment-request/v1",
+  "title": "PaymentRequest",
+  "type": "object",
+  "required": ["type", "taskId", "releaseType"],
+  "properties": {
+    "type": { "const": "azzle/PaymentRequest" },
+    "taskId": { "type": "string" },
+    "releaseType": { "enum": ["stream", "hour_block", "milestone"] },
+    "milestoneIndex": { "type": "integer", "minimum": 0 },
+    "amount": { "type": "string" },
+    "periodStart": { "type": "string", "format": "date-time" },
+    "periodEnd": { "type": "string", "format": "date-time" }
+  }
+}

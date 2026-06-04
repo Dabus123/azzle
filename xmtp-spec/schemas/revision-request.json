@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/revision-request/v1",
+  "title": "RevisionRequest",
+  "type": "object",
+  "required": ["type", "taskId", "requestedChanges"],
+  "properties": {
+    "type": { "const": "azzle/RevisionRequest" },
+    "taskId": { "type": "string" },
+    "requestedChanges": { "type": "string", "maxLength": 8000 },
+    "specHash": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
+    "deadlineExtension": { "type": "integer", "minimum": 0 }
+  }
+}
