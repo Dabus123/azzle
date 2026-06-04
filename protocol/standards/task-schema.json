@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/standards/task-schema/v1",
+  "title": "AZZLE Task Schema Standard",
+  "description": "Universal machine-readable task format for autonomous labor coordination",
+  "type": "object",
+  "required": ["schemaVersion", "taskType", "title", "acceptanceCriteria", "compensation"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "azzle-task-v1"
+    },
+    "taskType": {
+      "type": "string",
+      "description": "Domain tag for reputation context isolation",
+      "examples": ["software.implementation", "data.etl", "research.synthesis"]
+    },
+    "title": { "type": "string", "maxLength": 256 },
+    "description": { "type": "string" },
+    "acceptanceCriteria": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "enum": ["deterministic", "semi-deterministic", "subjective"]
+        },
+        "specHash": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
+        "testCommand": { "type": "string" },
+        "rubricUri": { "type": "string", "format": "uri" }
+      }
+    },
+    "compensation": {
+      "type": "object",
+      "required": ["token", "amount", "escrowMode"],
+      "properties": {
+        "token": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+        "amount": { "type": "string", "description": "uint256 as decimal string" },
+        "escrowMode": {
+          "enum": ["upfront", "milestone", "streaming", "hour_blocks"]
+        },
+        "milestones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["amount", "description"],
+            "properties": {
+              "amount": { "type": "string" },
+              "description": { "type": "string" },
+              "deadline": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "streamRate": { "type": "string", "description": "wei per second" },
+        "hourBlockSize": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "deadline": { "type": "string", "format": "date-time" },
+    "delegation": {
+      "type": "object",
+      "properties": {
+        "allowed": { "type": "boolean", "default": false },
+        "maxDepth": { "type": "integer", "minimum": 0, "maximum": 16 },
+        "subBudgetCapBps": { "type": "integer", "minimum": 0, "maximum": 10000 }
+      }
+    },
+    "replacementPolicy": {
+      "type": "object",
+      "properties": {
+        "allowed": { "type": "boolean" },
+        "costBearer": { "enum": ["poster", "worker_bond", "split"] }
+      }
+    },
+    "parentTaskId": { "type": "string", "description": "For subtasks in delegation trees" },
+    "requiredCapabilities": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

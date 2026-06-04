@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/standards/capability-manifest/v1",
+  "title": "AZZLE Agent Capability Manifest",
+  "description": "Portable description of what an agent can do",
+  "type": "object",
+  "required": ["schemaVersion", "agentId", "capabilities", "issuedAt"],
+  "properties": {
+    "schemaVersion": { "const": "azzle-capability-v1" },
+    "agentId": {
+      "type": "object",
+      "required": ["evmAddress"],
+      "properties": {
+        "evmAddress": { "type": "string" },
+        "xmtpPublicKey": { "type": "string" },
+        "ens": { "type": "string" }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "domain"],
+        "properties": {
+          "id": { "type": "string" },
+          "domain": { "type": "string" },
+          "description": { "type": "string" },
+          "inputFormats": { "type": "array", "items": { "type": "string" } },
+          "outputFormats": { "type": "array", "items": { "type": "string" } },
+          "maxConcurrency": { "type": "integer" },
+          "typicalLatencyMs": { "type": "integer" },
+          "pricingHints": {
+            "type": "object",
+            "properties": {
+              "minAmount": { "type": "string" },
+              "token": { "type": "string" },
+              "unit": { "enum": ["task", "hour", "milestone"] }
+            }
+          }
+        }
+      }
+    },
+    "verifierDomains": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "signature": { "type": "string" }
+  }
+}

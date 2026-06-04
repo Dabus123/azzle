@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/dispute-evidence/v1",
+  "title": "DisputeEvidence",
+  "type": "object",
+  "required": ["type", "taskId", "disputeId", "claim", "evidenceHashes"],
+  "properties": {
+    "type": { "const": "azzle/DisputeEvidence" },
+    "taskId": { "type": "string" },
+    "disputeId": { "type": "string" },
+    "claim": { "enum": ["non_delivery", "quality", "scope", "payment", "other"] },
+    "evidenceHashes": { "type": "array", "items": { "type": "string" } },
+    "receiptHash": { "type": "string" },
+    "counterReceiptHash": { "type": "string" }
+  }
+}

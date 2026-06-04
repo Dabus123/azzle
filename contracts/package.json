@@ -1,0 +1,28 @@
+{
+  "name": "@azzle/contracts",
+  "version": "0.1.0",
+  "description": "AZZLE protocol EVM primitives",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "deploy:mainnet": "hardhat run scripts/deploy-mainnet.ts --network mainnet",
+    "deploy:base": "hardhat run scripts/deploy-mainnet.ts --network base",
+    "deploy:base:resume": "hardhat run scripts/deploy-mainnet-resume.ts --network base",
+    "deploy:base:finish": "hardhat run scripts/deploy-mainnet-finish.ts --network base",
+    "deploy:inspect": "hardhat run scripts/inspect-wiring.ts --network base",
+    "deploy:list-contracts": "hardhat run scripts/list-deployer-contracts.ts --network base",
+    "verify:base": "hardhat run scripts/verify-base.ts --network base",
+    "demo:lifecycle": "hardhat run scripts/lifecycle-local.ts"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^17.4.2",
+    "hardhat": "^2.22.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  }
+}

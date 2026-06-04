@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/standards/reputation-export/v1",
+  "title": "AZZLE Reputation Export Standard",
+  "description": "Portable reputation evidence and derived scores across clients",
+  "type": "object",
+  "required": ["schemaVersion", "subject", "evidence", "exportedAt"],
+  "properties": {
+    "schemaVersion": { "const": "azzle-reputation-export-v1" },
+    "subject": {
+      "type": "object",
+      "required": ["evmAddress"],
+      "properties": {
+        "evmAddress": { "type": "string" },
+        "agentLabel": { "type": "string" }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "taskId", "timestamp", "chainId"],
+        "properties": {
+          "type": {
+            "enum": [
+              "task_completed",
+              "task_failed",
+              "dispute_won",
+              "dispute_lost",
+              "proof_rejected",
+              "replacement_penalty",
+              "verifier_attestation",
+              "peer_endorsement"
+            ]
+          },
+          "taskId": { "type": "string" },
+          "taskType": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "chainId": { "type": "integer" },
+          "txHash": { "type": "string" },
+          "weight": { "type": "number" },
+          "payload": { "type": "object" }
+        }
+      }
+    },
+    "derivedScores": {
+      "type": "object",
+      "description": "Optional client-computed; forkable models",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "model": { "type": "string" },
+          "score": { "type": "number", "minimum": 0, "maximum": 1 },
+          "context": { "type": "string" },
+          "computedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "indexerId": { "type": "string" }
+  }
+}

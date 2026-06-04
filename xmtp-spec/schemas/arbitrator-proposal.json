@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://azzle.dev/schemas/arbitrator-proposal/v1",
+  "title": "ArbitratorProposal",
+  "description": "Off-chain coordination for mutual-consent arbitrator selection (maps to proposeArbitrator Onchain)",
+  "type": "object",
+  "required": ["schemaVersion", "disputeId", "taskId", "proposedArbitrator", "proposer"],
+  "properties": {
+    "schemaVersion": { "const": "azzle-arbitrator-proposal-v1" },
+    "disputeId": { "type": "string", "pattern": "^[0-9]+$" },
+    "taskId": { "type": "string", "pattern": "^[0-9]+$" },
+    "proposedArbitrator": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+    "proposer": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+    "tier": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "rationale": { "type": "string", "maxLength": 2000 },
+    "registeredForTask": { "type": "boolean", "description": "Indexer-verified standby registration" }
+  },
+  "additionalProperties": false
+}

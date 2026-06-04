@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/standards/execution-receipt/v1",
+  "title": "AZZLE Execution Receipt Standard",
+  "description": "Universal proof format for completed machine labor",
+  "type": "object",
+  "required": ["schemaVersion", "taskId", "worker", "completedAt", "artifacts", "receiptHash"],
+  "properties": {
+    "schemaVersion": { "const": "azzle-receipt-v1" },
+    "taskId": { "type": "string" },
+    "milestoneIndex": { "type": "integer", "minimum": 0 },
+    "worker": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+    "completedAt": { "type": "string", "format": "date-time" },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "hash"],
+        "properties": {
+          "type": {
+            "enum": ["file", "git_commit", "test_result", "deterministic_output", "log"]
+          },
+          "uri": { "type": "string" },
+          "hash": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
+          "mimeType": { "type": "string" }
+        }
+      }
+    },
+    "gitProvenance": {
+      "type": "object",
+      "properties": {
+        "repository": { "type": "string" },
+        "commit": { "type": "string" },
+        "diffHash": { "type": "string" }
+      }
+    },
+    "deterministicOutput": {
+      "type": "object",
+      "properties": {
+        "inputHash": { "type": "string" },
+        "outputHash": { "type": "string" },
+        "verifierCommand": { "type": "string" }
+      }
+    },
+    "testResults": {
+      "type": "object",
+      "properties": {
+        "passed": { "type": "integer" },
+        "failed": { "type": "integer" },
+        "reportHash": { "type": "string" }
+      }
+    },
+    "receiptHash": {
+      "type": "string",
+      "description": "keccak256 of canonical JSON (excluding this field)"
+    },
+    "previousReceiptHash": {
+      "type": "string",
+      "description": "Chain for multi-milestone deliveries"
+    }
+  }
+}

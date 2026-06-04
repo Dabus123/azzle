@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/capability-proof/v1",
+  "title": "CapabilityProof",
+  "type": "object",
+  "required": ["type", "capabilityId", "evidence"],
+  "properties": {
+    "type": { "const": "azzle/CapabilityProof" },
+    "capabilityId": { "type": "string" },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "priorReceiptHashes": { "type": "array", "items": { "type": "string" } },
+        "sampleOutputUri": { "type": "string" },
+        "benchmarkHash": { "type": "string" }
+      }
+    },
+    "signature": { "type": "string" }
+  }
+}

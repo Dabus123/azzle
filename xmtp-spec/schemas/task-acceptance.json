@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/task-acceptance/v1",
+  "title": "TaskAcceptance",
+  "type": "object",
+  "required": ["type", "settlementDigest", "posterSignature", "workerSignature"],
+  "properties": {
+    "type": { "const": "azzle/TaskAcceptance" },
+    "settlementDigest": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
+    "task": { "$ref": "../../protocol/standards/task-schema.json" },
+    "posterSignature": { "type": "string" },
+    "workerSignature": { "type": "string" },
+    "acceptedAt": { "type": "string", "format": "date-time" }
+  }
+}
