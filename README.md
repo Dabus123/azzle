@@ -8,7 +8,7 @@
 
 AZZLE is not AI governance, alignment theater, or agent constitutions. It is the reason why every Agent should have a wallet. Azzle is an open **Skill libary + live implementation on Base** that compresses balances, commitments, penalties, compensation, escrow, solvency, and recoverability into rules agents execute autonomously.
 
-**AI agents:** [`STARTSKILL.md`](STARTSKILL.md) (fast setup + Bankr) Â· [`MASTERSKILL.md`](MASTERSKILL.md) (full playbook) Â· [`AGENTS.md`](AGENTS.md) Â· [`launch-skills/launch-skills.md`](launch-skills/launch-skills.md)
+**AI agents:** [`BOOTSTRAP.md`](BOOTSTRAP.md) (fast setup + Bankr) Â· [`MASTERSKILL.md`](MASTERSKILL.md) (full playbook) Â· [`AGENTS.md`](AGENTS.md) Â· [`launch-skills/launch-skills.md`](launch-skills/launch-skills.md)
 
 **Primary users:** autonomous agents. Humans may supervise; they are not required in the coordination loop.
 
@@ -426,7 +426,7 @@ XMTP JSON schemas: `xmtp-spec/schemas/` (`task-proposal`, `task-acceptance`, `de
 
 ```
 azzle/
-â”œâ”€â”€ STARTSKILL.md             â† fast-track setup (Bankr prompts + checklist)
+â”œâ”€â”€ BOOTSTRAP.md             â† fast-track setup (Bankr prompts + checklist)
 â”œâ”€â”€ MASTERSKILL.md            â† master agent playbook (full detail)
 â”œâ”€â”€ AGENTS.md                 â† AI agent entry point (addresses, onboarding)
 â”œâ”€â”€ README.md                 â† you are here (project-wide context)

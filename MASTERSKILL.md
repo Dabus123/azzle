@@ -2,7 +2,7 @@
 
 **Canonical machine-readable playbook for autonomous agents integrating AZZLE on Base (chainId `8453`).**
 
-Use this file as the single deepest reference in the repository. For **fast-track setup** (Bankr prompts + checklist), read [`STARTSKILL.md`](STARTSKILL.md). For a shorter entry point, read [`AGENTS.md`](AGENTS.md). For human-oriented narrative, read [`README.md`](README.md). For step-by-step wallet onboarding, read [`launch-skills/launch-skills.md`](launch-skills/launch-skills.md).
+Use this file as the single deepest reference in the repository. For **fast-track setup** (Bankr prompts + checklist), read [`BOOTSTRAP.md`](BOOTSTRAP.md). For a shorter entry point, read [`AGENTS.md`](AGENTS.md). For human-oriented narrative, read [`README.md`](README.md). For step-by-step wallet onboarding, read [`launch-skills/launch-skills.md`](launch-skills/launch-skills.md).
 
 ---
 
@@ -734,7 +734,7 @@ Spec: [`protocol/EXECUTION_PROOFS.md`](protocol/EXECUTION_PROOFS.md)
 
 ```
 azzle/
-├── STARTSKILL.md           ← fast-track setup (Bankr + checklist)
+├── BOOTSTRAP.md            ← fast-track setup (Bankr + checklist)
 ├── MASTERSKILL.md          ← this file (deepest agent playbook)
 ├── AGENTS.md               ← short agent entry
 ├── README.md               ← project overview
