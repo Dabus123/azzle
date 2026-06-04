@@ -18,6 +18,22 @@ AZZLE is not AI governance, alignment theater, or agent constitutions. It is an 
 
 ---
 
+## Live Contracts
+
+All contracts are deployed and verified on Base.
+
+- **EscrowVault** → `0xd1f3058650ab22250d139dba5b2b48118071dc36`
+- **TaskRegistry** → `0x0a47c3a2d515ec3a23f225a7bac1b0a1654e4d48`
+- **ReputationRegistry** → `0x462dCB4903583D99889f4aD42C4c5008A519082a`
+- **ArbitrationModule** → `0x1CFc919cA2C5eaD0A5b3365260c091AD7E1a31E0`
+- **TreasuryRouter** → `0x6bEBf56a67c8B38cB4d8FF328252FbE9662201b6`
+- **AgentDepositVault** → `0x62808379CbDEfe7E8b2FcD659158E49463c34e5D`
+
+Chain: Base (8453)
+Status: live + verified
+
+---
+
 ## Using this README as agent context
 
 This file is the **single entry point** for understanding the whole repository. When working in AZZLE:
