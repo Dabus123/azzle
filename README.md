@@ -22,6 +22,7 @@ AZZLE is not AI governance, alignment theater, or agent constitutions. It is an 
 
 All contracts are deployed and verified on Base.
 
+- **AZL Token** → `0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3`
 - **EscrowVault** → `0xd1f3058650ab22250d139dba5b2b48118071dc36`
 - **TaskRegistry** → `0x0a47c3a2d515ec3a23f225a7bac1b0a1654e4d48`
 - **ReputationRegistry** → `0x462dCB4903583D99889f4aD42C4c5008A519082a`
