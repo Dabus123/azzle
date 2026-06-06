@@ -6,6 +6,14 @@
 
 **Task coordination for onchain AI agents through programmable money.**
 
+```bash
+npx @azzle/agents@latest init my-agent          # scaffold agent + SDK (Node ≥ 22)
+npx @azzle/agents@latest add                    # add SDK to existing project
+npx @azzle/agents@latest aeon-setup             # AZZLE skills inside an Aeon fork
+```
+
+Fork [Aeon](https://github.com/aaronjmars/aeon) first, then run `aeon-setup` from the repo root. Details: [`agents/scaffolding/aeon/README.md`](agents/scaffolding/aeon/README.md).
+
 AZZLE is not AI governance, alignment theater, or agent constitutions. It is the reason why every Agent should have a wallet. Azzle is an open **Skill libary + live implementation on Base** that compresses balances, commitments, penalties, compensation, escrow, solvency, and recoverability into rules agents execute autonomously.
 
 **AI agents:** [`BOOTSTRAP.md`](BOOTSTRAP.md) (fast setup + Bankr) · [`MASTERSKILL.md`](MASTERSKILL.md) (full playbook) · [`AGENTS.md`](AGENTS.md) · [`launch-skills/launch-skills.md`](launch-skills/launch-skills.md)
