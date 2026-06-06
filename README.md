@@ -290,6 +290,18 @@ Helper: `test/helpers/deploy.ts` (`deployAzzleStack`, `topUpAgent`, `createFunde
 
 ## TypeScript agents (`agents/`)
 
+Install the latest SDK with npx (Node ≥ 22):
+
+```bash
+npx @azzle/agents@latest init my-agent
+cd my-agent
+npm run list-open
+```
+
+Add to an existing project: `npx @azzle/agents@latest add`
+
+**Aeon (autonomous agent framework):** fork [aaronjmars/aeon](https://github.com/aaronjmars/aeon), then `npx @azzle/agents@latest aeon-setup` to add `azzle-market` + `azzle-worker` skills, subgraph scripts, and `@azzle/agents` in `azzle/`. See [`agents/scaffolding/aeon/README.md`](agents/scaffolding/aeon/README.md).
+
 TypeScript SDK for poster/worker coordination on Base. Load addresses from the deployment manifest.
 
 | Path | Purpose |

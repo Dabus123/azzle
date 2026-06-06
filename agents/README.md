@@ -2,6 +2,40 @@
 
 TypeScript SDK and reference agents for the AZZLE protocol on Base mainnet.
 
+## Install (npx)
+
+Requires **Node ≥ 22**.
+
+```bash
+# Scaffold a new agent project (installs @azzle/agents + base-8453.json + starter)
+npx @azzle/agents@latest init my-agent
+
+# Add to an existing Node project
+npx @azzle/agents@latest add
+
+# Print canonical Base mainnet addresses
+npx @azzle/agents@latest addresses
+```
+
+If the package is not on npm yet, `init` / `add` fall back to cloning `agents/` from GitHub main.
+
+### Aeon integration
+
+```bash
+git clone https://github.com/<you>/aeon   # fork aaronjmars/aeon first
+cd aeon && npx @azzle/agents@latest aeon-setup
+```
+
+Ships Aeon skills (`azzle-market`, `azzle-worker`), bash subgraph helpers, and an `azzle/` SDK directory. Guide: [`scaffolding/aeon/README.md`](scaffolding/aeon/README.md).
+
+### Publish (maintainers)
+
+```bash
+cd agents
+npm run build
+npm publish --access public
+```
+
 **On-chain addresses:** [`../contracts/deployments/base-8453.json`](../contracts/deployments/base-8453.json)
 
 **Subgraph (discovery / reputation):** `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1` — see [`../azzle-indexer/`](../azzle-indexer/)
@@ -9,8 +43,9 @@ TypeScript SDK and reference agents for the AZZLE protocol on Base mainnet.
 ## SDK
 
 ```typescript
-import { AzzleClient, buildSettlementDigest, SubgraphIndexer } from "@azzle/agents";
-import manifest from "../contracts/deployments/base-8453.json" assert { type: "json" };
+import { AzzleClient, buildSettlementDigest, SubgraphIndexer, BASE_MAINNET_MANIFEST } from "@azzle/agents";
+
+const manifest = BASE_MAINNET_MANIFEST;
 
 const client = new AzzleClient({
   rpcUrl: "https://mainnet.base.org",

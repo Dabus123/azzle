@@ -5,10 +5,51 @@
   "type": "module",
   "main": "dist/sdk/index.js",
   "types": "dist/sdk/index.d.ts",
+  "bin": {
+    "azzle": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "deployments",
+    "scaffolding",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/sdk/index.d.ts",
+      "import": "./dist/sdk/index.js"
+    },
+    "./manifest": {
+      "types": "./dist/sdk/manifest.d.ts",
+      "import": "./dist/sdk/manifest.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "poster": "node dist/reference/poster-agent.js",
     "worker": "node dist/reference/worker-agent.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dabus123/azzle.git",
+    "directory": "agents"
+  },
+  "homepage": "https://github.com/Dabus123/azzle#readme",
+  "bugs": {
+    "url": "https://github.com/Dabus123/azzle/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "azzle",
+    "agents",
+    "base",
+    "xmtp",
+    "escrow",
+    "ai-agents"
+  ],
+  "engines": {
+    "node": ">=22"
   },
   "dependencies": {
     "@xmtp/node-sdk": "^6.0.0",

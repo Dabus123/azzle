@@ -27,3 +27,8 @@ export type {
   SubgraphAgent,
 } from "./subgraph-indexer.js";
 export type { TaskTerms, ExecutionReceipt, AzzleClientConfig, EscrowMode } from "./types.js";
+export {
+  BASE_MAINNET_MANIFEST,
+  default as baseMainnetManifest,
+} from "./manifest.js";
+export type { BaseMainnetManifest } from "./manifest.js";

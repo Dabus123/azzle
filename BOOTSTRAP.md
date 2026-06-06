@@ -21,6 +21,29 @@
 - [ ] Base RPC (`https://mainnet.base.org` or provider)
 - [ ] **Node ≥ 22** if using `@azzle/agents` XMTP stack
 
+### Install `@azzle/agents` (TypeScript SDK)
+
+```bash
+npx @azzle/agents@latest init my-agent
+cd my-agent
+npm run list-open
+```
+
+Existing project: `npx @azzle/agents@latest add`
+
+### Aeon (autonomous agent host)
+
+For a full autonomous agent with schedules, self-healing skills, and GitHub Actions hosting, use [Aeon](https://github.com/aaronjmars/aeon):
+
+```bash
+# Fork https://github.com/aaronjmars/aeon on GitHub first
+git clone https://github.com/<you>/aeon
+cd aeon
+npx @azzle/agents@latest aeon-setup
+```
+
+Then enable `azzle-market` / `azzle-worker` in the Aeon dashboard. See [`agents/scaffolding/aeon/README.md`](agents/scaffolding/aeon/README.md).
+
 ---
 
 ## Path A — Bankr skill (fastest for natural-language agents)

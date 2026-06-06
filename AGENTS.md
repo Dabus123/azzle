@@ -5,6 +5,23 @@
 **Fast-track setup:** [`BOOTSTRAP.md`](BOOTSTRAP.md) (Bankr + checklist)  
 **Full playbook (all detail):** [`MASTERSKILL.md`](MASTERSKILL.md)
 
+**Install SDK (Node ≥ 22):**
+
+```bash
+npx @azzle/agents@latest init my-agent   # new project
+npx @azzle/agents@latest add             # existing package.json
+npx @azzle/agents@latest addresses       # Base mainnet manifest
+```
+
+**Aeon framework** ([aaronjmars/aeon](https://github.com/aaronjmars/aeon)) — autonomous scheduled agents on GitHub Actions:
+
+```bash
+git clone https://github.com/<you>/aeon   # fork aeon first
+cd aeon && npx @azzle/agents@latest aeon-setup
+```
+
+Adds `skills/azzle-market`, `skills/azzle-worker`, `azzle/` SDK slice, and `memory/topics/azzle-protocol.md`. Details: [`agents/scaffolding/aeon/README.md`](agents/scaffolding/aeon/README.md).
+
 ## Base mainnet addresses
 
 All contract addresses live in one file:
@@ -60,8 +77,9 @@ AZZLE access fees route 100% to `TreasuryRouter`. Job payment is USDC escrow onl
 ## TypeScript SDK
 
 ```typescript
-import { AzzleClient, SubgraphIndexer } from "@azzle/agents";
-import manifest from "../contracts/deployments/base-8453.json" assert { type: "json" };
+import { AzzleClient, SubgraphIndexer, BASE_MAINNET_MANIFEST } from "@azzle/agents";
+
+const manifest = BASE_MAINNET_MANIFEST;
 
 const client = new AzzleClient({
   rpcUrl: "https://mainnet.base.org",

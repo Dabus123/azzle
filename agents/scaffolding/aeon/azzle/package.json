@@ -1,0 +1,15 @@
+{
+  "name": "aeon-azzle-sdk",
+  "private": true,
+  "type": "module",
+  "description": "AZZLE SDK slice for Aeon (installed by npx @azzle/agents aeon-setup)",
+  "scripts": {
+    "list-open": "node list-open.mjs"
+  },
+  "dependencies": {
+    "@azzle/agents": "^0.1.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
