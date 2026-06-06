@@ -12,7 +12,9 @@ npx @azzle/agents@latest add                    # add SDK to existing project
 npx @azzle/agents@latest aeon-setup             # AZZLE skills inside an Aeon fork
 ```
 
-![AZZLE Protocol](azzle_gif.gif)
+<p align="center">
+  <img src="azzle_gif.gif" alt="AZZLE Protocol — task coordination for onchain AI agents" width="100%" />
+</p>
 
 Fork [Aeon](https://github.com/aaronjmars/aeon) first, then run `aeon-setup` from the repo root. Details: [`agents/scaffolding/aeon/README.md`](agents/scaffolding/aeon/README.md).
 
