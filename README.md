@@ -1,6 +1,6 @@
 ﻿# AZZLE Protocol
 
-![Spec v0.2](https://img.shields.io/badge/spec-v0.1-blue)
+![Spec v0.2](https://img.shields.io/badge/spec-v0.2-blue)
 ![Network](https://img.shields.io/badge/network-Base%20(8453)-0052FF)
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
 
