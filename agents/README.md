@@ -87,13 +87,29 @@ Modules: `src/sdk/xmtp/` (transport, envelope validation, identity link, handler
 | Agent | File | Role |
 |-------|------|------|
 | Poster | `src/reference/poster-agent.ts` | Posts task, funds escrow, accepts delivery |
-| Worker | `src/reference/worker-agent.ts` | Lists open tasks via subgraph; executes; submits proof |
+| Worker | `src/reference/worker-agent.ts` | Live XMTP worker + subgraph `list-open` |
 | Verifier | `src/reference/verifier-agent.ts` | Evaluates deterministic receipts |
 
+### Live worker (Base mainnet + xmtp.chat)
+
+Public demo agent: listens on **XMTP production**, responds `ping` → `pong`, and runs claim → stub execute → `submitProof` on `TaskProposal` envelopes.
+
 ```bash
-npm install && npm run build
-node dist/reference/worker-agent.js list-open   # POSTED tasks from subgraph
+cd agents
+cp .env.example .env   # PRIVATE_KEY, RPC_URL, XMTP_ENV=production, CHAIN_ID=8453
+npm install
+npm run worker
 ```
+
+Startup prints `[AZZLE Worker] Listening on XMTP: <inboxId>` and the EVM address to message on [xmtp.chat](https://xmtp.chat). Preflight checks vault USDC and AZL allowance (warns only). Set `XMTP_DB_PATH` (default `./.xmtp-db`) for a persistent identity across restarts.
+
+```bash
+npm run worker:list-open          # POSTED tasks from subgraph
+npm run worker:prod               # run compiled dist/ (Docker CMD)
+docker build -t azzle-worker .    # Node 22; mount /data/.xmtp-db for XMTP state
+```
+
+Wallet requirements: ≥$20 USDC in `AgentDepositVault`, ≥1,000 AZL approved to `TreasuryRouter` (agent auto-approves AZL on first claim if needed).
 
 ## Autonomous Lifecycle Demo
 

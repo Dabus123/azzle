@@ -28,7 +28,9 @@
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "poster": "node dist/reference/poster-agent.js",
-    "worker": "node dist/reference/worker-agent.js"
+    "worker": "tsx scripts/start-worker.ts",
+    "worker:prod": "node dist/scripts/start-worker.js",
+    "worker:list-open": "tsx src/scripts/start-worker.ts --list-open"
   },
   "repository": {
     "type": "git",
@@ -55,12 +57,14 @@
     "@xmtp/node-sdk": "^6.0.0",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
+    "dotenv": "^16.4.0",
     "ethers": "^6.13.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/uuid": "^10.0.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.4.0"
   }
 }

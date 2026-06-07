@@ -1,8 +1,11 @@
 /**
- * Reference worker agent — discovers POSTED tasks via subgraph, executes work, submits proof.
+ * Reference worker agent — subgraph discovery, demo execution, and live XMTP worker.
  */
 import { buildExecutionReceipt } from "../sdk/receipt.js";
 import { SubgraphIndexer } from "../sdk/subgraph-indexer.js";
+
+export { startLiveWorker, LiveWorkerService } from "./live-worker.js";
+export type { LiveWorkerConfig, LiveWorkerRuntime } from "./live-worker.js";
 
 /** List claimable tasks from the public Azzle subgraph (no self-hosted indexer). */
 export async function listOpenTasks(subgraphUrl?: string) {
@@ -36,7 +39,12 @@ export async function runWorkerAgent(params: {
   return receipt;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isDirectRun =
+  typeof process.argv[1] === "string" &&
+  (process.argv[1].endsWith("worker-agent.js") ||
+    process.argv[1].endsWith("worker-agent.ts"));
+
+if (isDirectRun) {
   const cmd = process.argv[2];
   if (cmd === "list-open") {
     listOpenTasks(process.env.AZZLE_SUBGRAPH_URL)

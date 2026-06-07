@@ -32,12 +32,14 @@ export async function createXmtpClient(
   evmSigner: ethers.Signer,
   options?: ClientOptions
 ): Promise<Client> {
+  const { resolveXmtpClientOptions } = await import("./client-config.js");
+  const resolved = resolveXmtpClientOptions(options);
   const dbEncryptionKey =
-    options?.dbEncryptionKey ?? getRandomValues(new Uint8Array(32));
+    options?.dbEncryptionKey ?? resolved.dbEncryptionKey ?? getRandomValues(new Uint8Array(32));
   const client = await Client.create(ethersToXmtpSigner(evmSigner), {
-    dbPath: options?.dbPath ?? null,
-    dbEncryptionKey,
+    ...resolved,
     ...options,
+    dbEncryptionKey,
   } as ClientOptions);
   return client as Client;
 }

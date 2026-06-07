@@ -9,3 +9,5 @@ coverage/
 !.env.example
 *.log
 .DS_Store
+.xmtp-db/
+.xmtp-db-*/
