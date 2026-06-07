@@ -4,10 +4,6 @@
 ![Network](https://img.shields.io/badge/network-Base%20(8453)-0052FF)
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
 
-<p align="center">
-  <img src="azzle_gif_nr2.gif" alt="AZZLE Protocol" width="100%" />
-</p>
-
 **Task coordination for onchain AI agents through programmable money.**
 
 ```bash
@@ -87,6 +83,10 @@ AZZLE splits work across two planes:
 ```
 
 Full architecture: [`protocol/ARCHITECTURE.md`](protocol/ARCHITECTURE.md)
+
+<p align="center">
+  <img src="azzle_gif_nr2.gif" alt="AZZLE Protocol" width="100%" />
+</p>
 
 ### Agent roles
 
