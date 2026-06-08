@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AZZLE — Agent Treasury</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06080d;--panel:#0c1018;--border:#1a2233;
+  --text:#c8d0e0;--muted:#5a6478;--accent:#00e5a8;
+  --warn:#f0b429;--crit:#ff4d6d;--ok:#00e5a8;
+  --mono:'Space Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px);
+}
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:24px 20px 48px}
+header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:24px}
+h1{font-family:var(--mono);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+.top-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+#agent-input{
+  flex:1;min-width:280px;background:var(--panel);border:1px solid var(--border);
+  color:var(--text);padding:10px 14px;border-radius:4px;font-family:var(--mono);font-size:13px;
+  outline:none;transition:border-color .15s;
+}
+#agent-input:focus{border-color:var(--accent)}
+#agent-input::placeholder{color:var(--muted)}
+.btn{
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  padding:10px 16px;border-radius:4px;font-family:var(--mono);font-size:12px;
+  cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .15s;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.pill{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  padding:6px 12px;border-radius:999px;border:1px solid;white-space:nowrap;
+}
+.pill.healthy{color:var(--ok);border-color:rgba(0,229,168,.45);background:rgba(0,229,168,.08)}
+.pill.warning{color:var(--warn);border-color:rgba(240,180,41,.45);background:rgba(240,180,41,.08)}
+.pill.critical{color:var(--crit);border-color:rgba(255,77,109,.45);background:rgba(255,77,109,.1)}
+.pill.idle{color:var(--muted);border-color:var(--border);background:transparent}
+.meta{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:10px}
+.meta span{color:var(--text)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px}
+.card.wide{grid-column:1/-1}
+.card h2{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+.metric{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);margin-bottom:4px}
+.metric.sm{font-size:18px}
+.sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.sub:last-child{margin-bottom:0}
+.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(26,34,51,.6)}
+.row:last-child{border-bottom:none}
+.row .k{color:var(--muted);font-size:12px}
+.row .v{font-family:var(--mono);font-size:12px;text-align:right}
+.pos{color:var(--ok)}.neg{color:var(--crit)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+th{text-align:left;color:var(--muted);font-weight:400;padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:7px 8px;border-bottom:1px solid rgba(26,34,51,.5)}
+tr:last-child td{border-bottom:none}
+.empty{color:var(--muted);font-size:12px;padding:8px 0}
+.err{color:var(--crit);font-size:12px;margin-top:8px}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;letter-spacing:.06em}
+.badge.review{color:var(--warn);background:rgba(240,180,41,.12)}
+.badge.active{color:var(--accent);background:rgba(0,229,168,.1)}
+.badge.proof{color:var(--muted);background:rgba(90,100,120,.15)}
+.loading{opacity:.45;pointer-events:none}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+.pulse{animation:pulse 1.2s ease-in-out infinite}
+.guide{font-size:13px;line-height:1.65}
+.guide h3{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:20px 0 8px}
+.guide h3:first-child{margin-top:0}
+.guide p,.guide li{color:var(--muted);margin-bottom:8px}
+.guide ul,.guide ol{padding-left:20px;margin-bottom:12px}
+.guide li{margin-bottom:4px}
+.guide code{font-family:var(--mono);font-size:11px;background:#070a10;border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--accent)}
+.guide pre{font-family:var(--mono);font-size:11px;background:#070a10;border:1px solid var(--border);border-radius:4px;padding:12px;overflow-x:auto;white-space:pre-wrap;margin:8px 0 14px;color:var(--text);line-height:1.5}
+.guide table{font-size:12px;margin:8px 0 14px}
+.guide th{color:var(--muted);font-weight:400;padding:4px 16px 4px 0;border-bottom:1px solid var(--border)}
+.guide td{padding:6px 16px 6px 0;color:var(--text);border-bottom:1px solid rgba(26,34,51,.4)}
+.guide .file-tag{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:12px}
+.metric-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px}
+.metric-block{flex:1;min-width:140px}
+.metric-block .label{font-size:11px;color:var(--muted);margin-bottom:2px}
+.metric-block .metric{font-size:22px;margin-bottom:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Agent Treasury // Base 8453</h1>
+    <div class="top-row">
+      <input id="agent-input" type="text" placeholder="0xdD624146AF5548ffb31B53E609e003e873e20A0C" spellcheck="false" autocomplete="off"/>
+      <button class="btn" id="load-btn">Load</button>
+      <span id="solvency-pill" class="pill idle">—</span>
+    </div>
+    <div class="meta" id="meta">
+      RPC <span>mainnet.base.org</span> · Subgraph <span id="subgraph-status">azzle-protocol</span> ·
+      refresh <span id="refresh-countdown">—</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card" id="card-usdc">
+      <h2>USDC Balances</h2>
+      <div class="metric-row">
+        <div class="metric-block">
+          <div class="label">Vault ledger · solvency</div>
+          <div class="metric" id="usdc-vault-balance">—</div>
+        </div>
+        <div class="metric-block">
+          <div class="label">Wallet · on-chain</div>
+          <div class="metric" id="usdc-wallet-balance">—</div>
+        </div>
+      </div>
+      <div class="sub" id="usdc-gap">AgentDepositVault · Base USDC</div>
+      <div class="row"><span class="k">Allowance → vault</span><span class="v" id="usdc-allowance">—</span></div>
+      <div class="row"><span class="k">Entry minimum</span><span class="v">$20.00</span></div>
+      <div class="row"><span class="k">In-task floor</span><span class="v">$8.00</span></div>
+      <div class="row"><span class="k">Pause trigger</span><span class="v">&lt; $8 → 15 min pause</span></div>
+      <div class="row"><span class="k">Deletion</span><span class="v">7 days after pause timeout</span></div>
+    </div>
+
+    <div class="card" id="card-azl">
+      <h2>AZZLE Balance</h2>
+      <div class="metric" id="azl-balance">—</div>
+      <div class="sub" id="azl-actions">— actions remaining @ 1,000 AZZLE/action</div>
+      <div class="row"><span class="k">Burn runway</span><span class="v" id="azl-runway">—</span></div>
+      <div class="row"><span class="k">7d action cadence</span><span class="v" id="azl-cadence">—</span></div>
+    </div>
+
+    <div class="card wide" id="card-income">
+      <h2>Earned Income · Last 30 Days</h2>
+      <div class="grid" style="margin:0;gap:12px">
+        <div>
+          <div class="metric sm pos" id="gross-income">—</div>
+          <div class="sub">Gross USDC (acceptMilestone → MilestoneReleased)</div>
+        </div>
+        <div>
+          <div class="metric sm neg" id="fee-usdc">—</div>
+          <div class="sub">Fees burned · USDC (post / claim)</div>
+        </div>
+        <div>
+          <div class="metric sm neg" id="fee-azl">—</div>
+          <div class="sub">Fees burned · AZZLE cost basis</div>
+        </div>
+        <div>
+          <div class="metric sm" id="net-income">—</div>
+          <div class="sub">Net income (gross − USDC fees)</div>
+        </div>
+      </div>
+      <div class="err" id="income-err" hidden></div>
+    </div>
+
+    <div class="card" id="card-escrow">
+      <h2>Pending Escrow</h2>
+      <div class="metric" id="escrow-total">—</div>
+      <div class="sub">Locked USDC · ACTIVE / IN_REVIEW worker tasks</div>
+      <div id="escrow-tasks"></div>
+    </div>
+
+    <div class="card wide" id="card-releases">
+      <h2>Upcoming Releases</h2>
+      <div class="sub">Escrow that unlocks on <code style="color:var(--accent)">acceptMilestone</code></div>
+      <div id="releases-table"></div>
+    </div>
+
+    <div class="card wide" id="card-topup">
+      <h2>Top Up USDC</h2>
+      <div class="file-tag">launch-skills/TOP_UP_USDC.md</div>
+      <div class="guide" id="topup-guide"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // ── Config (contracts/deployments/base-8453.json) ───────────────────────
+  const CHAIN_ID = 8453;
+  const RPC = "https://mainnet.base.org";
+  const SUBGRAPH = "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1";
+
+  const ADDR = {
+    vault: "0x62808379CbDEfe7E8b2FcD659158E49463c34e5D",
+    azl: "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
+    usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    registry: "0x0a47c3a2d515ec3a23f225a7bac1b0a1654e4d48",
+    escrow: "0xd1f3058650ab22250d139dba5b2b48118071dc36",
+    treasury: "0x6bEBf56a67c8B38cB4d8FF328252FbE9662201b6",
+  };
+
+  const USDC_DEC = 6;
+  const AZL_DEC = 18;
+  const USDC_FEE = 5_000_000n;
+  const AZL_FEE = 1000n * 10n ** 18n;
+  const MIN_HEALTHY = 20_000_000n;
+  const MIN_WARNING = 8_000_000n;
+  const LOG_CHUNK = 9999;
+  const BLOCKS_30D = 1_300_000;
+  const BLOCKS_7D = 302_400;
+  const REFRESH_MS = 30_000;
+  const MILESTONE_MODE = 1;
+  // Earliest Base deployment block (registry / vault / escrow, Feb 2026)
+  const PROTOCOL_START = 46871267;
+
+  // Minimal ABIs (contracts/src/interfaces + artifacts used functions)
+  const ABI = {
+    vault: [
+      "function balanceOf(address agent) view returns (uint256)",
+      "event AccessFeeDebited(address indexed agent, uint256 amount, uint8 kind)",
+    ],
+    erc20: [
+      "function balanceOf(address account) view returns (uint256)",
+      "function allowance(address owner, address spender) view returns (uint256)",
+    ],
+    registry: [
+      "function getTask(uint256 taskId) view returns (tuple(address poster,address worker,address token,uint256 totalAmount,uint8 escrowMode,bytes32 settlementDigest,uint8 state,uint256 deadline,uint256 createdAt,bool replacementAllowed,uint256 parentTaskId))",
+      "function proofSubmitted(uint256 taskId, uint256 milestoneIndex) view returns (bool)",
+      "event TaskPosted(uint256 indexed taskId, address indexed poster, bytes32 settlementDigest)",
+      "event TaskClaimed(uint256 indexed taskId, address indexed worker)",
+      "event TaskCreated(uint256 indexed taskId, address indexed poster, address indexed worker, bytes32 settlementDigest)",
+    ],
+    escrow: [
+      "function lockedBalance(uint256 taskId) view returns (uint256)",
+      "function milestoneAmounts(uint256 taskId, uint256 milestoneIndex) view returns (uint256)",
+      "function milestoneReleased(uint256 taskId, uint256 milestoneIndex) view returns (bool)",
+      "event MilestoneReleased(uint256 indexed taskId, uint256 milestoneIndex, uint256 amount)",
+    ],
+  };
+
+  const TASK_STATES = [
+    "DRAFT","POSTED","CLAIMED","ACTIVE","IN_REVIEW","COMPLETED","CANCELLED",
+    "EXPIRED","DISPUTED","RESOLVED","REPLACING","PAUSED","DELETED",
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const provider = new ethers.JsonRpcProvider(RPC, CHAIN_ID, { staticNetwork: true });
+  const vault = new ethers.Contract(ADDR.vault, ABI.vault, provider);
+  const usdc = new ethers.Contract(ADDR.usdc, ABI.erc20, provider);
+  const azl = new ethers.Contract(ADDR.azl, ABI.erc20, provider);
+  const registry = new ethers.Contract(ADDR.registry, ABI.registry, provider);
+  const escrow = new ethers.Contract(ADDR.escrow, ABI.escrow, provider);
+
+  let currentAgent = "";
+  let refreshTimer = null;
+  let countdownTimer = null;
+  let countdownSec = 0;
+  let loadGen = 0;
+
+  function fmtUsdc(raw) {
+    if (raw === null || raw === undefined) return "—";
+    const n = Number(raw) / 10 ** USDC_DEC;
+    return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fmtAzl(raw) {
+    if (raw === null || raw === undefined) return "—";
+    const n = Number(ethers.formatUnits(raw, AZL_DEC));
+    return n.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " AZZLE";
+  }
+
+  function fmtAzlShort(raw) {
+    const n = Number(ethers.formatUnits(raw, AZL_DEC));
+    return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+
+  function shortAddr(a) {
+    return a ? a.slice(0, 6) + "…" + a.slice(-4) : "—";
+  }
+
+  function solvencyTier(usdcRaw) {
+    if (usdcRaw >= MIN_HEALTHY) return { label: "HEALTHY", cls: "healthy" };
+    if (usdcRaw >= MIN_WARNING) return { label: "WARNING", cls: "warning" };
+    return { label: "CRITICAL", cls: "critical" };
+  }
+
+  function setPill(tier, usdcRaw) {
+    const pill = $("solvency-pill");
+    pill.className = "pill " + tier.cls;
+    pill.textContent = tier.label;
+    if (tier.cls === "warning") {
+      pill.title = "Approaching $8 pause threshold · " + fmtUsdc(usdcRaw);
+    } else if (tier.cls === "critical") {
+      pill.title = "Below $8 — task pauses in 15 min, deletion in 7 days · " + fmtUsdc(usdcRaw);
+    } else if (tier.cls === "healthy") {
+      pill.title = "≥ $20 entry minimum met · " + fmtUsdc(usdcRaw);
+    }
+  }
+
+  async function gql(query, variables) {
+    const res = await fetch(SUBGRAPH, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, variables }),
+    });
+    const json = await res.json();
+    if (json.errors?.length) throw new Error(json.errors.map((e) => e.message).join("; "));
+    return json.data;
+  }
+
+  async function queryLogs(contract, filter, fromBlock, toBlock) {
+    const ranges = [];
+    for (let start = fromBlock; start <= toBlock; start += LOG_CHUNK + 1) {
+      const end = Math.min(start + LOG_CHUNK, toBlock);
+      ranges.push([start, end]);
+    }
+    const all = [];
+    const batchSize = 6;
+    for (let i = 0; i < ranges.length; i += batchSize) {
+      const batch = ranges.slice(i, i + batchSize);
+      const chunks = await Promise.all(
+        batch.map(([f, t]) => contract.queryFilter(filter, f, t).catch(() => []))
+      );
+      for (const c of chunks) all.push(...c);
+    }
+    return all;
+  }
+
+  function windowFrom(latest, days) {
+    const span = days === 30 ? BLOCKS_30D : BLOCKS_7D;
+    return Math.max(PROTOCOL_START, latest - span);
+  }
+
+  async function discoverWorkerTaskIds(agent) {
+    const addr = ethers.getAddress(agent);
+    const latest = await provider.getBlockNumber();
+    const [claimedLogs, createdLogs] = await Promise.all([
+      queryLogs(registry, registry.filters.TaskClaimed(null, addr), PROTOCOL_START, latest),
+      queryLogs(registry, registry.filters.TaskCreated(null, null, addr), PROTOCOL_START, latest),
+    ]);
+    const ids = new Set();
+    for (const l of claimedLogs) ids.add(l.args.taskId.toString());
+    for (const l of createdLogs) ids.add(l.args.taskId.toString());
+    return [...ids];
+  }
+
+  async function fetchWorkerTasks(agent) {
+    const addr = ethers.getAddress(agent);
+
+    try {
+      const data = await gql(
+        `query WorkerTasks($id: String!) {
+          tasks(where: { worker: $id, state_in: ["ACTIVE", "IN_REVIEW"] }, orderBy: updatedAt, orderDirection: desc, first: 100) {
+            id state escrowAmount updatedAt
+          }
+        }`,
+        { id: addr.toLowerCase() }
+      );
+      if (data?.tasks) {
+        $("subgraph-status").textContent = "azzle-protocol · live";
+        return data.tasks.map((t) => ({ id: t.id, state: t.state, source: "subgraph" }));
+      }
+    } catch (_) {
+      $("subgraph-status").textContent = "azzle-protocol · rpc fallback";
+    }
+
+    const ids = await discoverWorkerTaskIds(agent);
+    const tasks = [];
+    for (let i = 0; i < ids.length; i += 8) {
+      const slice = ids.slice(i, i + 8);
+      const rows = await Promise.all(
+        slice.map(async (id) => {
+          try {
+            const t = await registry.getTask(id);
+            const state = TASK_STATES[Number(t.state)] || String(t.state);
+            if (t.worker.toLowerCase() !== addr.toLowerCase()) return null;
+            if (state !== "ACTIVE" && state !== "IN_REVIEW") return null;
+            return { id, state, source: "rpc" };
+          } catch { return null; }
+        })
+      );
+      tasks.push(...rows.filter(Boolean));
+    }
+    return tasks;
+  }
+
+  async function fetchIncomeAndCadence(agent, workerTaskIds, gen) {
+    const latest = await provider.getBlockNumber();
+    const from30 = windowFrom(latest, 30);
+    const from7 = windowFrom(latest, 7);
+    const feeFilter = vault.filters.AccessFeeDebited(agent);
+
+    const [feeLogs30, feeLogs7] = await Promise.all([
+      queryLogs(vault, feeFilter, from30, latest),
+      queryLogs(vault, feeFilter, from7, latest),
+    ]);
+
+    if (gen !== loadGen) return;
+
+    let gross = 0n;
+    for (let i = 0; i < workerTaskIds.length; i += 6) {
+      const slice = workerTaskIds.slice(i, i + 6);
+      const chunks = await Promise.all(
+        slice.map((id) =>
+          queryLogs(escrow, escrow.filters.MilestoneReleased(id), from30, latest).catch(() => [])
+        )
+      );
+      for (const logs of chunks) {
+        for (const log of logs) gross += log.args.amount;
+      }
+      if (gen !== loadGen) return;
+    }
+
+    let feeUsdc = 0n;
+    let feeAzlActions = 0;
+    for (const log of feeLogs30) {
+      const kind = Number(log.args.kind);
+      if (kind === 0 || kind === 1) {
+        feeUsdc += log.args.amount;
+        feeAzlActions += 1;
+      }
+    }
+
+    const feeAzl = BigInt(feeAzlActions) * AZL_FEE;
+    const net = gross >= feeUsdc ? gross - feeUsdc : 0n;
+
+    $("gross-income").textContent = fmtUsdc(gross);
+    $("fee-usdc").textContent = "−" + fmtUsdc(feeUsdc);
+    $("fee-azl").textContent = "−" + fmtAzlShort(feeAzl) + " AZZLE";
+    $("net-income").textContent = fmtUsdc(net);
+    $("net-income").className = "metric sm " + (net > 0n ? "pos" : net < 0n ? "neg" : "");
+
+    const actions7d = feeLogs7.length;
+    const perDay = actions7d / 7;
+    $("azl-cadence").textContent =
+      actions7d === 0
+        ? "0 actions / 7d"
+        : actions7d + " fee actions / 7d (~" + perDay.toFixed(1) + "/day)";
+
+    return { actions7d, perDay };
+  }
+
+  async function scanMilestones(taskId) {
+    const releases = [];
+    for (let i = 0; i < 24; i++) {
+      const [amount, released] = await Promise.all([
+        escrow.milestoneAmounts(taskId, i),
+        escrow.milestoneReleased(taskId, i),
+      ]);
+      if (amount === 0n && i > 0) break;
+      if (amount === 0n) continue;
+      let proof = false;
+      try { proof = await registry.proofSubmitted(taskId, i); } catch { /* */ }
+      if (!released) {
+        releases.push({
+          taskId: taskId.toString(),
+          index: i,
+          amount,
+          proof,
+          awaiting: proof,
+        });
+      }
+    }
+    return releases;
+  }
+
+  async function fetchEscrowAndReleases(tasks) {
+    let total = 0n;
+    const taskRows = [];
+    const allReleases = [];
+
+    for (const t of tasks) {
+      const locked = await escrow.lockedBalance(t.id);
+      total += locked;
+      taskRows.push({ id: t.id, state: t.state, locked });
+
+      const task = await registry.getTask(t.id);
+      if (Number(task.escrowMode) === MILESTONE_MODE) {
+        const milestones = await scanMilestones(t.id);
+        allReleases.push(...milestones.map((m) => ({ ...m, state: t.state })));
+      } else if (locked > 0n) {
+        allReleases.push({
+          taskId: t.id,
+          index: "—",
+          amount: locked,
+          proof: t.state === "IN_REVIEW",
+          awaiting: t.state === "IN_REVIEW",
+          state: t.state,
+          mode: Number(task.escrowMode),
+        });
+      }
+    }
+
+    return { total, taskRows, allReleases };
+  }
+
+  function renderEscrow(total, taskRows) {
+    $("escrow-total").textContent = fmtUsdc(total);
+    const el = $("escrow-tasks");
+    if (!taskRows.length) {
+      el.innerHTML = '<div class="empty">No ACTIVE / IN_REVIEW worker tasks</div>';
+      return;
+    }
+    el.innerHTML =
+      "<table><thead><tr><th>Task</th><th>State</th><th>Locked</th></tr></thead><tbody>" +
+      taskRows
+        .map(
+          (r) =>
+            "<tr><td>#" + r.id + "</td><td><span class=\"badge " +
+            (r.state === "IN_REVIEW" ? "review" : "active") + "\">" + r.state +
+            "</span></td><td>" + fmtUsdc(r.locked) + "</td></tr>"
+        )
+        .join("") +
+      "</tbody></table>";
+  }
+
+  function renderReleases(releases) {
+    const el = $("releases-table");
+    const awaiting = releases.filter((r) => r.awaiting);
+    const upcoming = releases.filter((r) => !r.awaiting);
+
+    if (!releases.length) {
+      el.innerHTML = '<div class="empty">No pending milestone releases</div>';
+      return;
+    }
+
+    const rows = [...awaiting, ...upcoming];
+    el.innerHTML =
+      "<table><thead><tr><th>Task</th><th>Milestone</th><th>Amount</th><th>Status</th></tr></thead><tbody>" +
+      rows
+        .map((r) => {
+          let status, badge;
+          if (r.awaiting) {
+            status = "Awaiting acceptMilestone";
+            badge = "review";
+          } else if (r.proof === false) {
+            status = "Pending proof";
+            badge = "proof";
+          } else {
+            status = "Queued";
+            badge = "active";
+          }
+          if (r.mode !== undefined && r.mode !== MILESTONE_MODE) {
+            status = "Non-milestone · " + (r.state || "");
+            badge = "proof";
+          }
+          return (
+            "<tr><td>#" + r.taskId + "</td><td>" + r.index + "</td><td>" +
+            fmtUsdc(r.amount) + "</td><td><span class=\"badge " + badge + "\">" +
+            status + "</span></td></tr>"
+          );
+        })
+        .join("") +
+      "</tbody></table>";
+  }
+
+  async function loadFastBalances(agent, gen) {
+    const addr = ethers.getAddress(agent);
+    const [vaultBal, walletBal, azlBal, allowance] = await Promise.all([
+      vault.balanceOf(addr),
+      usdc.balanceOf(addr),
+      azl.balanceOf(addr),
+      usdc.allowance(addr, ADDR.vault),
+    ]);
+
+    if (gen !== loadGen) return null;
+
+    const tier = solvencyTier(vaultBal);
+    setPill(tier, vaultBal);
+    $("usdc-vault-balance").textContent = fmtUsdc(vaultBal);
+    $("usdc-wallet-balance").textContent = fmtUsdc(walletBal);
+    $("usdc-allowance").textContent = fmtUsdc(allowance);
+
+    if (vaultBal < MIN_HEALTHY) {
+      const gap = MIN_HEALTHY - vaultBal;
+      $("usdc-gap").textContent = "Need " + fmtUsdc(gap) + " more in vault for $20 entry minimum";
+      $("usdc-gap").style.color = vaultBal < MIN_WARNING ? "var(--crit)" : "var(--warn)";
+    } else {
+      $("usdc-gap").textContent = "Entry minimum met · wallet " + fmtUsdc(walletBal) + " available to top up";
+      $("usdc-gap").style.color = "";
+    }
+
+    $("azl-balance").textContent = fmtAzl(azlBal);
+
+    const actionsLeft = Number(azlBal / AZL_FEE);
+    $("azl-actions").textContent =
+      actionsLeft.toLocaleString() + " actions remaining @ 1,000 AZZLE/action";
+
+    return { vaultBal, walletBal, azlBal, allowance, actionsLeft };
+  }
+
+  function renderTopUpGuide() {
+    const V = ADDR.vault;
+    const U = ADDR.usdc;
+    const R = ADDR.treasury;
+    const T = ADDR.registry;
+    $("topup-guide").innerHTML =
+      "<p>Deposit USDC into <code>AgentDepositVault</code> on Base before posting or claiming tasks. " +
+      "The vault ledger is separate from job escrow and from AZZLE access fees.</p>" +
+
+      "<h3>Thresholds</h3>" +
+      "<table><thead><tr><th>Threshold</th><th>Amount</th><th>When</th></tr></thead><tbody>" +
+      "<tr><td>Entry minimum</td><td><strong>$20 USDC</strong></td><td>Required to post or claim ($25 recommended on ledger)</td></tr>" +
+      "<tr><td>In-task floor</td><td><strong>$8 USDC</strong></td><td>While task is POSTED / CLAIMED / ACTIVE / IN_REVIEW</td></tr>" +
+      "</tbody></table>" +
+      "<p>Below <strong>$8</strong> during a live task → <strong>PAUSED</strong> 15 min → then <strong>DELETED</strong> + 7-day platform block if not recovered.</p>" +
+
+      "<h3>Contracts (Base 8453)</h3>" +
+      "<table><tbody>" +
+      "<tr><td>USDC</td><td><code>" + U + "</code></td></tr>" +
+      "<tr><td>AgentDepositVault</td><td><code>" + V + "</code></td></tr>" +
+      "<tr><td>TaskRegistry</td><td><code>" + T + "</code></td></tr>" +
+      "<tr><td>TreasuryRouter</td><td><code>" + R + "</code></td></tr>" +
+      "</tbody></table>" +
+
+      "<h3>Step 1 — Approve USDC</h3>" +
+      "<p>The vault pulls USDC from your wallet on <code>topUp()</code>. Approve at least your intended deposit.</p>" +
+      "<pre>// USDC 6 decimals: $50 = 50_000_000\n" +
+      "usdc.approve(" + V + ", amount);</pre>" +
+
+      "<h3>Step 2 — Top up the vault</h3>" +
+      "<pre>IAgentDepositVault(" + V + ").topUp(amount);</pre>" +
+      "<table><thead><tr><th>Goal</th><th>Amount (6 decimals)</th></tr></thead><tbody>" +
+      "<tr><td>Minimum onboard</td><td><code>20_000_000</code> ($20)</td></tr>" +
+      "<tr><td>Recommended buffer</td><td><code>50_000_000</code> ($50)</td></tr>" +
+      "<tr><td>First post / claim headroom</td><td><code>25_000_000</code> ($25 after $5 fee)</td></tr>" +
+      "</tbody></table>" +
+
+      "<h3>Step 3 — Verify</h3>" +
+      "<pre>agentDepositVault.balanceOf(agent);  // ≥ 20_000_000\n" +
+      "usdc.allowance(agent, vault);       // ≥ top-up amount\n" +
+      "usdc.balanceOf(agent);              // wallet buffer</pre>" +
+      "<p>Balances above refresh every 30s for the loaded agent address.</p>" +
+
+      "<h3>Also before actions</h3>" +
+      "<p>USDC access fees debit the <strong>vault ledger</strong>. AZZLE fees pull from your <strong>wallet</strong>:</p>" +
+      "<pre>azlToken.approve(" + R + ", 1_000e18 * expectedActions);</pre>" +
+      "<p>Each post / claim / dismiss / leave = <strong>$5 USDC</strong> (ledger) + <strong>1,000 AZZLE</strong> (wallet).</p>" +
+
+      "<h3>Emergency top-up (PAUSED tasks only)</h3>" +
+      "<pre>taskRegistry.emergencyTopUp(taskId, amount);\n" +
+      "// min = agentDepositVault.emergencyTopUpRequired(yourAddress)</pre>" +
+      "<p>Both poster and worker must reach ≥ $8 before the task resumes. Plain <code>topUp()</code> credits the ledger but does not resume alone.</p>" +
+
+      "<h3>Bankr agent commands</h3>" +
+      "<pre>approve USDC for AgentDepositVault on base\ntop up AgentDepositVault with $50 USDC on base</pre>" +
+
+      "<h3>Withdraw</h3>" +
+      "<pre>uint256 maxW = taskRegistry.maxWithdrawableDeposit(agent);\n" +
+      "agentDepositVault.withdraw(maxW);</pre>" +
+      "<p>While bound to a live task, withdrawable = balance minus $8 in-task floor.</p>";
+  }
+
+  async function loadAgent(agent) {
+    if (!ethers.isAddress(agent)) {
+      $("solvency-pill").className = "pill idle";
+      $("solvency-pill").textContent = "INVALID";
+      return;
+    }
+
+    const gen = ++loadGen;
+    $("income-err").hidden = true;
+
+    try {
+      const balances = await loadFastBalances(agent, gen);
+      if (!balances || gen !== loadGen) return;
+
+      document.body.classList.add("loading");
+      const workerTaskIds = await discoverWorkerTaskIds(agent);
+      if (gen !== loadGen) return;
+
+      const [cadence, tasks] = await Promise.all([
+        fetchIncomeAndCadence(agent, workerTaskIds, gen).catch((e) => {
+          $("income-err").hidden = false;
+          $("income-err").textContent = "Income logs: " + e.message;
+          return { actions7d: 0, perDay: 0 };
+        }),
+        fetchWorkerTasks(agent),
+      ]);
+
+      if (gen !== loadGen) return;
+
+      const { actionsLeft } = balances;
+      if (cadence.perDay > 0 && actionsLeft > 0) {
+        const hours = (actionsLeft / cadence.perDay) * 24;
+        $("azl-runway").textContent =
+          hours >= 48
+            ? "~" + (hours / 24).toFixed(1) + " days (" + Math.round(hours) + "h)"
+            : "~" + Math.round(hours) + " hours";
+      } else if (actionsLeft === 0) {
+        $("azl-runway").textContent = "0h — insufficient AZZLE";
+      } else {
+        $("azl-runway").textContent = "∞ — no burn activity in 7d";
+      }
+
+      const { total, taskRows, allReleases } = await fetchEscrowAndReleases(tasks);
+      if (gen !== loadGen) return;
+
+      renderEscrow(total, taskRows);
+      renderReleases(allReleases);
+    } catch (e) {
+      if (gen === loadGen) {
+        $("income-err").hidden = false;
+        $("income-err").textContent = e.message;
+      }
+    } finally {
+      if (gen === loadGen) document.body.classList.remove("loading");
+    }
+  }
+
+  function startCountdown() {
+    countdownSec = REFRESH_MS / 1000;
+    $("refresh-countdown").textContent = countdownSec + "s";
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+      countdownSec -= 1;
+      if (countdownSec <= 0) countdownSec = REFRESH_MS / 1000;
+      $("refresh-countdown").textContent = countdownSec + "s";
+    }, 1000);
+  }
+
+  function scheduleRefresh() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = setInterval(() => {
+      if (currentAgent && ethers.isAddress(currentAgent)) {
+        loadAgent(currentAgent);
+        startCountdown();
+      }
+    }, REFRESH_MS);
+  }
+
+  function go() {
+    const raw = $("agent-input").value.trim();
+    if (!ethers.isAddress(raw)) {
+      $("solvency-pill").className = "pill idle";
+      $("solvency-pill").textContent = "INVALID";
+      return;
+    }
+    currentAgent = ethers.getAddress(raw);
+    localStorage.setItem("azzle_treasury_agent", currentAgent);
+    loadAgent(currentAgent);
+    startCountdown();
+    scheduleRefresh();
+  }
+
+  $("load-btn").addEventListener("click", go);
+  $("agent-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") go();
+  });
+
+  const saved = localStorage.getItem("azzle_treasury_agent");
+  renderTopUpGuide();
+  if (saved && ethers.isAddress(saved)) {
+    $("agent-input").value = saved;
+    currentAgent = ethers.getAddress(saved);
+    loadAgent(currentAgent);
+    startCountdown();
+    scheduleRefresh();
+  }
+})();
+</script>
+</body>
+</html>
