@@ -1,0 +1,20 @@
+{
+  "name": "azzle-arbitrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AZZLE arbitrator agent — standby farming, dispute resolution, tier gates",
+  "scripts": {
+    "start": "node agent.mjs",
+    "preflight": "node agent.mjs preflight",
+    "register": "node agent.mjs register",
+    "resolve": "node agent.mjs resolve",
+    "watchdog": "node agent.mjs watchdog"
+  },
+  "dependencies": {
+    "@azzle/agents": "latest"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

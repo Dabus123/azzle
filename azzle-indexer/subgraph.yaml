@@ -8,9 +8,9 @@ dataSources:
     name: TaskRegistry
     network: base
     source:
-      address: "0xd931bBc52faBcc2EE5f52b3bE489A92B29941054"
+      address: "0x0a47c3a2d515ec3a23f225a7bac1b0a1654e4d48"
       abi: TaskRegistry
-      startBlock: 31000000
+      startBlock: 46871267
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -45,9 +45,9 @@ dataSources:
     name: EscrowVault
     network: base
     source:
-      address: "0x5e6DCE7ac4A805761be4B124277c43c33Ad3E825"
+      address: "0xd1f3058650ab22250d139dba5b2b48118071dc36"
       abi: EscrowVault
-      startBlock: 31000000
+      startBlock: 46871267
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -69,9 +69,9 @@ dataSources:
     name: ArbitrationModule
     network: base
     source:
-      address: "0xaBAA2DCBF3A391cDAab7EeAE0CBd50C3128970cC"
+      address: "0x1CFc919cA2C5eaD0A5b3365260c091AD7E1a31E0"
       abi: ArbitrationModule
-      startBlock: 31000000
+      startBlock: 46871267
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -96,9 +96,9 @@ dataSources:
     name: ReputationRegistry
     network: base
     source:
-      address: "0x35c4233ae2DD247A726080aA80c232a4F98D2a2D"
+      address: "0x462dCB4903583D99889f4aD42C4c5008A519082a"
       abi: ReputationRegistry
-      startBlock: 31000000
+      startBlock: 46871267
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9

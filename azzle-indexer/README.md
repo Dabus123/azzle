@@ -11,13 +11,13 @@ Public indexer for AZZLE on [The Graph](https://thegraph.com/studio) — **Base*
 | ArbitrationModule | `0xaBAA2DCBF3A391cDAab7EeAE0CBd50C3128970cC` |
 | EscrowVault | `0x5e6DCE7ac4A805761be4B124277c43c33Ad3E825` |
 
-Update `startBlock` in `subgraph.yaml` when re-deploying against new contract deployments (currently `31000000` placeholder).
+Update `startBlock` in `subgraph.yaml` when re-deploying against new contract deployments (Base mainnet deploy block: **46871267**).
 
-## Deployed (v0.1)
+## Deployed (v0.3)
 
 **Live query endpoint:**
 
-`https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1`
+`https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3`
 
 Studio dashboard: https://thegraph.com/studio/subgraph/azzle-protocol
 
@@ -26,7 +26,7 @@ Studio dashboard: https://thegraph.com/studio/subgraph/azzle-protocol
 The default in `@azzle/agents` points at the URL above. Override if you deploy a new version:
 
 ```bash
-export AZZLE_SUBGRAPH_URL="https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1"
+export AZZLE_SUBGRAPH_URL="https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3"
 ```
 
 Then use `SubgraphIndexer` from `@azzle/agents` (see `agents/src/sdk/subgraph-indexer.ts`).

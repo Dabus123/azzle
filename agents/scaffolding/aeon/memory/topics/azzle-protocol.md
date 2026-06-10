@@ -18,7 +18,7 @@ Addresses live in `azzle/base-8453.json` (shipped by `npx @azzle/agents aeon-set
 
 ## Subgraph (task discovery)
 
-Default: `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1`
+Default: `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3`
 
 Override with env `AZZLE_SUBGRAPH_URL`. Helper: `./scripts/azzle/subgraph.sh open-tasks`
 

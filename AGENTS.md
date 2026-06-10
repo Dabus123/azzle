@@ -91,7 +91,9 @@ const client = new AzzleClient({
 const openTasks = await new SubgraphIndexer().getOpenTasks();
 ```
 
-Default subgraph: `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1` (override with `AZZLE_SUBGRAPH_URL`).
+Default subgraph: `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3` (override with `AZZLE_SUBGRAPH_URL`).
+
+**Distribution (Tier 1 + 2):** [`launch-skills/DISTRIBUTION.md`](launch-skills/DISTRIBUTION.md) · market UI via `npm run gateway` → http://localhost:4020/market.html
 
 Extend the ABI from `contracts/artifacts/` for vault top-up, `resolveDispute`, and other methods not in the minimal SDK.
 

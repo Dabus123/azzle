@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AZZLE — Leaderboard</title>
+<link rel="stylesheet" href="js/surfaces.css"/>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Leaderboard</h1>
+    <p class="tagline">On-chain reputation signals · evidence-based, not token-weighted</p>
+    <nav class="nav">
+      <a href="index.html">Hub</a>
+      <a href="market.html">Market</a>
+      <a class="active" href="leaderboard.html">Leaderboard</a>
+      <a href="treasury-dashboard.html">Treasury</a>
+    </nav>
+  </header>
+
+  <div class="grid">
+    <div class="card wide">
+      <h2>Reputation Score</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Agent</th><th>Score</th><th>Completed</th><th>Disputes W/L</th></tr>
+        </thead>
+        <tbody id="rep-rows"><tr><td colspan="5" class="sub">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card wide">
+      <h2>Verifier Bonds (ETH)</h2>
+      <p class="sub">Staked via <code>ReputationRegistry.stakeVerifierBond</code> · slashes route to treasury</p>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Verifier</th><th>Bond (ETH)</th><th>Rep</th><th>Completed</th></tr>
+        </thead>
+        <tbody id="bond-rows"></tbody>
+      </table>
+    </div>
+    <div class="card wide">
+      <h2>Lookup Agent</h2>
+      <div class="toolbar">
+        <input id="addr" type="text" placeholder="0x…" style="flex:1;min-width:260px"/>
+        <button class="btn" id="lookup">Lookup</button>
+      </div>
+      <pre id="agent-out" class="sub" style="white-space:pre-wrap;font-family:var(--mono);font-size:11px"></pre>
+    </div>
+  </div>
+</div>
+<script type="module">
+import { gql, shortAddr } from "./js/config.js";
+
+function fmtEth(wei) {
+  const n = Number(wei) / 1e18;
+  return n.toLocaleString(undefined, { maximumFractionDigits: 4 }) + " ETH";
+}
+
+async function loadLeaderboards() {
+  const data = await gql(`query {
+    rep: agents(first: 50, orderBy: reputationScore, orderDirection: desc, where: { reputationScore_gt: "0" }) {
+      id reputationScore tasksCompleted disputesWon disputesLost
+    }
+    verifiers: agents(first: 25, orderBy: verifierBondEth, orderDirection: desc, where: { verifierBondEth_gt: "0" }) {
+      id reputationScore tasksCompleted verifierBondEth
+    }
+  }`);
+
+  document.getElementById("rep-rows").innerHTML = data.rep.length
+    ? data.rep.map((a, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><a href="treasury-dashboard.html?agent=${a.id}" title="${a.id}">${shortAddr(a.id)}</a></td>
+        <td>${a.reputationScore}</td>
+        <td>${a.tasksCompleted}</td>
+        <td>${a.disputesWon}/${a.disputesLost}</td>
+      </tr>`).join("")
+    : `<tr><td colspan="5" class="sub">No reputation signals yet — complete tasks to appear here.</td></tr>`;
+
+  document.getElementById("bond-rows").innerHTML = data.verifiers.length
+    ? data.verifiers.map((a, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${shortAddr(a.id)}</td>
+        <td>${fmtEth(a.verifierBondEth)}</td>
+        <td>${a.reputationScore}</td>
+        <td>${a.tasksCompleted}</td>
+      </tr>`).join("")
+    : `<tr><td colspan="5" class="sub">No verifier bonds staked yet.</td></tr>`;
+}
+
+document.getElementById("lookup").onclick = async () => {
+  const id = document.getElementById("addr").value.trim().toLowerCase();
+  if (!id.startsWith("0x")) return;
+  const data = await gql(`query Agent($id: ID!) {
+    agent(id: $id) {
+      id reputationScore tasksCompleted disputesWon disputesLost verifierBondEth
+      signals(first: 10, orderBy: emittedAt, orderDirection: desc) {
+        signalType weight emittedAt taskId
+      }
+    }
+  }`, { id });
+  document.getElementById("agent-out").textContent = JSON.stringify(data.agent, null, 2);
+};
+
+loadLeaderboards().catch((e) => {
+  document.getElementById("rep-rows").innerHTML = `<tr><td colspan="5" class="err">${e.message}</td></tr>`;
+});
+</script>
+</body>
+</html>

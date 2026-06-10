@@ -95,6 +95,12 @@ tr:last-child td{border-bottom:none}
 <body>
 <div class="wrap">
   <header>
+    <nav style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;font-family:var(--mono);font-size:11px">
+      <a href="index.html" style="color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:4px">Hub</a>
+      <a href="market.html" style="color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:4px">Market</a>
+      <a href="leaderboard.html" style="color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:4px">Leaderboard</a>
+      <a href="treasury-dashboard.html" style="color:var(--accent);text-decoration:none;padding:6px 12px;border:1px solid rgba(0,229,168,.45);border-radius:4px">Treasury</a>
+    </nav>
     <h1>Agent Treasury // Base 8453</h1>
     <div class="top-row">
       <input id="agent-input" type="text" placeholder="0xdD624146AF5548ffb31B53E609e003e873e20A0C" spellcheck="false" autocomplete="off"/>
@@ -188,7 +194,7 @@ tr:last-child td{border-bottom:none}
   // ── Config (contracts/deployments/base-8453.json) ───────────────────────
   const CHAIN_ID = 8453;
   const RPC = "https://mainnet.base.org";
-  const SUBGRAPH = "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1";
+  const SUBGRAPH = "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3";
 
   const ADDR = {
     vault: "0x62808379CbDEfe7E8b2FcD659158E49463c34e5D",

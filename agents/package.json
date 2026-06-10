@@ -1,6 +1,6 @@
 {
   "name": "@azzle/agents",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Reference agents and TypeScript SDK for AZZLE protocol",
   "type": "module",
   "main": "dist/sdk/index.js",
@@ -12,6 +12,8 @@
     "dist",
     "deployments",
     "scaffolding",
+    "gateway",
+    "mcp",
     "README.md"
   ],
   "exports": {
@@ -26,13 +28,19 @@
     "./worker": {
       "types": "./dist/reference/worker-agent.d.ts",
       "import": "./dist/reference/worker-agent.js"
+    },
+    "./tools": {
+      "types": "./dist/tools/azzle-tools.d.ts",
+      "import": "./dist/tools/azzle-tools.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "poster": "node dist/reference/poster-agent.js",
-    "worker": "node dist/reference/worker-agent.js"
+    "worker": "node dist/reference/worker-agent.js",
+    "gateway": "node gateway/server.mjs",
+    "mcp": "node mcp/server.mjs"
   },
   "repository": {
     "type": "git",
@@ -56,6 +64,8 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@clack/prompts": "^0.10.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
     "@xmtp/agent-sdk": "^2.3.0",
     "@xmtp/node-sdk": "^6.0.0",
     "ajv": "^8.20.0",

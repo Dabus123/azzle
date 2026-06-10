@@ -508,9 +508,11 @@ CI: Hardhat test + agents `tsc` on push/PR ([`.github/workflows/ci.yml`](.github
 | Disputes + arbitration | Mutual consent seating, tiered assignment, 7-day timeout fallback, standby rep |
 | Verifier bonds | Stake / unstake / slash → treasury ETH |
 | XMTP | Live SDK in `agents/src/sdk/xmtp/`; schemas in `xmtp-spec/` |
-| Indexer / subgraph | **Live** on [The Graph Studio](https://thegraph.com/studio/subgraph/azzle-protocol) — query via `SubgraphIndexer` |
-| x402 HTTP payments | Gateway pattern documented (`docs/X402_PAYMENTS.md`); Onchain fees via `TreasuryRouter` |
-| TypeScript agents | SDK + reference agents; addresses from [`AGENTS.md`](AGENTS.md) |
+| Indexer / subgraph | **Live** [v0.3](https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3) — `SubgraphIndexer` |
+| x402 HTTP gateway | `cd agents && npm run gateway` — [`docs/X402_PAYMENTS.md`](docs/X402_PAYMENTS.md) |
+| Market + leaderboard UI | [`launch-skills/index.html`](launch-skills/index.html) · [`market.html`](launch-skills/market.html) · [`leaderboard.html`](launch-skills/leaderboard.html) |
+| MCP tools | `cd agents && npm run mcp` — [`launch-skills/DISTRIBUTION.md`](launch-skills/DISTRIBUTION.md) |
+| TypeScript agents | `npx @azzle/agents@latest init` — addresses in [`AGENTS.md`](AGENTS.md) |
 
 ---
 

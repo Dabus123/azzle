@@ -2,7 +2,6 @@
 import { spawnSync } from "node:child_process";
 import {
   copyFileSync,
-  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -13,40 +12,39 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { AEON_UPSTREAM, handleAeonSetup, PACKAGE_VERSION } from "./aeon-setup/index.js";
 import { BASE_MAINNET_MANIFEST } from "./sdk/manifest.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = join(__dirname, "..");
-const PACKAGE_VERSION = readPackageVersion();
 const GITHUB_REPO = "https://github.com/Dabus123/azzle.git";
-const AEON_UPSTREAM = "https://github.com/aaronjmars/aeon";
-const SCAFFOLD_AEON = join(PACKAGE_ROOT, "scaffolding", "aeon");
 
 const HELP = `azzle — AZZLE protocol agent installer (v${PACKAGE_VERSION})
 
 Usage:
-  npx @azzle/agents@latest init [dir]       Scaffold a minimal agent project
-  npx @azzle/agents@latest install [dir]    Alias for init
-  npx @azzle/agents@latest aeon-setup [dir] Add AZZLE skills to an Aeon fork
-  npx @azzle/agents@latest add              Add @azzle/agents to the current project
-  npx @azzle/agents@latest addresses        Print Base mainnet contract addresses
-  npx @azzle/agents@latest version          Print package version
+  npx @azzle/agents@latest init [dir]              Scaffold a minimal agent project
+  npx @azzle/agents@latest install [dir]           Alias for init
+  npx @azzle/agents@latest aeon-setup [options]    Interactive role wizard (Base mainnet)
+  npx @azzle/agents@latest aeon-setup --aeon [dir] Add AZZLE skills to an Aeon fork
+  npx @azzle/agents@latest add                     Add @azzle/agents to the current project
+  npx @azzle/agents@latest addresses               Print Base mainnet contract addresses
+  npx @azzle/agents@latest version                 Print package version
+
+aeon-setup options:
+  --role worker|poster|verifier|arbitrator   Skip interactive role menu
+  --dir <path>                               Output directory (default: azzle-<role>)
+  --dry-run                                  Preview files without writing
+  --aeon                                     Legacy Aeon fork overlay (requires aeon.yml)
 
 Examples:
-  npx @azzle/agents@latest init my-agent
-  git clone https://github.com/<you>/aeon && cd aeon && npx @azzle/agents@latest aeon-setup
-  npx @azzle/agents@latest add
+  npx @azzle/agents@latest aeon-setup
+  npx @azzle/agents@latest aeon-setup --role worker --dir my-worker
+  npx @azzle/agents@latest aeon-setup --role poster --dry-run
+  git clone https://github.com/<you>/aeon && cd aeon && npx @azzle/agents@latest aeon-setup --aeon
 
 Aeon framework: ${AEON_UPSTREAM}
 Docs: https://github.com/Dabus123/azzle/blob/main/AGENTS.md
 `;
-
-function readPackageVersion(): string {
-  const pkg = JSON.parse(
-    readFileSync(join(PACKAGE_ROOT, "package.json"), "utf8")
-  ) as { version?: string };
-  return pkg.version ?? "0.0.0";
-}
 
 function run(
   cmd: string,
@@ -94,7 +92,6 @@ function installAgentsPackage(cwd: string, usePackageJson = false): void {
   installFromGitHubSource(cwd);
 }
 
-/** Clone agents/ from GitHub when the package is not on the npm registry yet. */
 function installFromGitHubSource(cwd: string): void {
   const tmpBase = mkdtempSync(join(tmpdir(), "azzle-install-"));
   const cloneDir = join(tmpBase, "repo");
@@ -102,15 +99,11 @@ function installFromGitHubSource(cwd: string): void {
   console.log("npm registry unavailable; cloning agents package from GitHub ...");
 
   if (
-    !run("git", [
-      "clone",
-      "--depth",
-      "1",
-      "--filter=blob:none",
-      "--sparse",
-      GITHUB_REPO,
-      cloneDir,
-    ], { allowFailure: true })
+    !run(
+      "git",
+      ["clone", "--depth", "1", "--filter=blob:none", "--sparse", GITHUB_REPO, cloneDir],
+      { allowFailure: true }
+    )
   ) {
     rmSync(tmpBase, { recursive: true, force: true });
     process.exit(1);
@@ -166,10 +159,7 @@ function scaffoldProject(targetDir: string): void {
     ) + "\n"
   );
 
-  writeFileSync(
-    join(absDir, ".gitignore"),
-    ["node_modules/", ".env", "dist/", ""].join("\n")
-  );
+  writeFileSync(join(absDir, ".gitignore"), ["node_modules/", ".env", "dist/", ""].join("\n"));
 
   writeFileSync(
     join(absDir, ".env.example"),
@@ -178,7 +168,7 @@ function scaffoldProject(targetDir: string): void {
       "AZZLE_RPC_URL=https://mainnet.base.org",
       "",
       "# Optional: override subgraph endpoint",
-      "AZZLE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1",
+      "AZZLE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3",
       "",
       "# Wallet private key (never commit .env)",
       "# PRIVATE_KEY=0x...",
@@ -232,105 +222,6 @@ Docs: https://github.com/Dabus123/azzle/blob/main/AGENTS.md
 `);
 }
 
-function mergeAeonSkills(aeonYmlPath: string): void {
-  const snippetPath = join(SCAFFOLD_AEON, "aeon-skills.snippet.yml");
-  const snippet = readFileSync(snippetPath, "utf8");
-  let yml = readFileSync(aeonYmlPath, "utf8");
-
-  if (yml.includes("azzle-market:")) {
-    console.log("aeon.yml already has azzle-market — skipping skill merge.");
-    return;
-  }
-
-  const skillsIdx = yml.indexOf("skills:");
-  if (skillsIdx === -1) {
-    yml += `\nskills:${snippet}`;
-  } else {
-    yml = yml.trimEnd() + snippet;
-  }
-
-  writeFileSync(aeonYmlPath, yml.endsWith("\n") ? yml : yml + "\n");
-  console.log("Merged azzle-market + azzle-worker into aeon.yml (disabled by default).");
-}
-
-function aeonSetup(targetDir?: string): void {
-  const cwd = resolve(process.cwd(), targetDir ?? ".");
-  const aeonYml = join(cwd, "aeon.yml");
-
-  if (!existsSync(aeonYml)) {
-    console.error(`Not an Aeon repo (missing aeon.yml in ${cwd}).`);
-    console.error(`Fork ${AEON_UPSTREAM}, clone your fork, then run aeon-setup again.`);
-    process.exit(1);
-  }
-
-  if (!existsSync(SCAFFOLD_AEON)) {
-    console.error("AEON scaffolding pack missing from @azzle/agents install.");
-    process.exit(1);
-  }
-
-  console.log(`Applying AZZLE overlay to Aeon at ${cwd} ...`);
-
-  cpSync(join(SCAFFOLD_AEON, "skills", "azzle-market"), join(cwd, "skills", "azzle-market"), {
-    recursive: true,
-  });
-  cpSync(join(SCAFFOLD_AEON, "skills", "azzle-worker"), join(cwd, "skills", "azzle-worker"), {
-    recursive: true,
-  });
-
-  mkdirSync(join(cwd, "scripts", "azzle"), { recursive: true });
-  copyFileSync(
-    join(SCAFFOLD_AEON, "scripts", "azzle", "subgraph.sh"),
-    join(cwd, "scripts", "azzle", "subgraph.sh")
-  );
-
-  mkdirSync(join(cwd, "memory", "topics"), { recursive: true });
-  copyFileSync(
-    join(SCAFFOLD_AEON, "memory", "topics", "azzle-protocol.md"),
-    join(cwd, "memory", "topics", "azzle-protocol.md")
-  );
-
-  mkdirSync(join(cwd, "azzle"), { recursive: true });
-  copyFileSync(join(SCAFFOLD_AEON, "azzle", "list-open.mjs"), join(cwd, "azzle", "list-open.mjs"));
-  copyFileSync(
-    join(PACKAGE_ROOT, "deployments", "base-8453.json"),
-    join(cwd, "azzle", "base-8453.json")
-  );
-
-  const pkgPath = join(cwd, "azzle", "package.json");
-  const pkg = JSON.parse(readFileSync(join(SCAFFOLD_AEON, "azzle", "package.json"), "utf8")) as {
-    name: string;
-    private: boolean;
-    type: string;
-    description: string;
-    scripts: Record<string, string>;
-    dependencies: Record<string, string>;
-    engines: Record<string, string>;
-  };
-  pkg.dependencies["@azzle/agents"] = `^${PACKAGE_VERSION}`;
-  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
-
-  copyFileSync(join(SCAFFOLD_AEON, "README.md"), join(cwd, "azzle", "README.md"));
-
-  mergeAeonSkills(aeonYml);
-
-  console.log("Installing @azzle/agents in azzle/ ...");
-  installAgentsPackage(join(cwd, "azzle"), true);
-
-  console.log(`
-AZZLE + Aeon setup complete.
-
-  ./scripts/azzle/subgraph.sh open-tasks   # read-only task discovery
-  cd azzle && npm run list-open            # SDK subgraph query
-
-Enable skills in aeon.yml (or dashboard):
-  azzle-market  — daily POSTED-task digest
-  azzle-worker  — on-demand claim playbook (Bankr for on-chain)
-
-See azzle/README.md and memory/topics/azzle-protocol.md
-Onboarding: https://github.com/Dabus123/azzle/blob/main/BOOTSTRAP.md
-`);
-}
-
 function printAddresses(): void {
   const m = BASE_MAINNET_MANIFEST;
   console.log(`AZZLE Base mainnet (chainId ${m.chainId})`);
@@ -375,35 +266,42 @@ main().catch((err) => {
 });
 `;
 
-const [command = "help", arg] = process.argv.slice(2);
+async function main(): Promise<void> {
+  const [command = "help", ...rest] = process.argv.slice(2);
 
-switch (command) {
-  case "init":
-  case "install":
-    scaffoldProject(arg ?? "azzle-agent");
-    break;
-  case "add":
-    addToProject();
-    break;
-  case "aeon-setup":
-  case "aeon":
-    aeonSetup(arg);
-    break;
-  case "addresses":
-    printAddresses();
-    break;
-  case "version":
-  case "-v":
-  case "--version":
-    console.log(PACKAGE_VERSION);
-    break;
-  case "help":
-  case "-h":
-  case "--help":
-    process.stdout.write(HELP);
-    break;
-  default:
-    console.error(`Unknown command: ${command}\n`);
-    process.stdout.write(HELP);
-    process.exit(1);
+  switch (command) {
+    case "init":
+    case "install":
+      scaffoldProject(rest[0] ?? "azzle-agent");
+      break;
+    case "add":
+      addToProject();
+      break;
+    case "aeon-setup":
+    case "aeon":
+      await handleAeonSetup(rest);
+      break;
+    case "addresses":
+      printAddresses();
+      break;
+    case "version":
+    case "-v":
+    case "--version":
+      console.log(PACKAGE_VERSION);
+      break;
+    case "help":
+    case "-h":
+    case "--help":
+      process.stdout.write(HELP);
+      break;
+    default:
+      console.error(`Unknown command: ${command}\n`);
+      process.stdout.write(HELP);
+      process.exit(1);
+  }
 }
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

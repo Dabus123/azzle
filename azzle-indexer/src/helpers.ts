@@ -3,14 +3,15 @@ import { Agent, Task } from "../generated/schema";
 import { TaskRegistry } from "../generated/TaskRegistry/TaskRegistry";
 
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+/** Must match contracts/deployments/base-8453.json TaskRegistry */
 export const REGISTRY_ADDRESS = Address.fromString(
-  "0xd931bBc52faBcc2EE5f52b3bE489A92B29941054"
+  "0x0a47c3a2d515ec3a23f225a7bac1b0a1654e4d48"
 );
 export const ARBITRATION_ADDRESS = Address.fromString(
-  "0xaBAA2DCBF3A391cDAab7EeAE0CBd50C3128970cC"
+  "0x1CFc919cA2C5eaD0A5b3365260c091AD7E1a31E0"
 );
 export const REPUTATION_ADDRESS = Address.fromString(
-  "0x35c4233ae2DD247A726080aA80c232a4F98D2a2D"
+  "0x462dCB4903583D99889f4aD42C4c5008A519082a"
 );
 
 export function agentId(address: Address): string {

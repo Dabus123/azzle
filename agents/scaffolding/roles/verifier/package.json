@@ -1,0 +1,19 @@
+{
+  "name": "azzle-verifier",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AZZLE verifier agent — bond staking, receipt validation, subgraph signals",
+  "scripts": {
+    "start": "node agent.mjs",
+    "preflight": "node agent.mjs preflight",
+    "stake": "node agent.mjs stake",
+    "validate": "node agent.mjs validate"
+  },
+  "dependencies": {
+    "@azzle/agents": "latest"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

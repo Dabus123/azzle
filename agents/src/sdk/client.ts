@@ -34,6 +34,33 @@ const ESCROW_MODE: Record<string, number> = {
   hour_blocks: 3,
 };
 
+const TASK_POSTED_IFACE = new ethers.Interface([
+  "event TaskPosted(uint256 indexed taskId, address indexed poster, bytes32 settlementDigest)",
+  "event TaskCreated(uint256 indexed taskId, address indexed poster, address indexed worker, bytes32 settlementDigest)",
+]);
+
+function taskIdFromReceipt(
+  receipt: ethers.ContractTransactionReceipt,
+  registryAddress: string
+): bigint {
+  const addr = registryAddress.toLowerCase();
+  for (const log of receipt.logs) {
+    if (log.address.toLowerCase() !== addr) continue;
+    try {
+      const parsed = TASK_POSTED_IFACE.parseLog({
+        topics: log.topics as string[],
+        data: log.data,
+      });
+      if (parsed && (parsed.name === "TaskPosted" || parsed.name === "TaskCreated")) {
+        return parsed.args.taskId as bigint;
+      }
+    } catch {
+      /* not this event */
+    }
+  }
+  throw new Error("AzzleClient: TaskPosted/TaskCreated event not found in receipt");
+}
+
 export class AzzleClient {
   private provider: ethers.JsonRpcProvider;
   private registry: Contract;
@@ -78,7 +105,8 @@ export class AzzleClient {
       0
     );
     const receipt = await tx.wait();
-    const taskId = await this.registry.taskCount();
+    if (!receipt) throw new Error("AzzleClient: createTask tx failed");
+    const taskId = taskIdFromReceipt(receipt, this.config.registryAddress);
     return { taskId, digest, receipt };
   }
 
@@ -101,7 +129,8 @@ export class AzzleClient {
       0
     );
     const receipt = await tx.wait();
-    const taskId = await this.registry.taskCount();
+    if (!receipt) throw new Error("AzzleClient: postTask tx failed");
+    const taskId = taskIdFromReceipt(receipt, this.config.registryAddress);
     return { taskId, digest, receipt };
   }
 
@@ -127,6 +156,14 @@ export class AzzleClient {
 
   async openDispute(taskId: bigint, evidence: Uint8Array | string) {
     return this.registry.openDispute(taskId, evidence);
+  }
+
+  /** Standby registration while task is POSTED or CLAIMED (+10 arbitratorReputation). */
+  async registerArbitrator(taskId: bigint) {
+    if (!this.arbitration) {
+      throw new Error("AzzleClient: arbitrationAddress required for registerArbitrator");
+    }
+    return this.arbitration.registerArbitrator(taskId);
   }
 
   /** Both parties must call with the same arbitrator address (mutual consent). */

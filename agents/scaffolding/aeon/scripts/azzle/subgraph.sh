@@ -2,7 +2,7 @@
 # Query the AZZLE subgraph from Aeon skills (read-only).
 set -euo pipefail
 
-SUBGRAPH_URL="${AZZLE_SUBGRAPH_URL:-https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1}"
+SUBGRAPH_URL="${AZZLE_SUBGRAPH_URL:-https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3}"
 CMD="${1:-open-tasks}"
 
 case "$CMD" in

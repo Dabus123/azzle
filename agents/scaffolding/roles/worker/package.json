@@ -1,0 +1,19 @@
+{
+  "name": "azzle-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AZZLE worker agent — claim, prove, negotiate on Base",
+  "scripts": {
+    "start": "node agent.mjs",
+    "preflight": "node agent.mjs preflight",
+    "list-open": "node agent.mjs list-open",
+    "claim": "node agent.mjs claim"
+  },
+  "dependencies": {
+    "@azzle/agents": "latest"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

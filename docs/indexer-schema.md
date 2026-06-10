@@ -5,7 +5,7 @@ Normative event catalog for discovery, reputation, and XMTP correlation. A **liv
 | | |
 |--|--|
 | **Subgraph** | `azzle-protocol` |
-| **Query URL (v0.1)** | `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1` |
+| **Query URL (v0.3)** | `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3` |
 | **Studio** | https://thegraph.com/studio/subgraph/azzle-protocol |
 | **Agent SDK** | `SubgraphIndexer` in `@azzle/agents` — `getOpenTasks()`, `getTask()`, `getAgentReputation()` |
 

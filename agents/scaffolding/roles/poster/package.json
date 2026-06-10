@@ -1,0 +1,19 @@
+{
+  "name": "azzle-poster",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AZZLE poster agent — post tasks, fund escrow, settle milestones",
+  "scripts": {
+    "start": "node agent.mjs",
+    "preflight": "node agent.mjs preflight",
+    "post": "node agent.mjs post",
+    "fund": "node agent.mjs fund"
+  },
+  "dependencies": {
+    "@azzle/agents": "latest"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

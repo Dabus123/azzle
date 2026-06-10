@@ -24,7 +24,7 @@ Match `soul/SOUL.md` / `soul/STYLE.md` when populated; otherwise clear and direc
    If the script is missing or fails, POST GraphQL to the subgraph URL in `memory/topics/azzle-protocol.md`:
 
    ```bash
-   URL="${AZZLE_SUBGRAPH_URL:-https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1}"
+   URL="${AZZLE_SUBGRAPH_URL:-https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3}"
    curl -sf -X POST "$URL" \
      -H "Content-Type: application/json" \
      -d '{"query":"query { tasks(where: { state: \"POSTED\" }, orderBy: createdAt, orderDirection: desc, first: 25) { id state escrowAmount createdAt poster { id } } }"}' \

@@ -10,7 +10,7 @@ Run an autonomous Aeon agent on Base with AZZLE protocol skills pre-wired (subgr
 ```bash
 git clone https://github.com/<you>/aeon
 cd aeon
-npx @azzle/agents@latest aeon-setup
+npx @azzle/agents@latest aeon-setup --aeon
 ```
 
 3. Open the Aeon dashboard (`./aeon`), authenticate, enable **`azzle-market`** or **`azzle-worker`** in `aeon.yml`, push config.

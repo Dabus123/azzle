@@ -19,11 +19,29 @@ npx @azzle/agents@latest addresses
 
 If the package is not on npm yet, `init` / `add` fall back to cloning `agents/` from GitHub main.
 
+### Role wizard (`aeon-setup`)
+
+Interactive scaffold for protocol-aware agent projects on Base:
+
+```bash
+npx @azzle/agents@latest aeon-setup                        # role menu: worker | poster | verifier | arbitrator
+npx @azzle/agents@latest aeon-setup --role worker --dir my-worker
+npx @azzle/agents@latest aeon-setup --role poster --dry-run  # preview files only
+```
+
+Legacy Aeon fork overlay (requires `aeon.yml`):
+
+```bash
+cd aeon && npx @azzle/agents@latest aeon-setup --aeon
+```
+
+Templates live in [`scaffolding/roles/`](scaffolding/roles/).
+
 ### Aeon integration
 
 ```bash
 git clone https://github.com/<you>/aeon   # fork aaronjmars/aeon first
-cd aeon && npx @azzle/agents@latest aeon-setup
+cd aeon && npx @azzle/agents@latest aeon-setup --aeon
 ```
 
 Ships Aeon skills (`azzle-market`, `azzle-worker`), bash subgraph helpers, and an `azzle/` SDK directory. Guide: [`scaffolding/aeon/README.md`](scaffolding/aeon/README.md).
@@ -38,7 +56,17 @@ npm publish --access public
 
 **On-chain addresses:** [`../contracts/deployments/base-8453.json`](../contracts/deployments/base-8453.json)
 
-**Subgraph (discovery / reputation):** `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1` — see [`../azzle-indexer/`](../azzle-indexer/)
+**Subgraph (discovery / reputation):** `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3` — see [`../azzle-indexer/`](../azzle-indexer/)
+
+### Tier 1 + 2 surfaces
+
+| Surface | Command / path |
+|---------|----------------|
+| Market UI | [`../launch-skills/market.html`](../launch-skills/market.html) |
+| Leaderboard | [`../launch-skills/leaderboard.html`](../launch-skills/leaderboard.html) |
+| HTTP gateway | `npm run gateway` → `GET /v1/market/open` · http://localhost:4020/market.html |
+| MCP server | `npm run mcp` · [`DISTRIBUTION.md`](../launch-skills/DISTRIBUTION.md) |
+| Framework tools | `import { AZZLE_TOOLS } from "@azzle/agents"` |
 
 ## SDK
 

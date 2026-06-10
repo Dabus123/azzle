@@ -4,7 +4,7 @@
  */
 
 export const DEFAULT_SUBGRAPH_URL =
-  "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1";
+  "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3";
 
 export interface SubgraphTask {
   id: string;
@@ -40,11 +40,12 @@ export interface SubgraphIndexerConfig {
 }
 
 export class SubgraphIndexer {
-  private readonly url: string;
+  /** Active GraphQL endpoint (Studio version label). */
+  readonly endpoint: string;
   private readonly fetchFn: typeof fetch;
 
   constructor(config: SubgraphIndexerConfig = {}) {
-    this.url =
+    this.endpoint =
       config.subgraphUrl ??
       process.env.AZZLE_SUBGRAPH_URL ??
       DEFAULT_SUBGRAPH_URL;
@@ -52,7 +53,7 @@ export class SubgraphIndexer {
   }
 
   private async query<T>(document: string, variables?: Record<string, unknown>): Promise<T> {
-    const res = await this.fetchFn(this.url, {
+    const res = await this.fetchFn(this.endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: document, variables }),
@@ -115,6 +116,69 @@ export class SubgraphIndexer {
       }
     `, { id });
     return data.agent;
+  }
+
+  /** Top agents by on-chain reputation score (evidence layer). */
+  async getTopAgents(limit = 25): Promise<SubgraphAgent[]> {
+    const data = await this.query<{ agents: SubgraphAgent[] }>(`
+      query TopAgents($first: Int!) {
+        agents(
+          first: $first
+          orderBy: reputationScore
+          orderDirection: desc
+          where: { reputationScore_gt: "0" }
+        ) {
+          id
+          reputationScore
+          tasksCompleted
+          disputesWon
+          disputesLost
+          verifierBondEth
+        }
+      }
+    `, { first: limit });
+    return data.agents;
+  }
+
+  /** Agents with staked verifier bonds (ETH), sorted by bond size. */
+  async getVerifierLeaderboard(limit = 25): Promise<SubgraphAgent[]> {
+    const data = await this.query<{ agents: SubgraphAgent[] }>(`
+      query VerifierLeaderboard($first: Int!) {
+        agents(
+          first: $first
+          orderBy: verifierBondEth
+          orderDirection: desc
+          where: { verifierBondEth_gt: "0" }
+        ) {
+          id
+          reputationScore
+          tasksCompleted
+          disputesWon
+          disputesLost
+          verifierBondEth
+        }
+      }
+    `, { first: limit });
+    return data.agents;
+  }
+
+  /** Recent tasks across all states (market pulse). */
+  async getRecentTasks(limit = 50): Promise<SubgraphTask[]> {
+    const data = await this.query<{ tasks: SubgraphTask[] }>(`
+      query RecentTasks($first: Int!) {
+        tasks(first: $first, orderBy: createdAt, orderDirection: desc) {
+          id
+          state
+          escrowAmount
+          createdAt
+          updatedAt
+          settlementDigest
+          poster { id }
+          worker { id }
+        }
+      }
+    `, { first: limit });
+    return data.tasks;
   }
 
   /** Full task row by on-chain task id. */

@@ -11,7 +11,7 @@
 
 **Network:** Base mainnet · `chainId: 8453`  
 **On-chain addresses:** [`contracts/deployments/base-8453.json`](contracts/deployments/base-8453.json) only  
-**Subgraph (discovery):** `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1`
+**Subgraph (discovery):** `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3`
 
 ---
 
@@ -144,7 +144,7 @@ Or minimum **$20 USDC** to meet entry (`20_000_000` with 6 decimals).
 
 ```bash
 cd agents && npm install && npm run build
-set AZZLE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1
+set AZZLE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3
 node dist/reference/worker-agent.js list-open
 ```
 
@@ -261,7 +261,7 @@ cd ../agents && npm install && npm run build
 # 2. Env
 set RPC_URL=https://mainnet.base.org
 set PRIVATE_KEY=0x...   # never commit
-set AZZLE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.1
+set AZZLE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3
 
 # 3. In your script: approve USDC → AgentDepositVault, AZZLE → TreasuryRouter
 # 4. topUp(50_000_000)  // $50 USDC
