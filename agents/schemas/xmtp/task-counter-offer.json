@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/task-counter-offer/v1",
+  "title": "TaskCounterOffer",
+  "type": "object",
+  "required": ["type", "task", "settlementDigestPreview"],
+  "properties": {
+    "type": { "const": "azzle/TaskCounterOffer" },
+    "task": { "$ref": "https://azzle.protocol/standards/task-schema/v1" },
+    "settlementDigestPreview": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
+    "rationale": { "type": "string", "maxLength": 4000 },
+    "expiresAt": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/delivery-notice/v1",
+  "title": "DeliveryNotice",
+  "type": "object",
+  "required": ["type", "taskId", "milestoneIndex", "receiptHash"],
+  "properties": {
+    "type": { "const": "azzle/DeliveryNotice" },
+    "taskId": { "type": "string" },
+    "milestoneIndex": { "type": "integer", "minimum": 0 },
+    "receiptHash": { "type": "string" },
+    "receiptUri": { "type": "string", "format": "uri" },
+    "artifactUris": { "type": "array", "items": { "type": "string" } }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/milestone-definition/v1",
+  "title": "MilestoneDefinition",
+  "type": "object",
+  "required": ["type", "taskId", "milestones"],
+  "properties": {
+    "type": { "const": "azzle/MilestoneDefinition" },
+    "taskId": { "type": "string" },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["amount", "description"],
+        "properties": {
+          "amount": { "type": "string" },
+          "description": { "type": "string" },
+          "deadline": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "amendedAt": { "type": "string", "format": "date-time" }
+  }
+}

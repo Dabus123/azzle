@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/task-proposal/v1",
+  "title": "TaskProposal",
+  "type": "object",
+  "required": ["type", "task", "settlementDigestPreview"],
+  "properties": {
+    "type": { "const": "azzle/TaskProposal" },
+    "task": { "$ref": "https://azzle.protocol/standards/task-schema/v1" },
+    "settlementDigestPreview": { "type": "string" },
+    "expiresAt": { "type": "string", "format": "date-time" }
+  }
+}

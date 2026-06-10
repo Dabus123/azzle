@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azzle.protocol/xmtp/envelope/v1",
+  "title": "AzzleXmtpEnvelope",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "type",
+    "negotiationId",
+    "sequence",
+    "previousHash",
+    "timestamp",
+    "sender",
+    "payload"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "azzle-xmtp-v1" },
+    "type": { "type": "string", "minLength": 1 },
+    "negotiationId": { "type": "string", "format": "uuid" },
+    "taskId": { "type": "string" },
+    "sequence": { "type": "integer", "minimum": 1 },
+    "previousHash": { "type": "string", "pattern": "^0x[a-fA-F0-9]{64}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "sender": {
+      "type": "object",
+      "required": ["evmAddress", "xmtpPublicKey"],
+      "properties": {
+        "evmAddress": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+        "xmtpPublicKey": { "type": "string" }
+      }
+    },
+    "payload": { "type": "object" }
+  }
+}
