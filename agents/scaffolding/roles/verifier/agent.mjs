@@ -1,6 +1,8 @@
 import { ethers } from "ethers";
 import { buildExecutionReceipt } from "@azzle/agents";
-import manifest from "./base-8453.json" with { type: "json" };
+import { loadManifest } from "./lib/manifest.mjs";
+
+const manifest = loadManifest(import.meta.url, "base-8453.json");
 import {
   DEFAULT_BOND_WEI,
   monitorBondSlashRisk,

@@ -1,5 +1,7 @@
 import { Contract } from "ethers";
-import manifest from "../base-8453.json" with { type: "json" };
+import { loadManifest } from "./manifest.mjs";
+
+const manifest = loadManifest(import.meta.url, "..", "base-8453.json");
 
 /** 7 days — arbitration/ESCALATION.md RESOLUTION_TIMEOUT */
 export const RESOLUTION_TIMEOUT_SEC = 7 * 86_400;

@@ -7,7 +7,9 @@ import {
   ensureAzlAllowance,
   logPreflightReport,
 } from "@azzle/agents";
-import manifest from "./base-8453.json" with { type: "json" };
+import { loadManifest } from "./lib/manifest.mjs";
+
+const manifest = loadManifest(import.meta.url, "base-8453.json");
 import { warnIfBelowFloor } from "./lib/solvency.mjs";
 import { createNegotiationLayer } from "./lib/xmtp-setup.mjs";
 

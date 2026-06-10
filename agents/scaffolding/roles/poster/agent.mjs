@@ -5,7 +5,9 @@ import {
   checkWorkerPreflight,
   logPreflightReport,
 } from "@azzle/agents";
-import manifest from "./base-8453.json" with { type: "json" };
+import { loadManifest } from "./lib/manifest.mjs";
+
+const manifest = loadManifest(import.meta.url, "base-8453.json");
 import { runApprovalScaffold } from "./lib/approvals.mjs";
 import { acceptMilestone, fundTaskEscrow, openDispute } from "./lib/escrow.mjs";
 

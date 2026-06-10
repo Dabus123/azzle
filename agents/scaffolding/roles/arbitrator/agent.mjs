@@ -1,6 +1,8 @@
 import { Contract, ethers } from "ethers";
 import { AzzleClient, checkWorkerPreflight, logPreflightReport } from "@azzle/agents";
-import manifest from "./base-8453.json" with { type: "json" };
+import { loadManifest } from "./lib/manifest.mjs";
+
+const manifest = loadManifest(import.meta.url, "base-8453.json");
 import { guardRegistrationCooldown } from "./lib/cooldown.mjs";
 import { checkTierEligibility, tierForAmountUsdc6, workerBpsSplit } from "./lib/tiers.mjs";
 import { runResolutionWatchdog } from "./lib/watchdog.mjs";

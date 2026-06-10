@@ -231,8 +231,13 @@ function printAddresses(): void {
   }
 }
 
-const AGENT_TEMPLATE = `import { SubgraphIndexer } from "@azzle/agents";
-import manifest from "./base-8453.json" with { type: "json" };
+const AGENT_TEMPLATE = `import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { SubgraphIndexer } from "@azzle/agents";
+
+const __dir = dirname(fileURLToPath(import.meta.url));
+const manifest = JSON.parse(readFileSync(join(__dir, "base-8453.json"), "utf8"));
 
 const rpcUrl = process.env.AZZLE_RPC_URL ?? "https://mainnet.base.org";
 const subgraphUrl = process.env.AZZLE_SUBGRAPH_URL;

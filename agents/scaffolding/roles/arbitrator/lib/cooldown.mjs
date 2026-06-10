@@ -1,5 +1,7 @@
 import { Contract } from "ethers";
-import manifest from "../base-8453.json" with { type: "json" };
+import { loadManifest } from "./manifest.mjs";
+
+const manifest = loadManifest(import.meta.url, "..", "base-8453.json");
 
 /** 1 day — protocol/AGENT_LIFECYCLE.md */
 export const REGISTER_COOLDOWN_SEC = 86_400;

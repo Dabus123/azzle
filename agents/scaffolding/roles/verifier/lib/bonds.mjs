@@ -1,5 +1,7 @@
 import { Contract, ethers } from "ethers";
-import manifest from "../base-8453.json" with { type: "json" };
+import { loadManifest } from "./manifest.mjs";
+
+const manifest = loadManifest(import.meta.url, "..", "base-8453.json");
 
 const REPUTATION_ABI = [
   "function stakeVerifierBond() external payable",

@@ -1,5 +1,7 @@
 import { Contract, ethers } from "ethers";
-import manifest from "../base-8453.json" with { type: "json" };
+import { loadManifest } from "./manifest.mjs";
+
+const manifest = loadManifest(import.meta.url, "..", "base-8453.json");
 
 /** In-task solvency floor — protocol/AGENT_DEPOSITS.md */
 export const MIN_TASK_BALANCE_USDC = 8_000_000n; // $8, 6 decimals
