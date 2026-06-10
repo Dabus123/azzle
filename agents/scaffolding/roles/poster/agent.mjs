@@ -6,6 +6,9 @@ import {
   logPreflightReport,
 } from "@azzle/agents";
 import { loadManifest } from "./lib/manifest.mjs";
+import { loadDotEnv } from "./lib/env.mjs";
+
+loadDotEnv(import.meta.url);
 
 const manifest = loadManifest(import.meta.url, "base-8453.json");
 import { runApprovalScaffold } from "./lib/approvals.mjs";
