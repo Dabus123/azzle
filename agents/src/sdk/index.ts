@@ -14,6 +14,8 @@ export { NegotiationBus } from "./xmtp-local-bus.js";
 export {
   XmtpNegotiationTransport,
   createNegotiationTransport,
+  createXmtpClient,
+  installationPublicKey,
   startAgent,
   linkIdentity,
   NegotiationHandlers,

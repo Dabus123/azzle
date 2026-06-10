@@ -11,7 +11,6 @@ import { loadManifest } from "./lib/manifest.mjs";
 
 const manifest = loadManifest(import.meta.url, "base-8453.json");
 import { warnIfBelowFloor } from "./lib/solvency.mjs";
-import { createNegotiationLayer } from "./lib/xmtp-setup.mjs";
 
 const rpcUrl = process.env.AZZLE_RPC_URL ?? "https://mainnet.base.org";
 
@@ -61,6 +60,7 @@ async function claimFlow(taskIdArg) {
   await runPreflightChecks(signer, wallet);
   await warnIfBelowFloor(signer.provider, wallet);
 
+  const { createNegotiationLayer } = await import("./lib/xmtp-setup.mjs");
   const { transport } = await createNegotiationLayer(signer);
   transport.subscribe?.((msg) => console.log("[xmtp] envelope", msg.type, msg.taskId));
 

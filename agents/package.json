@@ -1,6 +1,6 @@
 {
   "name": "@azzle/agents",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Reference agents and TypeScript SDK for AZZLE protocol",
   "type": "module",
   "main": "dist/sdk/index.js",
