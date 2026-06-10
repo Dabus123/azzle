@@ -17,7 +17,7 @@ const ESCROW_ABI = ["function depositFor(uint256 taskId, uint256 amount) externa
 export async function fundTaskEscrow(client, signer, taskId, amountUsdc6) {
   const registry = manifest.TaskRegistry;
   const usdc = new Contract(manifest.usdc, ERC20_ABI, signer);
-  const allowance = (await usdc.allowance(await signer.getAddress(), registry)) as bigint;
+  const allowance = await usdc.allowance(await signer.getAddress(), registry);
   if (allowance < amountUsdc6) {
     console.log("[escrow] approving USDC for TaskRegistry");
     const tx = await usdc.approve(registry, ethers.MaxUint256);

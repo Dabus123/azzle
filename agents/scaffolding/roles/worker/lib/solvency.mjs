@@ -10,7 +10,7 @@ const VAULT_ABI = ["function balanceOf(address agent) external view returns (uin
 
 export async function checkSolvency(provider, wallet) {
   const vault = new Contract(manifest.AgentDepositVault, VAULT_ABI, provider);
-  const balance = (await vault.balanceOf(wallet)) as bigint;
+  const balance = await vault.balanceOf(wallet);
   const ok = balance >= MIN_TASK_BALANCE_USDC;
   const warnings = [];
   if (!ok) {

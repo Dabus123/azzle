@@ -33,7 +33,7 @@ export async function unstakeVerifierBond(signer, amountWei) {
 
 export async function readBond(provider, wallet) {
   const rep = reputationContract(provider);
-  return (await rep.verifierBond(wallet)) as bigint;
+  return await rep.verifierBond(wallet);
 }
 
 export async function monitorBondSlashRisk(provider, wallet, minBondWei = DEFAULT_BOND_WEI / 2n) {

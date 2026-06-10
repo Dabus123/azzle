@@ -14,7 +14,7 @@ const VAULT_ABI = ["function topUp(uint256 amount) external"];
 export async function ensureUsdcVaultApproval(signer, minAmount = 25_000_000n) {
   const wallet = await signer.getAddress();
   const usdc = new Contract(manifest.usdc, ERC20_ABI, signer);
-  const allowance = (await usdc.allowance(wallet, manifest.AgentDepositVault)) as bigint;
+  const allowance = await usdc.allowance(wallet, manifest.AgentDepositVault);
   if (allowance >= minAmount) return;
   console.log("[approvals] approving USDC for AgentDepositVault");
   const tx = await usdc.approve(manifest.AgentDepositVault, ethers.MaxUint256);
@@ -25,7 +25,7 @@ export async function ensureUsdcVaultApproval(signer, minAmount = 25_000_000n) {
 export async function ensureAzlTreasuryApproval(signer, minAmount = 1_000n * 10n ** 18n) {
   const wallet = await signer.getAddress();
   const azl = new Contract(manifest.azlToken, ERC20_ABI, signer);
-  const allowance = (await azl.allowance(wallet, manifest.TreasuryRouter)) as bigint;
+  const allowance = await azl.allowance(wallet, manifest.TreasuryRouter);
   if (allowance >= minAmount) return;
   console.log("[approvals] approving AZZLE for TreasuryRouter");
   const tx = await azl.approve(manifest.TreasuryRouter, ethers.MaxUint256);

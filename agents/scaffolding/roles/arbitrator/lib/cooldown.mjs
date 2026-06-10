@@ -12,7 +12,7 @@ const ARBITRATION_ABI = [
 
 export async function readLastRegistration(provider, arbitrator) {
   const mod = new Contract(manifest.ArbitrationModule, ARBITRATION_ABI, provider);
-  return (await mod.lastRegistrationTime(arbitrator)) as bigint;
+  return await mod.lastRegistrationTime(arbitrator);
 }
 
 export async function assertRegistrationCooldown(provider, arbitrator, nowSec = BigInt(Math.floor(Date.now() / 1000))) {
