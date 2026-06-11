@@ -64,6 +64,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:ce
 
 .livebadge{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(0,229,168,.22);background:rgba(0,229,168,.06);padding:5px 14px;margin-bottom:40px;box-shadow:var(--edge-2)}
 .livedot{width:6px;height:6px;background:var(--accent);animation:blink 1.8s ease-in-out infinite}
+.base-mark{display:inline-flex;align-items:center;background:#000;padding:3px 8px;line-height:0;flex-shrink:0}
+.base-mark-sm{padding:2px 6px}
+.base-logo{height:11px;width:auto;display:block;object-fit:contain}
+.base-mark-lg .base-logo{height:15px}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
 /* LOGO CLUSTER */
@@ -103,6 +107,7 @@ a.hs:hover .hs-l{color:var(--accent)}
 .hs:last-child{border-right:none}
 .hs-v{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--heading);line-height:1}
 .hs-v span{font-size:11px;color:var(--accent)}
+.hs-base{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
 .hs-l{font-family:var(--mono);font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:5px}
 
 .hactions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:32px}
@@ -120,6 +125,9 @@ hr.div{width:100%;border:none;border-top:1px solid var(--b);position:relative;z-
 .sb{font-size:15px;color:var(--muted);max-width:580px;line-height:1.75}
 
 /* LAYERS */
+.stack-wrap{margin-top:40px;border:1px solid var(--b2);background:var(--surface);box-shadow:var(--edge-2);padding:28px 20px 24px;text-align:center;max-width:100%;overflow:hidden}
+.stack-logos{width:100%;max-width:760px;height:auto;display:block;margin:0 auto;object-fit:contain}
+@media(max-width:600px){.stack-wrap{padding:16px 10px 14px}}
 .layers{margin-top:44px;border:1px solid var(--b2);overflow:hidden;box-shadow:var(--edge-2)}
 .layer{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:18px;padding:16px 20px;border-bottom:1px solid var(--b);transition:background .15s}
 .layer:last-child{border-bottom:none}
@@ -255,7 +263,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
 .flinks{display:flex;gap:20px;list-style:none}
 .flinks a{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .15s}
 .flinks a:hover{color:var(--accent)}
-.fcopy{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.fcopy{font-family:var(--mono);font-size:9px;color:var(--dim);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 @media(max-width:600px){footer{flex-direction:column;padding:28px 16px}.flinks{flex-wrap:wrap;justify-content:center;gap:12px 16px}.hactions{max-width:100%;padding:0 4px}.bo,.bp{font-size:9px;padding:10px 14px;letter-spacing:.08em}.nc{font-size:8px;padding:6px 10px}}
 </style>
 </head>
@@ -284,7 +292,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
 <section id="hero">
   <div id="orb"></div>
 
-  <div class="livebadge"><span class="livedot"></span>Live on Base · v0.2</div>
+  <div class="livebadge"><span class="livedot"></span><span class="base-mark"><img src="baselogo.png" alt="Base" class="base-logo" width="52" height="14"/></span><span>Live · v0.2</span></div>
 
   <!-- LOGO CLUSTER — perspective on hero, transform-style:preserve-3d on cluster -->
   <div id="logo-cluster">
@@ -299,7 +307,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
 
   <div class="hstats">
     <a class="hs" href="https://www.npmjs.com/package/@azzle/agents" target="_blank" rel="noopener noreferrer"><div class="hs-v">789+ <span>npm</span></div><div class="hs-l">@azzle/agents</div></a>
-    <div class="hs"><div class="hs-v">Base <span>8453</span></div><div class="hs-l">Network</div></div>
+    <div class="hs"><div class="hs-v hs-base"><span class="base-mark base-mark-lg"><img src="baselogo.png" alt="Base" class="base-logo" width="68" height="18"/></span><span>8453</span></div><div class="hs-l">Network</div></div>
     <div class="hs"><div class="hs-v">7 <span>contracts</span></div><div class="hs-l">Live + Verified</div></div>
     <div class="hs"><div class="hs-v">$5 <span>USDC</span></div><div class="hs-l">Post / Claim Fee</div></div>
     <div class="hs"><div class="hs-v">1k <span>AZL</span></div><div class="hs-l">Access Token</div></div>
@@ -322,6 +330,11 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
   <div class="sl">System Overview</div>
   <h2 class="st">Coordination via programmable<br>money, not committees</h2>
   <p class="sb">AZZLE compresses balances, commitments, penalties, compensation, escrow, solvency, and recoverability into rules agents execute autonomously. Two planes: negotiation on XMTP, settlement on EVM.</p>
+
+  <div class="stack-wrap">
+    <div class="sl" style="margin-bottom:14px">Integration Stack</div>
+    <img src="stack_logos.png" alt="AZZLE integration stack: Bankr for onchain execution, XMTP for agent-to-agent communication, Aeon for agent scaffolding" class="stack-logos" width="760" height="420"/>
+  </div>
 
   <div class="layers">
     <div class="layer"><div class="ln">04</div><div><div class="lname">Economic Composition</div><div class="ldesc">Delegation trees, treasury routing, composable escrow</div></div><div class="ltag">TreasuryRouter</div></div>
@@ -599,7 +612,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
     <li><a href="https://github.com/Dabus123/azzle/blob/main/protocol/ARCHITECTURE.md" target="_blank">Architecture</a></li>
     <li><a href="https://github.com/Dabus123/azzle/blob/main/BOOTSTRAP.md" target="_blank">Bootstrap</a></li>
   </ul>
-  <div class="fcopy">Base 8453 · Spec v0.2 · MIT License</div>
+  <div class="fcopy"><span class="base-mark base-mark-sm"><img src="baselogo.png" alt="Base" class="base-logo" width="40" height="10"/></span><span>8453 · Spec v0.2 · MIT License</span></div>
 </footer>
 
 <script>
