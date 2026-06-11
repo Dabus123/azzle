@@ -133,7 +133,7 @@ td .npm-mark{display:inline-flex;vertical-align:middle}
   backface-visibility:hidden;
 }
 #icon-main{filter:var(--brand)}
-#icon-g1,#icon-g2{mix-blend-mode:multiply;opacity:0;filter:blur(.65px)}
+#icon-g1,#icon-g2{mix-blend-mode:multiply;opacity:0;filter:blur(.45px)}
 
 .tagline{font-family:var(--mono);font-size:clamp(8px,1.2vw,11px);letter-spacing:.28em;text-transform:uppercase;color:var(--muted);margin-top:88px;max-width:100%;padding:0 8px;overflow-wrap:anywhere}
 
@@ -668,50 +668,59 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
   const G1=document.getElementById('icon-g1');
   const G2=document.getElementById('icon-g2');
 
-  // logo motion — transform/opacity only
+  // logo motion — smoothed pointer + soft springs
   const springs=[
-    {pos:{x:0,y:0},vel:{x:0,y:0},stiff:140,damp:22},
-    {pos:{x:0,y:0},vel:{x:0,y:0},stiff:110,damp:16},
-    {pos:{x:0,y:0},vel:{x:0,y:0},stiff:95,damp:14},
+    {pos:{x:0,y:0},vel:{x:0,y:0},stiff:48,damp:16},
+    {pos:{x:0,y:0},vel:{x:0,y:0},stiff:40,damp:14},
+    {pos:{x:0,y:0},vel:{x:0,y:0},stiff:36,damp:12},
   ];
-  let goal={x:0,y:0}, t0=performance.now(), idleT=0;
+  let rawGoal={x:0,y:0}, goal={x:0,y:0}, ghostOp={g1:0,g2:0}, t0=performance.now(), idleT=0;
+  const hero=document.getElementById('hero');
 
   function springStep(s,gx,gy,dt){
     const ax=(gx-s.pos.x)*s.stiff-s.vel.x*s.damp;
     const ay=(gy-s.pos.y)*s.stiff-s.vel.y*s.damp;
     s.vel.x+=ax*dt; s.vel.y+=ay*dt;
     s.pos.x+=s.vel.x*dt; s.pos.y+=s.vel.y*dt;
+    const v=Math.hypot(s.vel.x,s.vel.y);
+    if(v>2.2){const k=2.2/v;s.vel.x*=k;s.vel.y*=k;}
   }
 
-  function onMove(x,y){
-    goal.x=(x/W-.5)*2; goal.y=(y/H-.5)*2;
+  function setGoal(x,y){
+    rawGoal.x=(x/W-.5)*1.1;
+    rawGoal.y=(y/H-.5)*1.1;
   }
-  document.addEventListener('mousemove',e=>onMove(e.clientX,e.clientY),{passive:true});
-  document.addEventListener('touchmove',e=>{const t=e.touches[0];onMove(t.clientX,t.clientY);},{passive:true});
+  hero.addEventListener('mousemove',e=>setGoal(e.clientX,e.clientY),{passive:true});
+  hero.addEventListener('mouseleave',()=>{rawGoal.x=0;rawGoal.y=0;},{passive:true});
+  hero.addEventListener('touchmove',e=>{const t=e.touches[0];setGoal(t.clientX,t.clientY);},{passive:true});
+  hero.addEventListener('touchend',()=>{rawGoal.x=0;rawGoal.y=0;},{passive:true});
 
   function logoFrame(now){
-    const dt=Math.min((now-t0)/1000,.032);
+    const dt=Math.min((now-t0)/1000,.028);
     t0=now;
+    const ease=1-Math.exp(-3.2*dt);
+    goal.x+=(rawGoal.x-goal.x)*ease;
+    goal.y+=(rawGoal.y-goal.y)*ease;
 
     springStep(springs[0],goal.x,goal.y,dt);
-    springStep(springs[1],goal.x*1.06,goal.y*1.06,dt);
-    springStep(springs[2],goal.x*-.94,goal.y*-.94,dt);
+    springStep(springs[1],goal.x*.92,goal.y*.92,dt);
+    springStep(springs[2],goal.x*-.88,goal.y*-.88,dt);
 
     const ic=springs[0].pos, g1=springs[1].pos, g2=springs[2].pos;
-    const speed=Math.hypot(springs[0].vel.x,springs[0].vel.y);
-    let bx=0,by=0;
-    if(speed<.05){idleT+=dt;bx=Math.sin(idleT*.9)*2;by=Math.cos(idleT*.7)*1.4;}
-    else idleT=0;
-
+    idleT+=dt;
+    const bx=Math.sin(idleT*.45)*.6, by=Math.cos(idleT*.38)*.45;
     const x=ic.x+bx, y=ic.y+by, abs=Math.abs(x)+Math.abs(y);
-    const mob=W<=700, amp=mob?10:22, tilt=mob?0:8;
+    const mob=W<=700, amp=mob?6:12, tilt=mob?0:4;
     IL.style.transform=mob
       ?`translate3d(${x*amp}px,${y*amp}px,0)`
       :`translate3d(${x*amp}px,${y*amp}px,0) rotateX(${-y*tilt}deg) rotateY(${x*tilt}deg)`;
-    G1.style.transform=`translate3d(${g1.x*9}px,${g1.y*9}px,0)`;
-    G1.style.opacity=Math.min(.38,abs*.26+.03);
-    G2.style.transform=`translate3d(${g2.x*-6}px,${g2.y*-6}px,0)`;
-    G2.style.opacity=Math.min(.28,abs*.18+.02);
+    G1.style.transform=`translate3d(${g1.x*4}px,${g1.y*4}px,0)`;
+    G2.style.transform=`translate3d(${g2.x*-3}px,${g2.y*-3}px,0)`;
+    const t1=Math.min(.18,abs*.1+.015), t2=Math.min(.12,abs*.07+.01);
+    ghostOp.g1+=(t1-ghostOp.g1)*ease;
+    ghostOp.g2+=(t2-ghostOp.g2)*ease;
+    G1.style.opacity=ghostOp.g1;
+    G2.style.opacity=ghostOp.g2;
     requestAnimationFrame(logoFrame);
   }
 
