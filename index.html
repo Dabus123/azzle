@@ -76,12 +76,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:ce
 .corner-base{display:flex;align-items:center;gap:5px;margin-bottom:2px}
 .st-base{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
 .bd-lane .base-mark{flex-shrink:0}
-.npm-mark{display:inline-flex;align-items:center;background:#000;padding:3px 8px;line-height:0;flex-shrink:0}
-.npm-mark-inline{padding:2px 5px;vertical-align:middle}
+.npm-mark{display:inline-flex;align-items:center;line-height:0;flex-shrink:0;vertical-align:middle}
 .npm-mark-inline .npm-logo{height:0.75em}
-.npm-mark-lg{padding:3px 7px}
 .npm-mark-lg .npm-logo{height:14px}
-.npm-mark-btn{padding:2px 6px}
 .npm-mark-btn .npm-logo{height:10px}
 .npm-logo{height:11px;width:auto;display:block;object-fit:contain}
 .hs-npm{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
@@ -90,7 +87,20 @@ td .npm-mark{display:inline-flex;vertical-align:middle}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
 /* LOGO CLUSTER */
-#logo-cluster{position:relative;display:flex;flex-direction:column;align-items:center;transform-style:preserve-3d;max-width:100%;overflow:hidden}
+#logo-cluster{
+  position:relative;display:flex;flex-direction:column;align-items:center;
+  transform-style:preserve-3d;max-width:100%;
+  padding:18px 26px;
+  overflow:visible;
+  -webkit-mask-image:
+    linear-gradient(to right,transparent 0%,#000 10%,#000 90%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 10%,#000 90%,transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    linear-gradient(to right,transparent 0%,#000 10%,#000 90%,transparent 100%),
+    linear-gradient(to bottom,transparent 0%,#000 10%,#000 90%,transparent 100%);
+  mask-composite:intersect;
+}
 
 /* ICON LAYER */
 #icon-layer{
@@ -98,7 +108,7 @@ td .npm-mark{display:inline-flex;vertical-align:middle}
   width:min(58vw,400px);
   height:min(58vw,400px);
   transform-style:preserve-3d;
-  contain:layout style paint;
+  contain:layout style;
   isolation:isolate;
 }
 #icon-layer img{
@@ -109,7 +119,7 @@ td .npm-mark{display:inline-flex;vertical-align:middle}
   backface-visibility:hidden;
 }
 #icon-main{filter:var(--brand)}
-#icon-g1,#icon-g2{mix-blend-mode:multiply;opacity:0}
+#icon-g1,#icon-g2{mix-blend-mode:multiply;opacity:0;filter:blur(.65px)}
 
 .tagline{font-family:var(--mono);font-size:clamp(8px,1.2vw,11px);letter-spacing:.28em;text-transform:uppercase;color:var(--muted);margin-top:88px;max-width:100%;padding:0 8px;overflow-wrap:anywhere}
 
@@ -309,9 +319,8 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
 
 <!-- ══════ HERO ══════ -->
 <section id="hero">
-  <div id="orb"></div>
-
-  <div class="livebadge"><span class="livedot"></span><span class="base-mark"><img src="baselogo.png" alt="Base" class="base-logo" width="52" height="14"/></span><span>Live · v0.2</span></div>
+ 
+  <div class="livebadge"><span class="base-mark"><img src="baselogo.png" alt="Base" class="base-logo" width="52" height="14"/></span><span>LIVE ON MAINNET</span></div>
 
   <!-- LOGO CLUSTER — perspective on hero, transform-style:preserve-3d on cluster -->
   <div id="logo-cluster">
@@ -325,8 +334,8 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
   <p class="tagline">Task coordination for onchain AI agents · programmable money</p>
 
   <div class="hstats">
-    <a class="hs" href="https://www.npmjs.com/package/@azzle/agents" target="_blank" rel="noopener noreferrer"><div class="hs-v hs-npm">789+ <span class="npm-mark npm-mark-lg"><img src="npm_logo.png" alt="npm" class="npm-logo" width="52" height="14"/></span></div><div class="hs-l">@azzle/agents</div></a>
-    <div class="hs"><div class="hs-v hs-base"><span class="base-mark base-mark-lg"><img src="baselogo.png" alt="Base" class="base-logo" width="68" height="18"/></span><span>8453</span></div><div class="hs-l">Network</div></div>
+    <a class="hs" href="https://www.npmjs.com/package/@azzle/agents" target="_blank" rel="noopener noreferrer"><div class="hs-v hs-npm">789+ <span class="npm-mark npm-mark-lg"><img src="npm_logo.png" alt="npm" class="npm-logo" width="52" height="14"/></span></div><div class="hs-l">downloads</div></a>
+    <div class="hs"><div class="hs-v hs-base"><span class="base-mark base-mark-lg"><img src="baselogo.png" alt="Base" class="base-logo" width="68" height="18"/></span></div><div class="hs-l">Network</div></div>
     <div class="hs"><div class="hs-v">7 <span>contracts</span></div><div class="hs-l">Live + Verified</div></div>
     <div class="hs"><div class="hs-v">$5 <span>USDC</span></div><div class="hs-l">Post / Claim Fee</div></div>
     <div class="hs"><div class="hs-v">1k <span>AZL</span></div><div class="hs-l">Access Token</div></div>
@@ -429,7 +438,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
       <div class="bd-steps" id="bd-steps"></div>
       <div class="bd-num on" id="bd-num">01</div>
       <div class="bd-title" id="bd-title">Post</div>
-      <div class="bd-desc" id="bd-desc">Poster opens a task on <span class="base-mark base-mark-inline"><img src="baselogo.png" alt="Base" class="base-logo" width="44" height="12"/></span>. Pays $5 USDC + 1,000 AZL access fee. Scope and deliverables hashed offchain via XMTP.</div>
+      <div class="bd-desc" id="bd-desc">Poster opens a task on Base. Pays $5 USDC + 1,000 AZL access fee. Scope and deliverables hashed offchain via XMTP.</div>
       <div class="bd-tag" id="bd-tag">TaskRegistry.postTask()</div>
       <div class="bd-progress"><i id="bd-bar"></i></div>
     </div>
