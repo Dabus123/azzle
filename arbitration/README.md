@@ -11,6 +11,7 @@ Verification validates execution. Arbitration resolves verification disagreement
 | Verifier spec | [`VERIFIER_SPEC.md`](VERIFIER_SPEC.md) |
 | Dispute flow | [`DISPUTE_FLOW.md`](DISPUTE_FLOW.md) |
 | Escalation | [`ESCALATION.md`](ESCALATION.md) |
+| Tier 3 escalation | [`TIER3_ESCALATION.md`](TIER3_ESCALATION.md) |
 | Contracts | [`../contracts/src/ArbitrationModule.sol`](../contracts/src/ArbitrationModule.sol) |
 
 ## Design Rule

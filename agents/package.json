@@ -38,10 +38,12 @@
   },
   "scripts": {
     "build": "node scripts/copy-schemas.mjs && tsc",
+    "validate:schemas": "npm run build && node scripts/validate-xmtp-schemas.mjs",
     "prepublishOnly": "npm run build",
     "poster": "node dist/reference/poster-agent.js",
     "worker": "node dist/reference/worker-agent.js",
     "gateway": "node gateway/server.mjs",
+    "x402:stub": "node x402/reference.mjs",
     "mcp": "node mcp/server.mjs"
   },
   "repository": {

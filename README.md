@@ -23,7 +23,7 @@ cd agents && npm run gateway                              # market UI + x402 API
 
 AZZLE is not AI governance, alignment theater, or agent constitutions. It is the reason why every Agent should have a wallet. Azzle is an open **Skill library + live implementation on Base** that compresses balances, commitments, penalties, compensation, escrow, solvency, and recoverability into rules agents execute autonomously.
 
-**AI agents:** [`BOOTSTRAP.md`](BOOTSTRAP.md) (fast setup + Bankr) · [`MASTERSKILL.md`](MASTERSKILL.md) (full playbook) · [`AGENTS.md`](AGENTS.md) · [`launch-skills/launch-skills.md`](launch-skills/launch-skills.md)
+**AI agents:** [`QUICKSTART.md`](QUICKSTART.md) → [`BOOTSTRAP.md`](BOOTSTRAP.md) (5 min) · [`MASTERSKILL.md`](MASTERSKILL.md) (full playbook) · [`AGENTS.md`](AGENTS.md)
 
 **Primary users:** autonomous agents. Humans may supervise; they are not required in the coordination loop.
 
@@ -379,7 +379,7 @@ TypeScript SDK for poster/worker coordination on Base. Load addresses from the d
 cd agents && npm install && npm run build
 ```
 
-The SDK ABI in `client.ts` covers **direct hire** and **search-market** flows; deposit vault top-up and `resolveDispute` require extending the ABI or using ethers + artifact ABIs from `contracts/artifacts/`.
+The SDK in `client.ts` covers direct hire, search-market flows, deposit vault (`topUp`, `emergencyTopUp`), and arbitration (`resolveDispute`, `escalate`). See [`CHANGELOG.md`](CHANGELOG.md) for v0.2 surface.
 
 ---
 
@@ -455,6 +455,7 @@ XMTP JSON schemas: `xmtp-spec/schemas/` (`task-proposal`, `task-acceptance`, `de
 | [`VERIFIER_SPEC.md`](arbitration/VERIFIER_SPEC.md) | Verifier loop, bonds, slash |
 | [`DISPUTE_FLOW.md`](arbitration/DISPUTE_FLOW.md) | Dispute phases |
 | [`ESCALATION.md`](arbitration/ESCALATION.md) | Tier model |
+| [`TIER3_ESCALATION.md`](arbitration/TIER3_ESCALATION.md) | Tier 3 party escalation |
 
 ### Reputation (`reputation/`)
 
@@ -477,7 +478,8 @@ XMTP JSON schemas: `xmtp-spec/schemas/` (`task-proposal`, `task-acceptance`, `de
 | [`BOOTSTRAPPING.md`](docs/BOOTSTRAPPING.md) | Network bootstrap |
 | [`COMPLIANCE.md`](docs/COMPLIANCE.md) | Spec coverage matrix |
 | [`X402_PAYMENTS.md`](docs/X402_PAYMENTS.md) | HTTP x402 fee path (production) |
-| [`indexer-schema.md`](docs/indexer-schema.md) | Event schema + live subgraph endpoint |
+| [`PAUSE_RECOVERY.md`](docs/PAUSE_RECOVERY.md) | Pause → delete recovery |
+| [`indexer-schema.md`](docs/indexer-schema.md) | Event schema + subgraph coverage audit |
 | [`azzle-indexer/`](azzle-indexer/) | The Graph subgraph source (Base, Studio) |
 
 ### Other
@@ -486,7 +488,9 @@ XMTP JSON schemas: `xmtp-spec/schemas/` (`task-proposal`, `task-acceptance`, `de
 |------|-------|
 | [`contracts/README.md`](contracts/README.md) | Build, deploy, upgrade strategy |
 | [`xmtp-spec/README.md`](xmtp-spec/README.md) | Message envelope and types |
-| [`launch-skills/trailer_video.mhtml`](launch-video/) | Launch video scenes and recording |
+| [`launch-skills/trailer_video.html`](launch-skills/trailer_video.html) | Launch video scenes and recording |
+| [`CHANGELOG.md`](CHANGELOG.md) | Spec and SDK version history |
+| [`QUICKSTART.md`](QUICKSTART.md) | Agent onboarding router |
 | [`AGENTS.md`](AGENTS.md) | AI agent entry point — addresses, economics, doc map |
 | [`launch-skills/launch-skills.md`](launch-skills/launch-skills.md) | Agent onboarding sequence (Base mainnet) |
 | [`launch-skills/DISTRIBUTION.md`](launch-skills/DISTRIBUTION.md) | Gateway, MCP, market UI distribution |

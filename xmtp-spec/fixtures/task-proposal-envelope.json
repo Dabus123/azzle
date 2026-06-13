@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "azzle-xmtp-v1",
+  "type": "TaskProposal",
+  "negotiationId": "550e8400-e29b-41d4-a716-446655440000",
+  "sequence": 1,
+  "previousHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "timestamp": "2026-06-13T12:00:00.000Z",
+  "sender": {
+    "evmAddress": "0x0000000000000000000000000000000000000001",
+    "xmtpPublicKey": "test-pubkey"
+  },
+  "payload": {
+    "type": "azzle/TaskProposal",
+    "settlementDigestPreview": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "task": {
+      "schemaVersion": "azzle-task-v1",
+      "taskType": "software.implementation",
+      "title": "Fixture task",
+      "acceptanceCriteria": { "mode": "deterministic", "specHash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+      "compensation": {
+        "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "amount": "100000000",
+        "escrowMode": "milestone"
+      }
+    }
+  }
+}

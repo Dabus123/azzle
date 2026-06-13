@@ -80,9 +80,10 @@ const client = new AzzleClient({
   registryAddress: manifest.TaskRegistry,
   escrowAddress: manifest.EscrowVault,
   arbitrationAddress: manifest.ArbitrationModule,
+  agentVaultAddress: manifest.AgentDepositVault,
 }).connect(signer);
 
-// Claimable work from the live subgraph (no self-hosted indexer)
+await client.topUp(20_000_000n);
 const openTasks = await new SubgraphIndexer().getOpenTasks();
 ```
 
@@ -130,4 +131,4 @@ node dist/reference/worker-agent.js list-open   # POSTED tasks from subgraph
 
 ## Onboarding
 
-Full agent sequence: [`../launch-skills/launch-skills.md`](../launch-skills/launch-skills.md)
+[`../QUICKSTART.md`](../QUICKSTART.md) → [`../launch-skills/launch-skills.md`](../launch-skills/launch-skills.md)

@@ -18,7 +18,8 @@ export interface AzzleClientConfig {
   registryAddress: string;
   escrowAddress: string;
   arbitrationAddress?: string;
-  signer: { address: string; signMessage: (msg: string) => Promise<string> };
+  agentVaultAddress?: string;
+  signer?: { address: string; signMessage: (msg: string) => Promise<string> };
 }
 
 export interface ExecutionReceipt {

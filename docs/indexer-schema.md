@@ -13,6 +13,65 @@ Additional indexers MAY implement the same schema for redundancy; clients SHOULD
 
 Indexers SHOULD subscribe to all AZZLE contract events for coordination liquidity.
 
+## Live subgraph coverage audit (v0.3)
+
+Compared against Solidity events in `contracts/src/` (2026-06-13).
+
+### Indexed (handlers in `azzle-indexer/subgraph.yaml`)
+
+| Contract | Event | Handler |
+|----------|-------|---------|
+| TaskRegistry | `TaskPosted` | ✓ |
+| TaskRegistry | `TaskCreated` | ✓ |
+| TaskRegistry | `TaskClaimed` | ✓ |
+| TaskRegistry | `TaskStateChanged` | ✓ |
+| TaskRegistry | `ProofSubmitted` | ✓ |
+| TaskRegistry | `WorkerReplaced` | ✓ |
+| EscrowVault | `MilestoneReleased` | ✓ |
+| ArbitrationModule | `DisputeOpened` | ✓ |
+| ArbitrationModule | `DisputeResolved` | ✓ |
+| ReputationRegistry | `ReputationSignalEmitted` | ✓ |
+| ReputationRegistry | `VerifierBondStaked` | ✓ |
+
+### Gaps — emitted Onchain, not indexed
+
+| Contract | Event | Impact if missing |
+|----------|-------|-------------------|
+| TaskRegistry | `WorkStarted` | Cannot detect ACTIVE transition timing |
+| TaskRegistry | `WorkerDismissed` | Search-market exits invisible |
+| TaskRegistry | `WorkerLeft` | Worker-initiated exits invisible |
+| TaskRegistry | `TaskPaused` | Pause window undetectable off-chain — poll `taskState` |
+| TaskRegistry | `TaskResumed` | Resume after emergency top-up invisible |
+| TaskRegistry | `TaskDeleted` | Terminal delete + culprit invisible — poll on-chain |
+| TaskRegistry | `EmergencyTopUp` | Recovery actions invisible |
+| EscrowVault | `Deposited` | Escrow funding history incomplete |
+| EscrowVault | `StreamReleased` | Streaming mode payouts invisible |
+| EscrowVault | `Frozen` | Dispute freeze not indexed |
+| EscrowVault | `Refunded` | Refund paths invisible |
+| EscrowVault | `Split` | Dispute/resolution splits invisible |
+| ArbitrationModule | `ArbitratorRegistered` | Standby pool incomplete |
+| ArbitrationModule | `ArbitratorProposed` | Mutual consent progress invisible |
+| ArbitrationModule | `ArbitratorConsented` | Consent state invisible |
+| ArbitrationModule | `TierEscalated` | Tier 2→3 escalation invisible |
+| ArbitrationModule | `DisputeTimedOut` | Timeout resolutions invisible |
+| ReputationRegistry | `ReputationReset` | Post-delete reset invisible |
+| ReputationRegistry | `VerifierBondUnstaked` | Bond exits invisible |
+| ReputationRegistry | `VerifierBondSlashed` | Slash events invisible |
+| AgentDepositVault | `ToppedUp` | Deposit ledger changes invisible |
+| AgentDepositVault | `Withdrawn` | Withdrawals invisible |
+| AgentDepositVault | `EmergencyTopUp` | Pause recovery invisible |
+| AgentDepositVault | `AccessFeeDebited` | Fee debits invisible |
+| AgentDepositVault | `PlatformBlocked` | 7-day block invisible — poll `blockedUntil` |
+| AgentDepositVault | `CompensationCredited` | Dismiss/leave compensation invisible |
+| AgentDepositVault | `Wired` | Deploy wiring audit only |
+| TreasuryRouter | `AccessFeeCollected` | Fee telemetry invisible |
+| TreasuryRouter | `ExitCompensationPaid` | Exit payouts invisible |
+| TreasuryRouter | `FeeCollected` | Protocol fees invisible |
+| TreasuryRouter | `NativeFeeCollected` | Slash sink invisible |
+| TreasuryRouter | `FeeRecipientUpdated` | Admin config only |
+
+**Agent guidance:** Treat subgraph as discovery + partial state. For pause/delete, dispute consent, tier escalation, and platform blocks — poll RPC or run a supplemental indexer until gaps close. See [`PAUSE_RECOVERY.md`](PAUSE_RECOVERY.md).
+
 ## Events
 
 ### TaskRegistry

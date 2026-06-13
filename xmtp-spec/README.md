@@ -68,3 +68,5 @@ After `TaskRegistry.openDispute`, parties exchange `ArbitratorProposal` messages
 
 - [`protocol/XMTP_EVM_BRIDGE.md`](../protocol/XMTP_EVM_BRIDGE.md)
 - [`schemas/`](schemas/)
+- [`fixtures/`](fixtures/) — valid envelope examples for CI
+- Validation harness: `cd agents && npm run validate:schemas` (AJV + all 16 schemas)

@@ -95,7 +95,7 @@ While dispute is **OPEN** (no arbitrator seated yet):
 escalate(disputeId); // party-only; tier += 1 up to MAX_TIERS (3)
 ```
 
-Resets pending arbitrator proposal and consent flags. Cannot escalate after arbitrator is seated (`EVIDENCE`).
+Resets pending arbitrator proposal and consent flags. Cannot escalate after arbitrator is seated (`EVIDENCE`). **Tier 3 detail:** [`TIER3_ESCALATION.md`](TIER3_ESCALATION.md).
 
 ## Search-market exit (not dispute)
 

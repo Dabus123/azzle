@@ -11,6 +11,8 @@
     "deploy:base:resume": "hardhat run scripts/deploy-mainnet-resume.ts --network base",
     "deploy:base:finish": "hardhat run scripts/deploy-mainnet-finish.ts --network base",
     "deploy:inspect": "hardhat run scripts/inspect-wiring.ts --network base",
+    "deploy:preflight": "hardhat run scripts/preflight-deploy.ts --network base -- --dry-run",
+    "fork:check": "npx ts-node scripts/fork-manifest-check.ts",
     "deploy:list-contracts": "hardhat run scripts/list-deployer-contracts.ts --network base",
     "verify:base": "hardhat run scripts/verify-base.ts --network base",
     "demo:lifecycle": "hardhat run scripts/lifecycle-local.ts"

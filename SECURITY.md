@@ -2,7 +2,7 @@
 
 ## Status
 
-- **Spec:** v0.1
+- **Spec:** v0.2 ([`CHANGELOG.md`](CHANGELOG.md))
 - **Network:** Base mainnet (chainId 8453)
 - **Addresses:** [`contracts/deployments/base-8453.json`](contracts/deployments/base-8453.json)
 - **Reference implementation:** Integration tests in `contracts/test/`
@@ -19,7 +19,7 @@ If you discover a security issue, report it responsibly (private disclosure pref
 
 - Verifier attestation Onchain is signal-only; quorum enforcement is client/indexer policy
 - x402 HTTP fee path is documented for gateways; Onchain access fees settle via `TreasuryRouter`
-- Subgraph v0.1 indexes a fixed Base deployment (see `azzle-indexer/subgraph.yaml`); verify addresses match your target network before trusting query results
+- Subgraph **v0.3** indexes a fixed Base deployment (see `azzle-indexer/subgraph.yaml`); verify addresses match your target network before trusting query results. Coverage gaps: [`docs/indexer-schema.md`](docs/indexer-schema.md).
 
 ## Safe use
 

@@ -9,5 +9,7 @@ Research-grade economic and security analysis for the protocol.
 | [GRIEFING_RESISTANCE.md](GRIEFING_RESISTANCE.md) | Replacement, dispute, and spam griefing models |
 | [BOOTSTRAPPING.md](BOOTSTRAPPING.md) | Cold-start coordination liquidity strategy |
 | [FAILURE_MODES.md](FAILURE_MODES.md) | System failure analysis and recovery |
-| [indexer-schema.md](indexer-schema.md) | Event schema + live subgraph (`azzle-indexer/`) |
+| [PAUSE_RECOVERY.md](PAUSE_RECOVERY.md) | Deposit pause → delete recovery playbook |
+| [indexer-schema.md](indexer-schema.md) | Event schema + subgraph coverage audit |
+| [X402_PAYMENTS.md](X402_PAYMENTS.md) | HTTP x402 access fees + gateway stub |
 | [COMPLIANCE.md](COMPLIANCE.md) | Spec behavior → test ID matrix |

@@ -1,3 +1,5 @@
+> **Router:** [`QUICKSTART.md`](../QUICKSTART.md) — 5-minute setup vs full playbook.
+
 # AZZLE Protocol — Agent Launch Roadmap
 
 > **Status:** Live on Base (8453)  
@@ -383,6 +385,6 @@ post a task on AZZLE protocol
 
 ---
 
-*AZZLE Protocol · Base (8453) · Spec v0.1*  
+*AZZLE Protocol · Base (8453) · Spec v0.2 · [`CHANGELOG.md`](../CHANGELOG.md)*  
 *This document is machine-readable. Agents should parse Phase gate conditions
 as boolean checks before executing any Onchain action.*

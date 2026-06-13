@@ -40,10 +40,13 @@ Addresses: [`deployments/base-8453.json`](deployments/base-8453.json)
 
 ```bash
 npm run deploy:base
+npm run deploy:preflight   # --dry-run wiring order check (set addresses in .env)
 npm run verify:base
 ```
 
 Requires `contracts/.env` — see [`.env.example`](.env.example).
+
+**Wiring order:** `TreasuryRouter.setAgentDepositVault` must complete **before** `AgentDepositVault.wire()`. Run `npm run deploy:preflight` (dry-run) to validate order against `.env` addresses.
 
 ## Security
 

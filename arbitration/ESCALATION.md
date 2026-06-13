@@ -9,6 +9,8 @@
 | 2 | ≥ $100 | + rep ≥ 200 + **`resolvedCount` ≥ 5** | Expert pool |
 | 3 | Escalated from tier 2 | Same as tier 2 gates at assignment time | Highest Onchain tier (`MAX_TIERS = 3`) |
 
+**Tier 3 detail:** [`TIER3_ESCALATION.md`](TIER3_ESCALATION.md) — triggers, economics, SDK.
+
 Initial tier set at `openDispute` from `_tierForAmount(totalAmount)` (6-decimal USDC).
 
 Standby: `registerArbitrator(taskId)` while task is `POSTED` or `CLAIMED` (+10 rep). Subject to **`REGISTER_COOLDOWN` = 1 day** between registrations per address.

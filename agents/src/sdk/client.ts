@@ -14,8 +14,19 @@ const REGISTRY_ABI = [
   "function acceptMilestone(uint256 taskId, uint256 milestoneIndex)",
   "function openDispute(uint256 taskId, bytes evidenceHash)",
   "function completeTask(uint256 taskId)",
+  "function emergencyTopUp(uint256 taskId, uint256 amount)",
+  "function checkTaskBalance(uint256 taskId)",
+  "function maxWithdrawableDeposit(address agent) view returns (uint256)",
   "function taskCount() view returns (uint256)",
   "function taskState(uint256 taskId) view returns (uint8)",
+];
+
+const VAULT_ABI = [
+  "function topUp(uint256 amount)",
+  "function withdraw(uint256 amount)",
+  "function balanceOf(address agent) view returns (uint256)",
+  "function emergencyTopUpRequired(address agent) view returns (uint256)",
+  "function blockedUntil(address agent) view returns (uint256)",
 ];
 
 const ARBITRATION_ABI = [
@@ -65,12 +76,16 @@ export class AzzleClient {
   private provider: ethers.JsonRpcProvider;
   private registry: Contract;
   private arbitration?: Contract;
+  private vault?: Contract;
 
   constructor(private config: AzzleClientConfig) {
     this.provider = new ethers.JsonRpcProvider(config.rpcUrl);
     this.registry = new Contract(config.registryAddress, REGISTRY_ABI, this.provider);
     if (config.arbitrationAddress) {
       this.arbitration = new Contract(config.arbitrationAddress, ARBITRATION_ABI, this.provider);
+    }
+    if (config.agentVaultAddress) {
+      this.vault = new Contract(config.agentVaultAddress, VAULT_ABI, this.provider);
     }
   }
 
@@ -79,7 +94,17 @@ export class AzzleClient {
     if (this.arbitration) {
       this.arbitration = this.arbitration.connect(signer) as Contract;
     }
+    if (this.vault) {
+      this.vault = this.vault.connect(signer) as Contract;
+    }
     return this;
+  }
+
+  private requireVault(): Contract {
+    if (!this.vault) {
+      throw new Error("AzzleClient: agentVaultAddress required for vault methods");
+    }
+    return this.vault;
   }
 
   buildDigest(terms: TaskTerms): string {
@@ -142,6 +167,52 @@ export class AzzleClient {
     return this.registry.startWork(taskId);
   }
 
+  async dismissWorker(taskId: bigint) {
+    return this.registry.dismissWorker(taskId);
+  }
+
+  async leaveTask(taskId: bigint) {
+    return this.registry.leaveTask(taskId);
+  }
+
+  async completeTask(taskId: bigint) {
+    return this.registry.completeTask(taskId);
+  }
+
+  /** Credit USDC deposit ledger (requires prior usdc.approve(agentVault, amount)). */
+  async topUp(amount: bigint) {
+    return this.requireVault().topUp(amount);
+  }
+
+  async withdrawFromVault(amount: bigint) {
+    return this.requireVault().withdraw(amount);
+  }
+
+  async vaultBalanceOf(agent: string) {
+    return this.requireVault().balanceOf(agent) as Promise<bigint>;
+  }
+
+  async emergencyTopUpRequired(agent: string) {
+    return this.requireVault().emergencyTopUpRequired(agent) as Promise<bigint>;
+  }
+
+  async vaultBlockedUntil(agent: string) {
+    return this.requireVault().blockedUntil(agent) as Promise<bigint>;
+  }
+
+  /** Resume a PAUSED task — pulls USDC from wallet via vault; both parties must reach ≥ $8. */
+  async emergencyTopUp(taskId: bigint, amount: bigint) {
+    return this.registry.emergencyTopUp(taskId, amount);
+  }
+
+  async checkTaskBalance(taskId: bigint) {
+    return this.registry.checkTaskBalance(taskId);
+  }
+
+  async maxWithdrawableDeposit(agent: string) {
+    return this.registry.maxWithdrawableDeposit(agent) as Promise<bigint>;
+  }
+
   async fundTask(taskId: bigint, amount: bigint) {
     return this.registry.fundTask(taskId, amount);
   }
@@ -186,5 +257,13 @@ export class AzzleClient {
       throw new Error("AzzleClient: arbitrationAddress required for resolveTimedOut");
     }
     return this.arbitration.resolveTimedOut(disputeId);
+  }
+
+  /** Party-only; tier += 1 up to MAX_TIERS (3) while dispute is OPEN. */
+  async escalate(disputeId: bigint) {
+    if (!this.arbitration) {
+      throw new Error("AzzleClient: arbitrationAddress required for escalate");
+    }
+    return this.arbitration.escalate(disputeId);
   }
 }
