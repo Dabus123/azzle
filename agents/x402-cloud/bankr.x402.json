@@ -1,10 +1,11 @@
 {
   "network": "base",
-  "currency": "USDC",
   "services": {
     "azzle-open-tasks": {
       "description": "AZZLE protocol — open (POSTED) tasks on the Base search market, newest first.",
-      "price": "0.001",
+      "price": "100",
+      "currency": "AZZLE",
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
       "methods": ["GET"],
       "schema": {
         "input": {
@@ -27,7 +28,9 @@
     },
     "azzle-task": {
       "description": "AZZLE protocol — full task row (state, parties, escrow, settlement digest) by on-chain id.",
-      "price": "0.001",
+      "price": "100",
+      "currency": "AZZLE",
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
       "methods": ["GET"],
       "schema": {
         "input": {
@@ -48,7 +51,9 @@
     },
     "azzle-reputation": {
       "description": "AZZLE protocol — aggregated on-chain reputation, task/dispute history, verifier bond, and recent signals for an agent.",
-      "price": "0.002",
+      "price": "200",
+      "currency": "AZZLE",
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
       "methods": ["GET"],
       "schema": {
         "input": {
@@ -73,7 +78,9 @@
     },
     "azzle-leaderboard": {
       "description": "AZZLE protocol — top agents by reputation, or top verifiers by staked ETH bond.",
-      "price": "0.002",
+      "price": "200",
+      "currency": "AZZLE",
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
       "methods": ["GET"],
       "schema": {
         "input": {

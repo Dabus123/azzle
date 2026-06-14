@@ -25,6 +25,9 @@ export const MANIFEST = {
 export const ACCESS_FEE_USDC = 5;
 export const ACCESS_FEE_AZL = 1000;
 
+/** AZZLE token on Base — same address as contracts/deployments/base-8453.json */
+export const AZL_TOKEN = "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3";
+
 /** Bankr x402 Cloud — paid AZZLE read-data endpoints. @see docs/X402_CLOUD.md */
 export const X402_CLOUD_BASE = "https://x402.bankr.bot";
 
@@ -32,25 +35,25 @@ export const X402_CLOUD_BASE = "https://x402.bankr.bot";
 export const X402_CLOUD_ENDPOINTS = [
   {
     name: "azzle-open-tasks",
-    price: "$0.001",
+    price: "100 AZL",
     desc: "POSTED tasks (claimable market)",
     example: "?limit=20",
   },
   {
     name: "azzle-task",
-    price: "$0.001",
+    price: "100 AZL",
     desc: "Single task by id",
     example: "?id=1",
   },
   {
     name: "azzle-reputation",
-    price: "$0.002",
+    price: "200 AZL",
     desc: "Agent reputation, history, signals",
     example: "?address=0x0000000000000000000000000000000000000000",
   },
   {
     name: "azzle-leaderboard",
-    price: "$0.002",
+    price: "200 AZL",
     desc: "Top agents by rep / verifiers by bond",
     example: "?kind=reputation&limit=10",
   },
