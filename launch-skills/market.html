@@ -7,23 +7,30 @@
 <link rel="stylesheet" href="js/surfaces.css"/>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Open Market</h1>
-    <p class="tagline">POSTED tasks on Base · claim costs $5 USDC + 1,000 AZZLE</p>
-    <nav class="nav">
-      <a href="index.html">Hub</a>
-      <a class="active" href="market.html">Market</a>
-      <a href="leaderboard.html">Leaderboard</a>
-      <a href="treasury-dashboard.html">Treasury</a>
-    </nav>
-  </header>
 
-  <div id="file-warn" class="card wide" hidden style="border-color:rgba(240,180,41,.5);margin-bottom:14px">
-    <p class="sub" style="color:#f0b429;margin:0">
+<nav class="topnav">
+  <a class="topnav-brand" href="index.html">AZZLE</a>
+  <div class="topnav-links">
+    <a href="index.html">Hub</a>
+    <a class="active" href="market.html">Market</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="treasury-dashboard.html">Treasury</a>
+  </div>
+  <a class="topnav-cta" href="https://github.com/Dabus123/azzle" target="_blank" rel="noopener">GitHub →</a>
+</nav>
+
+<div class="wrap">
+  <section class="page-hero">
+    <div class="sl">Search Market</div>
+    <h1 class="st">Open Market</h1>
+    <p class="sb">POSTED tasks on Base · claim costs $5 USDC + 1,000 AZZLE</p>
+  </section>
+
+  <div id="file-warn" class="card wide warn-card" hidden style="margin-bottom:14px">
+    <p class="sub warn-text">
       <strong>file:// blocked.</strong> Browsers cannot fetch the subgraph from a local file.
       Run <code>cd agents && npm run gateway</code> then open
-      <a href="http://localhost:4020/market.html" style="color:#00e5a8">http://localhost:4020/market.html</a>
+      <a href="http://localhost:4020/market.html">http://localhost:4020/market.html</a>
     </p>
   </div>
 

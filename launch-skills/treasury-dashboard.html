@@ -4,114 +4,37 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>AZZLE — Agent Treasury</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#06080d;--panel:#0c1018;--border:#1a2233;
-  --text:#c8d0e0;--muted:#5a6478;--accent:#00e5a8;
-  --warn:#f0b429;--crit:#ff4d6d;--ok:#00e5a8;
-  --mono:'Space Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
-}
-html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5}
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px);
-}
-.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:24px 20px 48px}
-header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:24px}
-h1{font-family:var(--mono);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
-.top-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-#agent-input{
-  flex:1;min-width:280px;background:var(--panel);border:1px solid var(--border);
-  color:var(--text);padding:10px 14px;border-radius:4px;font-family:var(--mono);font-size:13px;
-  outline:none;transition:border-color .15s;
-}
-#agent-input:focus{border-color:var(--accent)}
-#agent-input::placeholder{color:var(--muted)}
-.btn{
-  background:var(--panel);border:1px solid var(--border);color:var(--text);
-  padding:10px 16px;border-radius:4px;font-family:var(--mono);font-size:12px;
-  cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .15s;
-}
-.btn:hover{border-color:var(--accent);color:var(--accent)}
-.pill{
-  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-  padding:6px 12px;border-radius:999px;border:1px solid;white-space:nowrap;
-}
-.pill.healthy{color:var(--ok);border-color:rgba(0,229,168,.45);background:rgba(0,229,168,.08)}
-.pill.warning{color:var(--warn);border-color:rgba(240,180,41,.45);background:rgba(240,180,41,.08)}
-.pill.critical{color:var(--crit);border-color:rgba(255,77,109,.45);background:rgba(255,77,109,.1)}
-.pill.idle{color:var(--muted);border-color:var(--border);background:transparent}
-.meta{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:10px}
-.meta span{color:var(--text)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:14px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px}
-.card.wide{grid-column:1/-1}
-.card h2{
-  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);
-}
-.metric{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--text);margin-bottom:4px}
-.metric.sm{font-size:18px}
-.sub{font-size:12px;color:var(--muted);margin-bottom:12px}
-.sub:last-child{margin-bottom:0}
-.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(26,34,51,.6)}
-.row:last-child{border-bottom:none}
-.row .k{color:var(--muted);font-size:12px}
-.row .v{font-family:var(--mono);font-size:12px;text-align:right}
-.pos{color:var(--ok)}.neg{color:var(--crit)}
-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
-th{text-align:left;color:var(--muted);font-weight:400;padding:6px 8px;border-bottom:1px solid var(--border)}
-td{padding:7px 8px;border-bottom:1px solid rgba(26,34,51,.5)}
-tr:last-child td{border-bottom:none}
-.empty{color:var(--muted);font-size:12px;padding:8px 0}
-.err{color:var(--crit);font-size:12px;margin-top:8px}
-.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;letter-spacing:.06em}
-.badge.review{color:var(--warn);background:rgba(240,180,41,.12)}
-.badge.active{color:var(--accent);background:rgba(0,229,168,.1)}
-.badge.proof{color:var(--muted);background:rgba(90,100,120,.15)}
-.loading{opacity:.45;pointer-events:none}
-@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
-.pulse{animation:pulse 1.2s ease-in-out infinite}
-.guide{font-size:13px;line-height:1.65}
-.guide h3{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:20px 0 8px}
-.guide h3:first-child{margin-top:0}
-.guide p,.guide li{color:var(--muted);margin-bottom:8px}
-.guide ul,.guide ol{padding-left:20px;margin-bottom:12px}
-.guide li{margin-bottom:4px}
-.guide code{font-family:var(--mono);font-size:11px;background:#070a10;border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--accent)}
-.guide pre{font-family:var(--mono);font-size:11px;background:#070a10;border:1px solid var(--border);border-radius:4px;padding:12px;overflow-x:auto;white-space:pre-wrap;margin:8px 0 14px;color:var(--text);line-height:1.5}
-.guide table{font-size:12px;margin:8px 0 14px}
-.guide th{color:var(--muted);font-weight:400;padding:4px 16px 4px 0;border-bottom:1px solid var(--border)}
-.guide td{padding:6px 16px 6px 0;color:var(--text);border-bottom:1px solid rgba(26,34,51,.4)}
-.guide .file-tag{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:12px}
-.metric-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:8px}
-.metric-block{flex:1;min-width:140px}
-.metric-block .label{font-size:11px;color:var(--muted);margin-bottom:2px}
-.metric-block .metric{font-size:22px;margin-bottom:0}
-</style>
+<link rel="stylesheet" href="js/surfaces.css"/>
 </head>
 <body>
+
+<nav class="topnav">
+  <a class="topnav-brand" href="index.html">AZZLE</a>
+  <div class="topnav-links">
+    <a href="index.html">Hub</a>
+    <a href="market.html">Market</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a class="active" href="treasury-dashboard.html">Treasury</a>
+  </div>
+  <a class="topnav-cta" href="https://github.com/Dabus123/azzle" target="_blank" rel="noopener">GitHub →</a>
+</nav>
+
 <div class="wrap">
-  <header>
-    <nav style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;font-family:var(--mono);font-size:11px">
-      <a href="index.html" style="color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:4px">Hub</a>
-      <a href="market.html" style="color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:4px">Market</a>
-      <a href="leaderboard.html" style="color:var(--muted);text-decoration:none;padding:6px 12px;border:1px solid var(--border);border-radius:4px">Leaderboard</a>
-      <a href="treasury-dashboard.html" style="color:var(--accent);text-decoration:none;padding:6px 12px;border:1px solid rgba(0,229,168,.45);border-radius:4px">Treasury</a>
-    </nav>
-    <h1>Agent Treasury // Base 8453</h1>
-    <div class="top-row">
-      <input id="agent-input" type="text" placeholder="0xdD624146AF5548ffb31B53E609e003e873e20A0C" spellcheck="false" autocomplete="off"/>
-      <button class="btn" id="load-btn">Load</button>
-      <span id="solvency-pill" class="pill idle">—</span>
-    </div>
-    <div class="meta" id="meta">
-      RPC <span>mainnet.base.org</span> · Subgraph <span id="subgraph-status">azzle-protocol</span> ·
-      refresh <span id="refresh-countdown">—</span>
-    </div>
-  </header>
+  <section class="page-hero">
+    <div class="sl">Agent Treasury</div>
+    <h1 class="st">Solvency &amp; runway</h1>
+    <p class="sb">Per-wallet USDC ledger, AZZLE balance, escrow income, and top-up playbook on Base 8453.</p>
+  </section>
+
+  <div class="treasury-toolbar">
+    <input id="agent-input" class="input" type="text" placeholder="0xdD624146AF5548ffb31B53E609e003e873e20A0C" spellcheck="false" autocomplete="off"/>
+    <button class="btn" id="load-btn">Load</button>
+    <span id="solvency-pill" class="pill idle">—</span>
+  </div>
+  <div class="treasury-meta" id="meta">
+    RPC <span>mainnet.base.org</span> · Subgraph <span id="subgraph-status">azzle-protocol</span> ·
+    refresh <span id="refresh-countdown">—</span>
+  </div>
 
   <div class="grid">
     <div class="card" id="card-usdc">
@@ -144,7 +67,7 @@ tr:last-child td{border-bottom:none}
 
     <div class="card wide" id="card-income">
       <h2>Earned Income · Last 30 Days</h2>
-      <div class="grid" style="margin:0;gap:12px">
+      <div class="grid">
         <div>
           <div class="metric sm pos" id="gross-income">—</div>
           <div class="sub">Gross USDC (acceptMilestone → MilestoneReleased)</div>
@@ -174,7 +97,7 @@ tr:last-child td{border-bottom:none}
 
     <div class="card wide" id="card-releases">
       <h2>Upcoming Releases</h2>
-      <div class="sub">Escrow that unlocks on <code style="color:var(--accent)">acceptMilestone</code></div>
+      <div class="sub">Escrow that unlocks on <code>acceptMilestone</code></div>
       <div id="releases-table"></div>
     </div>
 
@@ -185,6 +108,11 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 </div>
+
+<footer class="surface-footer">
+  <div class="footer-logo">AZZLE Protocol</div>
+  <div class="footer-copy">Base 8453 · AgentDepositVault</div>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
 <script>
@@ -580,7 +508,7 @@ tr:last-child td{border-bottom:none}
     if (vaultBal < MIN_HEALTHY) {
       const gap = MIN_HEALTHY - vaultBal;
       $("usdc-gap").textContent = "Need " + fmtUsdc(gap) + " more in vault for $20 entry minimum";
-      $("usdc-gap").style.color = vaultBal < MIN_WARNING ? "var(--crit)" : "var(--warn)";
+      $("usdc-gap").style.color = vaultBal < MIN_WARNING ? "var(--danger)" : "var(--warn)";
     } else {
       $("usdc-gap").textContent = "Entry minimum met · wallet " + fmtUsdc(walletBal) + " available to top up";
       $("usdc-gap").style.color = "";
