@@ -39,4 +39,6 @@ td{padding:8px;border-bottom:1px solid rgba(26,34,51,.5)}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
 .btn{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:4px;font-family:var(--mono);font-size:11px;cursor:pointer}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
+.input{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:4px;font-family:var(--mono);font-size:11px}
+.input:focus{outline:none;border-color:var(--accent)}
 input{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:4px;font-family:var(--mono);font-size:12px}

@@ -54,6 +54,28 @@
   </div>
 
   <div class="card wide">
+    <h2>Paid Data Endpoints <span class="badge other">x402 Cloud</span></h2>
+    <p class="sub" style="margin-top:0">
+      Agent-discoverable, pay-per-call AZZLE data hosted on
+      <a href="https://bankr.bot/x402" target="_blank" rel="noopener">Bankr x402 Cloud</a>.
+      Settle-after-response — callers only pay for successful requests. Source &amp; deploy guide:
+      <code>agents/x402-cloud/</code>.
+    </p>
+    <div class="toolbar" style="margin-bottom:10px">
+      <input id="x402-wallet" class="input" placeholder="deployer wallet 0x… (sets live URLs)"
+        style="min-width:340px;flex:1" />
+      <button class="btn" id="x402-save">Set wallet</button>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Endpoint</th><th>Returns</th><th>Price</th><th>URL</th></tr>
+      </thead>
+      <tbody id="x402-rows"></tbody>
+    </table>
+    <p class="sub" id="x402-deploy-hint" style="margin-bottom:0"></p>
+  </div>
+
+  <div class="card wide">
     <h2>Claim Playbook</h2>
     <ol class="list">
       <li>Acquire ≥ 10,000 AZZLE and approve <code>TreasuryRouter</code></li>
@@ -74,6 +96,8 @@ import {
   fmtUsdc6,
   shortAddr,
   ago,
+  X402_CLOUD_BASE,
+  X402_CLOUD_ENDPOINTS,
 } from "./js/config.js";
 
 if (isFileProtocol()) {
@@ -132,6 +156,51 @@ async function load() {
 
 document.getElementById("refresh").onclick = load;
 load();
+
+// ── Paid Data Endpoints (Bankr x402 Cloud) ───────────────────────────────
+const X402_KEY = "azzle.x402.wallet";
+
+function x402Wallet() {
+  const q = new URLSearchParams(location.search).get("x402wallet");
+  return (q || localStorage.getItem(X402_KEY) || "").trim();
+}
+
+function renderX402() {
+  const wallet = x402Wallet();
+  const valid = /^0x[a-fA-F0-9]{40}$/.test(wallet);
+  const walletSeg = valid ? wallet.toLowerCase() : "&lt;wallet&gt;";
+  const rows = document.getElementById("x402-rows");
+  rows.innerHTML = X402_CLOUD_ENDPOINTS.map((e) => {
+    const url = `${X402_CLOUD_BASE}/${walletSeg}/${e.name}${e.example}`;
+    const urlCell = valid
+      ? `<a href="${url}" target="_blank" rel="noopener">${e.name}${e.example}</a>`
+      : `<span class="sub">${e.name}${e.example}</span>`;
+    return `<tr>
+      <td><code>${e.name}</code></td>
+      <td>${e.desc}</td>
+      <td>${e.price}</td>
+      <td>${urlCell}</td>
+    </tr>`;
+  }).join("");
+
+  const hint = document.getElementById("x402-deploy-hint");
+  hint.innerHTML = valid
+    ? `Live base: <code>${X402_CLOUD_BASE}/${walletSeg}/</code> · first call returns <code>402</code> + pricing; an x402-aware client signs &amp; retries.`
+    : `Enter your Bankr deployer wallet to build live URLs, or deploy first: <code>cd agents/x402-cloud &amp;&amp; bankr x402 deploy azzle-open-tasks</code>`;
+}
+
+const walletInput = document.getElementById("x402-wallet");
+walletInput.value = x402Wallet();
+document.getElementById("x402-save").onclick = () => {
+  const v = walletInput.value.trim();
+  if (v) localStorage.setItem(X402_KEY, v);
+  else localStorage.removeItem(X402_KEY);
+  renderX402();
+};
+walletInput.addEventListener("keydown", (ev) => {
+  if (ev.key === "Enter") document.getElementById("x402-save").click();
+});
+renderX402();
 </script>
 </body>
 </html>

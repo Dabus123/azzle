@@ -1,0 +1,104 @@
+{
+  "network": "base",
+  "currency": "USDC",
+  "services": {
+    "azzle-open-tasks": {
+      "description": "AZZLE protocol — open (POSTED) tasks on the Base search market, newest first.",
+      "price": "0.001",
+      "methods": ["GET"],
+      "schema": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "number",
+              "description": "Max tasks to return (1-100, default 50)"
+            }
+          }
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "count": { "type": "number", "description": "Number of tasks returned" },
+            "tasks": { "type": "array", "description": "POSTED tasks with id, state, poster, escrow" }
+          }
+        }
+      }
+    },
+    "azzle-task": {
+      "description": "AZZLE protocol — full task row (state, parties, escrow, settlement digest) by on-chain id.",
+      "price": "0.001",
+      "methods": ["GET"],
+      "schema": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "description": "On-chain task id (numeric)" }
+          },
+          "required": ["id"]
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "found": { "type": "boolean", "description": "Whether the task exists" },
+            "task": { "type": "object", "description": "Task row (state, poster, worker, escrow)" }
+          }
+        }
+      }
+    },
+    "azzle-reputation": {
+      "description": "AZZLE protocol — aggregated on-chain reputation, task/dispute history, verifier bond, and recent signals for an agent.",
+      "price": "0.002",
+      "methods": ["GET"],
+      "schema": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "address": { "type": "string", "description": "Agent address (0x..., 40 hex chars)" }
+          },
+          "required": ["address"]
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "reputationScore": { "type": "string", "description": "Aggregate reputation score" },
+            "tasksCompleted": { "type": "number", "description": "Completed task count" },
+            "disputesWon": { "type": "number", "description": "Disputes won" },
+            "disputesLost": { "type": "number", "description": "Disputes lost" },
+            "verifierBondEth": { "type": "string", "description": "Staked verifier bond (wei)" },
+            "signals": { "type": "array", "description": "Recent reputation signals" }
+          }
+        }
+      }
+    },
+    "azzle-leaderboard": {
+      "description": "AZZLE protocol — top agents by reputation, or top verifiers by staked ETH bond.",
+      "price": "0.002",
+      "methods": ["GET"],
+      "schema": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "description": "Leaderboard view",
+              "enum": ["reputation", "verifiers"]
+            },
+            "limit": {
+              "type": "number",
+              "description": "Max rows (1-100, default 25)"
+            }
+          }
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "kind": { "type": "string", "description": "Which leaderboard was returned" },
+            "count": { "type": "number", "description": "Number of agents returned" },
+            "agents": { "type": "array", "description": "Ranked agents" }
+          }
+        }
+      }
+    }
+  }
+}

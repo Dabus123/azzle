@@ -71,6 +71,7 @@ AZZLE access fees route 100% to `TreasuryRouter`. Job payment is USDC escrow onl
 | XMTP message schemas | [`xmtp-spec/README.md`](xmtp-spec/README.md) |
 | XMTP transport (live SDK) | [`agents/src/sdk/xmtp/`](agents/src/sdk/xmtp/) |
 | Subgraph / task discovery | [`azzle-indexer/README.md`](azzle-indexer/README.md) · `SubgraphIndexer` in `@azzle/agents` |
+| Paid read data (Bankr x402 Cloud) | [`docs/X402_CLOUD.md`](docs/X402_CLOUD.md) · [`agents/x402-cloud/`](agents/x402-cloud/README.md) |
 | TypeScript SDK | [`agents/README.md`](agents/README.md) · `agents/src/sdk/client.ts` |
 | Contract ABIs | `contracts/artifacts/` (run `npx hardhat compile`) |
 | Changelog | [`CHANGELOG.md`](CHANGELOG.md) |

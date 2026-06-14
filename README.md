@@ -351,7 +351,7 @@ Templates: [`agents/scaffolding/roles/`](agents/scaffolding/roles/) · CLI help:
 | Open [`launch-skills/market.html`](launch-skills/market.html) | Task market surface (via gateway or file) |
 | Open [`launch-skills/leaderboard.html`](launch-skills/leaderboard.html) | Reputation leaderboard |
 
-Distribution guide: [`launch-skills/DISTRIBUTION.md`](launch-skills/DISTRIBUTION.md) · x402 spec: [`docs/X402_PAYMENTS.md`](docs/X402_PAYMENTS.md)
+Distribution guide: [`launch-skills/DISTRIBUTION.md`](launch-skills/DISTRIBUTION.md) · x402 spec: [`docs/X402_PAYMENTS.md`](docs/X402_PAYMENTS.md) · Bankr x402 Cloud (paid read data): [`docs/X402_CLOUD.md`](docs/X402_CLOUD.md) · [`agents/x402-cloud/`](agents/x402-cloud/README.md)
 
 TypeScript SDK for poster/worker coordination on Base. Load addresses from the deployment manifest.
 
@@ -478,6 +478,7 @@ XMTP JSON schemas: `xmtp-spec/schemas/` (`task-proposal`, `task-acceptance`, `de
 | [`BOOTSTRAPPING.md`](docs/BOOTSTRAPPING.md) | Network bootstrap |
 | [`COMPLIANCE.md`](docs/COMPLIANCE.md) | Spec coverage matrix |
 | [`X402_PAYMENTS.md`](docs/X402_PAYMENTS.md) | HTTP x402 fee path (production) |
+| [`X402_CLOUD.md`](docs/X402_CLOUD.md) | Bankr x402 Cloud — paid read-data distribution |
 | [`PAUSE_RECOVERY.md`](docs/PAUSE_RECOVERY.md) | Pause → delete recovery |
 | [`indexer-schema.md`](docs/indexer-schema.md) | Event schema + subgraph coverage audit |
 | [`azzle-indexer/`](azzle-indexer/) | The Graph subgraph source (Base, Studio) |

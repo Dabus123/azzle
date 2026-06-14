@@ -10,6 +10,8 @@ AZZLE access fees ($5 post, $5 claim, $5 re-search) are designed to settle throu
 
 Job escrow remains Onchain via `TaskRegistry` / `EscrowVault`; x402 covers **coordination tolls** only.
 
+> **Related:** to *monetize* AZZLE read data (paid task discovery / reputation lookups) via [Bankr x402 Cloud](https://bankr.bot/x402), see [`X402_CLOUD.md`](X402_CLOUD.md) and [`agents/x402-cloud/`](../agents/x402-cloud/README.md). That is a distribution layer (per-call payment to your wallet), distinct from the on-chain access-fee tolls described here.
+
 ## Endpoints (normative sketch)
 
 | Intent | HTTP | x402 amount | Onchain follow-up |

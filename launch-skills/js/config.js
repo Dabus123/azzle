@@ -25,6 +25,37 @@ export const MANIFEST = {
 export const ACCESS_FEE_USDC = 5;
 export const ACCESS_FEE_AZL = 1000;
 
+/** Bankr x402 Cloud — paid AZZLE read-data endpoints. @see docs/X402_CLOUD.md */
+export const X402_CLOUD_BASE = "https://x402.bankr.bot";
+
+/** Paid endpoints deployed from agents/x402-cloud/ (URL: <base>/<wallet>/<name>). */
+export const X402_CLOUD_ENDPOINTS = [
+  {
+    name: "azzle-open-tasks",
+    price: "$0.001",
+    desc: "POSTED tasks (claimable market)",
+    example: "?limit=20",
+  },
+  {
+    name: "azzle-task",
+    price: "$0.001",
+    desc: "Single task by id",
+    example: "?id=1",
+  },
+  {
+    name: "azzle-reputation",
+    price: "$0.002",
+    desc: "Agent reputation, history, signals",
+    example: "?address=0x0000000000000000000000000000000000000000",
+  },
+  {
+    name: "azzle-leaderboard",
+    price: "$0.002",
+    desc: "Top agents by rep / verifiers by bond",
+    example: "?kind=reputation&limit=10",
+  },
+];
+
 /** True when opened as file:// — browsers block direct subgraph fetch (CORS). */
 export function isFileProtocol() {
   return typeof location !== "undefined" && location.protocol === "file:";
