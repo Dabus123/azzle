@@ -1,9 +1,9 @@
 /**
  * Shared HTTP handlers for azzle.org — local site-server + Vercel /api/*.
  */
+import { createRequire } from "node:module";
 import { readFileSync, existsSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import {
   PLANS,
   getQuota,
@@ -18,8 +18,18 @@ import { fetchAzlUsdPrice } from "./azl-price.mjs";
 import { getPosterTasks } from "./poster-tasks.mjs";
 import { postingStoreBackend } from "./posting-store.mjs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, "..");
+const require = createRequire(import.meta.url);
+
+function projectRoot() {
+  return process.cwd();
+}
+
+let bundledManifest = null;
+try {
+  bundledManifest = require("../contracts/deployments/base-8453.json");
+} catch {
+  /* not bundled — load from disk at runtime */
+}
 
 export function loadEnvFile(envPath) {
   if (!existsSync(envPath)) return;
@@ -41,7 +51,8 @@ export function loadEnvFile(envPath) {
 }
 
 export function loadManifest() {
-  const path = resolve(ROOT, "contracts", "deployments", "base-8453.json");
+  if (bundledManifest) return bundledManifest;
+  const path = join(projectRoot(), "contracts", "deployments", "base-8453.json");
   if (!existsSync(path)) return null;
   try {
     return JSON.parse(readFileSync(path, "utf8"));

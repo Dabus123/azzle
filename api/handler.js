@@ -1,5 +1,9 @@
 import { handleSiteApi } from "../scripts/site-api.mjs";
 
+export const config = {
+  maxDuration: 60,
+};
+
 async function readJsonBody(req) {
   if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") return {};
   const raw = await new Promise((resolve, reject) => {
@@ -24,36 +28,50 @@ function apiPathname(req) {
 
 function sendApiResult(res, result) {
   const headers = result.headers ?? { "Content-Type": "application/json" };
-  if (result.json == null) {
-    res.status(result.status).set(headers).end();
+  const body = result.json == null ? "" : JSON.stringify(result.json);
+  if (typeof res.status === "function") {
+    if (result.json == null) {
+      res.status(result.status).set(headers).end();
+      return;
+    }
+    res.status(result.status).set(headers).json(result.json);
     return;
   }
-  res.status(result.status).set(headers).json(result.json);
+  res.writeHead(result.status, headers);
+  res.end(body);
 }
 
 export default async function handler(req, res) {
-  const pathname = apiPathname(req);
-  const host = req.headers?.host || "azzle.org";
-  const url = new URL(req.url || pathname, `https://${host}`);
-
-  let body = {};
   try {
-    body = await readJsonBody(req);
-  } catch {
-    sendApiResult(res, {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-      json: { error: "Invalid JSON body" },
+    const pathname = apiPathname(req);
+    const host = req.headers?.host || "azzle.org";
+    const url = new URL(req.url || pathname, `https://${host}`);
+
+    let body = {};
+    try {
+      body = await readJsonBody(req);
+    } catch {
+      sendApiResult(res, {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+        json: { error: "Invalid JSON body" },
+      });
+      return;
+    }
+
+    const result = await handleSiteApi({
+      method: req.method ?? "GET",
+      pathname,
+      searchParams: url.searchParams,
+      body,
     });
-    return;
+
+    sendApiResult(res, result);
+  } catch (err) {
+    sendApiResult(res, {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+      json: { error: err?.message ?? String(err) },
+    });
   }
-
-  const result = await handleSiteApi({
-    method: req.method ?? "GET",
-    pathname,
-    searchParams: url.searchParams,
-    body,
-  });
-
-  sendApiResult(res, result);
 }

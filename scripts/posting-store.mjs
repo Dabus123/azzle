@@ -7,7 +7,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, "..");
+const ROOT = process.cwd();
 const DATA_DIR = resolve(ROOT, "azzle-force", "data");
 const STORE_PATH = join(DATA_DIR, "posting-accounts.json");
 const QUOTES_PATH = join(DATA_DIR, "posting-quotes.json");

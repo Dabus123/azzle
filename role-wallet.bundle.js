@@ -178188,17 +178188,26 @@ function PosterBridge() {
   }, [ready, authenticated, wallet]);
   return null;
 }
-function WalletControls({ configured }) {
-  const { ready, authenticated, login, logout, user } = nv();
+function WalletControlsUnconfigured() {
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+    "button",
+    {
+      type: "button",
+      className: "rd-wallet-btn rd-wallet-btn--off",
+      disabled: true,
+      title: "Set PRIVY_APP_ID in Vercel env (or azzle-force/.env locally)",
+      children: "Sign in"
+    }
+  );
+}
+function WalletControlsInner() {
+  const { ready, authenticated, login, user } = nv();
   const { wallets } = bu();
   const address = pickWallet(wallets)?.address ?? user?.wallet?.address ?? null;
   (0, import_react69.useEffect)(() => {
     if (!ready) return;
     emitWallet(authenticated ? address : null);
   }, [ready, authenticated, address]);
-  if (!configured) {
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("button", { type: "button", className: "rd-wallet-btn rd-wallet-btn--off", disabled: true, title: "Set PRIVY_APP_ID in azzle-force/.env", children: "Sign in" });
-  }
   if (!ready) {
     return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("button", { type: "button", className: "rd-wallet-btn rd-wallet-btn--off", disabled: true, children: "\u2026" });
   }
@@ -178218,7 +178227,7 @@ function WalletControls({ configured }) {
 function WalletApp({ appId, clientId }) {
   const configured = Boolean(appId);
   if (!configured) {
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletControls, { configured: false });
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletControlsUnconfigured, {});
   }
   return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
     aT,
@@ -178241,7 +178250,7 @@ function WalletApp({ appId, clientId }) {
       },
       children: [
         /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(PosterBridge, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletControls, { configured: true })
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletControlsInner, {})
       ]
     }
   );

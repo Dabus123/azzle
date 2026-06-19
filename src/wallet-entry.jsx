@@ -50,8 +50,21 @@ function PosterBridge() {
   return null;
 }
 
-function WalletControls({ configured }) {
-  const { ready, authenticated, login, logout, user } = usePrivy();
+function WalletControlsUnconfigured() {
+  return (
+    <button
+      type="button"
+      className="rd-wallet-btn rd-wallet-btn--off"
+      disabled
+      title="Set PRIVY_APP_ID in Vercel env (or azzle-force/.env locally)"
+    >
+      Sign in
+    </button>
+  );
+}
+
+function WalletControlsInner() {
+  const { ready, authenticated, login, user } = usePrivy();
   const { wallets } = useWallets();
 
   const address =
@@ -61,14 +74,6 @@ function WalletControls({ configured }) {
     if (!ready) return;
     emitWallet(authenticated ? address : null);
   }, [ready, authenticated, address]);
-
-  if (!configured) {
-    return (
-      <button type="button" className="rd-wallet-btn rd-wallet-btn--off" disabled title="Set PRIVY_APP_ID in azzle-force/.env">
-        Sign in
-      </button>
-    );
-  }
 
   if (!ready) {
     return (
@@ -101,7 +106,7 @@ function WalletApp({ appId, clientId }) {
   const configured = Boolean(appId);
 
   if (!configured) {
-    return <WalletControls configured={false} />;
+    return <WalletControlsUnconfigured />;
   }
 
   return (
@@ -124,7 +129,7 @@ function WalletApp({ appId, clientId }) {
       }}
     >
       <PosterBridge />
-      <WalletControls configured />
+      <WalletControlsInner />
     </PrivyProvider>
   );
 }

@@ -759,6 +759,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
 
 // ══ RULES — cycling panel ══
 (function(){
+  const $=id=>document.getElementById(id);
   const B='<span class="base-mark base-mark-inline"><img src="baselogo.png" alt="Base" class="base-logo" width="44" height="12"/></span>';
   const RULES=[
     {n:'01',title:'Machine Legibility',body:'Human aesthetics are secondary. Every primitive is designed for autonomous agents to parse, trust, and act on.',code:'<span class="rc_">// machine legibility</span><br><span class="rk_">require</span> <span class="rv_">parse(task.scope) → digest</span><br><span class="rk_">assert</span> <span class="rv_">human_ui == optional</span>'},
