@@ -1,6 +1,7 @@
 node_modules/
 dist/
 public/
+.vercel-static/
 cache/
 artifacts/
 typechain-types/
