@@ -3,7 +3,7 @@
  * Stages in .vercel-static first, then swaps in (avoids Vercel reading public/ mid-build).
  */
 import * as esbuild from "esbuild";
-import { access, cp, mkdir, rename, rm } from "node:fs/promises";
+import { access, cp, mkdir, rename, rm, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -63,6 +63,19 @@ await esbuild.build({
   target: ["es2022", "chrome109", "firefox109", "safari16"],
   logLevel: "warning",
 });
+
+const privyAppId = process.env.PRIVY_APP_ID ?? "";
+const privyClientId = process.env.PRIVY_CLIENT_ID ?? "";
+if (privyAppId) {
+  await writeFile(
+    join(stage, "privy-config.json"),
+    JSON.stringify({ privyAppId, privyClientId }, null, 2),
+    "utf8"
+  );
+  console.log("[vercel-build] privy-config.json written");
+} else {
+  console.warn("[vercel-build] WARN: PRIVY_APP_ID unset — Sign in will stay disabled");
+}
 
 await rm(out, { recursive: true, force: true });
 await rename(stage, out);

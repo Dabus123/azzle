@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { PrivyProvider, usePrivy, useWallets } from "@privy-io/react-auth";
 import { base } from "viem/chains";
@@ -56,7 +57,7 @@ function WalletControlsUnconfigured() {
       type="button"
       className="rd-wallet-btn rd-wallet-btn--off"
       disabled
-      title="Set PRIVY_APP_ID in Vercel env (or azzle-force/.env locally)"
+      title="Add PRIVY_APP_ID to Vercel env vars and redeploy"
     >
       Sign in
     </button>
@@ -75,14 +76,6 @@ function WalletControlsInner() {
     emitWallet(authenticated ? address : null);
   }, [ready, authenticated, address]);
 
-  if (!ready) {
-    return (
-      <button type="button" className="rd-wallet-btn rd-wallet-btn--off" disabled>
-        …
-      </button>
-    );
-  }
-
   if (authenticated && address) {
     return (
       <a
@@ -96,64 +89,97 @@ function WalletControlsInner() {
   }
 
   return (
-    <button type="button" className="rd-wallet-btn" onClick={() => login()}>
-      Sign in
+    <button
+      type="button"
+      className="rd-wallet-btn"
+      onClick={() => login()}
+      title={ready ? "Sign in with email or wallet" : "Loading sign-in…"}
+    >
+      {ready ? "Sign in" : "…"}
     </button>
   );
 }
 
-function WalletApp({ appId, clientId }) {
-  const configured = Boolean(appId);
+const PRIVY_CONFIG = {
+  loginMethods: ["email", "wallet"],
+  appearance: {
+    theme: "light",
+    accentColor: "#00c896",
+    showWalletLoginFirst: false,
+  },
+  defaultChain: base,
+  supportedChains: [base],
+  embeddedWallets: {
+    ethereum: { createOnLogin: "users-without-wallets" },
+    showWalletUIs: false,
+  },
+};
 
-  if (!configured) {
-    return <WalletControlsUnconfigured />;
+function WalletTree({ appId, clientId, mountNodes }) {
+  if (!appId) {
+    return mountNodes.map((node, i) =>
+      createPortal(<WalletControlsUnconfigured key={"off-" + i} />, node)
+    );
   }
 
   return (
-    <PrivyProvider
-      appId={appId}
-      clientId={clientId || undefined}
-      config={{
-        loginMethods: ["email", "wallet"],
-        appearance: {
-          theme: "light",
-          accentColor: "#00c896",
-          showWalletLoginFirst: false,
-        },
-        defaultChain: base,
-        supportedChains: [base],
-        embeddedWallets: {
-          ethereum: { createOnLogin: "users-without-wallets" },
-          showWalletUIs: false,
-        },
-      }}
-    >
+    <PrivyProvider appId={appId} clientId={clientId || undefined} config={PRIVY_CONFIG}>
       <PosterBridge />
-      <WalletControlsInner />
+      {mountNodes.map((node, i) =>
+        createPortal(<WalletControlsInner key={"in-" + i} />, node)
+      )}
     </PrivyProvider>
   );
 }
 
-async function boot() {
-  const mounts = document.querySelectorAll("[data-rd-wallet-mount]");
-  if (!mounts.length) return;
-
-  let appId = "";
-  let clientId = "";
+async function loadPrivyConfig() {
   try {
     const res = await fetch("/api/site-config", { cache: "no-store" });
     if (res.ok) {
       const cfg = await res.json();
-      appId = cfg.privyAppId ?? "";
-      clientId = cfg.privyClientId ?? "";
+      if (cfg.privyAppId) {
+        return {
+          appId: cfg.privyAppId,
+          clientId: cfg.privyClientId ?? "",
+        };
+      }
     }
   } catch {
-    /* offline / file:// */
+    /* fall through */
   }
 
-  mounts.forEach((el) => {
-    createRoot(el).render(<WalletApp appId={appId} clientId={clientId} />);
-  });
+  try {
+    const res = await fetch("/privy-config.json", { cache: "no-store" });
+    if (res.ok) {
+      const cfg = await res.json();
+      if (cfg.privyAppId) {
+        return {
+          appId: cfg.privyAppId,
+          clientId: cfg.privyClientId ?? "",
+        };
+      }
+    }
+  } catch {
+    /* offline / missing */
+  }
+
+  return { appId: "", clientId: "" };
+}
+
+async function boot() {
+  const mountNodes = [...document.querySelectorAll("[data-rd-wallet-mount]")];
+  if (!mountNodes.length) return;
+
+  const { appId, clientId } = await loadPrivyConfig();
+
+  const host = document.createElement("div");
+  host.id = "rd-wallet-host";
+  host.hidden = true;
+  document.body.appendChild(host);
+
+  createRoot(host).render(
+    <WalletTree appId={appId} clientId={clientId} mountNodes={mountNodes} />
+  );
 }
 
 boot();

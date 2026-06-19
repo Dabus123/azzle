@@ -22617,7 +22617,7 @@ var require_react_dom_development = __commonJS({
           return root2;
         }
         var ReactVersion = "18.3.1";
-        function createPortal2(children, containerInfo, implementation) {
+        function createPortal3(children, containerInfo, implementation) {
           var key2 = arguments.length > 3 && arguments[3] !== void 0 ? arguments[3] : null;
           {
             checkKeyStringCoercion(key2);
@@ -23474,7 +23474,7 @@ var require_react_dom_development = __commonJS({
           if (!isValidContainer(container)) {
             throw new Error("Target container is not a DOM element.");
           }
-          return createPortal2(children, container, null, key2);
+          return createPortal3(children, container, null, key2);
         }
         function renderSubtreeIntoContainer(parentComponent, element, containerNode, callback) {
           return unstable_renderSubtreeIntoContainer(parentComponent, element, containerNode, callback);
@@ -119543,6 +119543,7 @@ var init_dist5 = __esm({
 
 // src/wallet-entry.jsx
 var import_react69 = __toESM(require_react());
+var import_react_dom6 = __toESM(require_react_dom());
 var import_client3 = __toESM(require_client());
 
 // node_modules/@privy-io/react-auth/dist/esm/privy-provider-BG8GtKO6.mjs
@@ -178195,7 +178196,7 @@ function WalletControlsUnconfigured() {
       type: "button",
       className: "rd-wallet-btn rd-wallet-btn--off",
       disabled: true,
-      title: "Set PRIVY_APP_ID in Vercel env (or azzle-force/.env locally)",
+      title: "Add PRIVY_APP_ID to Vercel env vars and redeploy",
       children: "Sign in"
     }
   );
@@ -178208,9 +178209,6 @@ function WalletControlsInner() {
     if (!ready) return;
     emitWallet(authenticated ? address : null);
   }, [ready, authenticated, address]);
-  if (!ready) {
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("button", { type: "button", className: "rd-wallet-btn rd-wallet-btn--off", disabled: true, children: "\u2026" });
-  }
   if (authenticated && address) {
     return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
       "a",
@@ -178222,56 +178220,84 @@ function WalletControlsInner() {
       }
     );
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("button", { type: "button", className: "rd-wallet-btn", onClick: () => login(), children: "Sign in" });
-}
-function WalletApp({ appId, clientId }) {
-  const configured = Boolean(appId);
-  if (!configured) {
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletControlsUnconfigured, {});
-  }
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
-    aT,
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+    "button",
     {
-      appId,
-      clientId: clientId || void 0,
-      config: {
-        loginMethods: ["email", "wallet"],
-        appearance: {
-          theme: "light",
-          accentColor: "#00c896",
-          showWalletLoginFirst: false
-        },
-        defaultChain: base4,
-        supportedChains: [base4],
-        embeddedWallets: {
-          ethereum: { createOnLogin: "users-without-wallets" },
-          showWalletUIs: false
-        }
-      },
-      children: [
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(PosterBridge, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletControlsInner, {})
-      ]
+      type: "button",
+      className: "rd-wallet-btn",
+      onClick: () => login(),
+      title: ready ? "Sign in with email or wallet" : "Loading sign-in\u2026",
+      children: ready ? "Sign in" : "\u2026"
     }
   );
 }
-async function boot() {
-  const mounts = document.querySelectorAll("[data-rd-wallet-mount]");
-  if (!mounts.length) return;
-  let appId = "";
-  let clientId = "";
+var PRIVY_CONFIG = {
+  loginMethods: ["email", "wallet"],
+  appearance: {
+    theme: "light",
+    accentColor: "#00c896",
+    showWalletLoginFirst: false
+  },
+  defaultChain: base4,
+  supportedChains: [base4],
+  embeddedWallets: {
+    ethereum: { createOnLogin: "users-without-wallets" },
+    showWalletUIs: false
+  }
+};
+function WalletTree({ appId, clientId, mountNodes }) {
+  if (!appId) {
+    return mountNodes.map(
+      (node2, i53) => (0, import_react_dom6.createPortal)(/* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletControlsUnconfigured, {}, "off-" + i53), node2)
+    );
+  }
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(aT, { appId, clientId: clientId || void 0, config: PRIVY_CONFIG, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(PosterBridge, {}),
+    mountNodes.map(
+      (node2, i53) => (0, import_react_dom6.createPortal)(/* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletControlsInner, {}, "in-" + i53), node2)
+    )
+  ] });
+}
+async function loadPrivyConfig() {
   try {
     const res = await fetch("/api/site-config", { cache: "no-store" });
     if (res.ok) {
       const cfg = await res.json();
-      appId = cfg.privyAppId ?? "";
-      clientId = cfg.privyClientId ?? "";
+      if (cfg.privyAppId) {
+        return {
+          appId: cfg.privyAppId,
+          clientId: cfg.privyClientId ?? ""
+        };
+      }
     }
   } catch {
   }
-  mounts.forEach((el2) => {
-    (0, import_client3.createRoot)(el2).render(/* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletApp, { appId, clientId }));
-  });
+  try {
+    const res = await fetch("/privy-config.json", { cache: "no-store" });
+    if (res.ok) {
+      const cfg = await res.json();
+      if (cfg.privyAppId) {
+        return {
+          appId: cfg.privyAppId,
+          clientId: cfg.privyClientId ?? ""
+        };
+      }
+    }
+  } catch {
+  }
+  return { appId: "", clientId: "" };
+}
+async function boot() {
+  const mountNodes = [...document.querySelectorAll("[data-rd-wallet-mount]")];
+  if (!mountNodes.length) return;
+  const { appId, clientId } = await loadPrivyConfig();
+  const host = document.createElement("div");
+  host.id = "rd-wallet-host";
+  host.hidden = true;
+  document.body.appendChild(host);
+  (0, import_client3.createRoot)(host).render(
+    /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(WalletTree, { appId, clientId, mountNodes })
+  );
 }
 boot();
 /*! Bundled license information:

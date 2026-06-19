@@ -144,7 +144,13 @@
   gap:16px;
   flex-wrap:wrap;
 }
-.rd-head-wallet{display:flex;align-items:center}
+.azzle-nav-actions [data-rd-wallet-mount],
+.rd-head-wallet{
+  display:flex;
+  align-items:center;
+  position:relative;
+  z-index:2;
+}
 @media(min-width:701px){.rd-head-wallet{display:none}}
 
 /* Privy connect (nav + mobile header) */
