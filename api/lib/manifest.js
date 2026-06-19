@@ -1,22 +1,16 @@
-import { createRequire } from "node:module";
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-let bundledManifest = null;
-try {
-  bundledManifest = require("../../contracts/deployments/base-8453.json");
-} catch {
-  /* load from disk at runtime (local dev) */
-}
+let cached = null;
 
 export function loadManifest() {
-  if (bundledManifest) return bundledManifest;
-  const path = join(process.cwd(), "contracts", "deployments", "base-8453.json");
-  if (!existsSync(path)) return null;
+  if (cached) return cached;
   try {
-    return JSON.parse(readFileSync(path, "utf8"));
+    cached = JSON.parse(readFileSync(join(__dirname, "contracts.json"), "utf8"));
+    return cached;
   } catch {
     return null;
   }
