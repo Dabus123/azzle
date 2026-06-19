@@ -3,7 +3,7 @@
 
   const LOCAL_ANSWERS = {
     "What's the simplest way to get work done here?":
-      "Tell me what you need — outcome, budget, and deadline. When that's clear, I'll send **Deposit** and **Post** buttons right here in the chat. What should an agent deliver for you?",
+      "Tell me what you need — outcome, budget, and deadline. When that's clear, I'll format a task brief and show **Deposit** and **Post** buttons right here in the chat (no need to leave this page). What should an agent deliver for you?",
 
     "How do I scaffold a worker with the SDK?":
       "Use the official CLI (Node ≥ 22):\n\n```bash\nnpx @azzle/agents@latest aeon-setup --role worker --dir my-worker\ncd my-worker && npm install\n```\n\nQuick start: `npx @azzle/agents@latest init my-agent` then wire `AzzleClient` from `@azzle/agents`.\n\nThere is **no** `@azle/create-worker`, **no** `IWorker` interface, and **no** `executeTask` / `submitResult`. Reference template: `agents/scaffolding/roles/worker/agent.mjs` on GitHub.",
@@ -57,7 +57,7 @@
         "You help humans hire autonomous agents on AZZLE — like talking to a concise project manager, not a developer docs bot. Plain English only. Never mention TaskRegistry, BOOTSTRAP, SDK, XMTP, smart contracts, or 'agents' as the user themselves. Ask one question at a time: (1) desired outcome, (2) deadline, (3) job budget in USDC — always ask (3) unless the user already gave an explicit USDC amount for the job." +
         POSTER_BUDGET_RULES +
         POSTER_ECONOMICS +
-        " When you have outcome + deadline + a user-stated job budget, confirm they're ready — the app will show deposit/post buttons in your reply. Never mention TaskRegistry, BOOTSTRAP, GitHub, SDK, or manual steps. Keep replies under 3 sentences.",
+        " When outcome, deadline, and user-stated budget are all collected, give a brief one-sentence acknowledgment only. NEVER send users to /post, a form, or anywhere off this chat — the app injects Deposit and Post buttons in this chat automatically. Never mention TaskRegistry, BOOTSTRAP, GitHub, SDK, or manual steps. Keep replies under 3 sentences.",
     },
     worker: {
       title: "Build or run a worker agent",
@@ -106,6 +106,9 @@
     },
   };
 
+  const TASK_FORMAT_SYSTEM =
+    "You write task briefs for autonomous worker agents. Output ONLY the brief body — no greeting, no markdown title, no budget/deadline lines (those are stored separately). Synthesize the conversation into a clear agent-facing prompt covering objective, requirements/constraints, and success criteria. Plain English, about 80–220 words. Do not paste user messages verbatim — clarify and structure for an agent who will execute the job.";
+
   const chats = { poster: [], worker: [], verifier: [], arbitrator: [] };
   let activeRole = "poster";
   let busy = false;
@@ -133,6 +136,74 @@
     const draft = extractTaskDraft(chats.poster);
     postCheckout()?.saveDraft(draft);
     return draft;
+  }
+
+  function isPosterFollowUpQuestion(text) {
+    const t = text.trim();
+    return (
+      t.includes("?") ||
+      /^(what|how|why|when|where|who|can you explain|tell me|is it|do i|does)/i.test(t)
+    );
+  }
+
+  function buildScopeFallback(draft) {
+    const userLines = chats.poster
+      .filter((m) => m.role === "user")
+      .map((m) => m.content.trim())
+      .filter(
+        (line) =>
+          line &&
+          !isAffirmative(line) &&
+          !extractUserBudget([line]) &&
+          !/^(?:in\s+)?\d+\s*(?:day|days)\.?$/i.test(line)
+      );
+    const objective = userLines[0] || draft.scope;
+    const details = userLines.slice(1);
+    let brief = "Objective: " + objective + "\n\n";
+    if (details.length) {
+      brief += "Requirements:\n" + details.map((d) => "- " + d).join("\n") + "\n\n";
+    }
+    brief +=
+      "Success criteria: Deliver the outcome above within " +
+      draft.days +
+      " days. Submit completed work with verifiable artifacts.";
+    return brief;
+  }
+
+  async function formatTaskBrief(draft) {
+    const userLines = chats.poster.filter((m) => m.role === "user").map((m) => m.content);
+    const res = await fetch("/api/role-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system: TASK_FORMAT_SYSTEM,
+        messages: [
+          {
+            role: "user",
+            content:
+              "User conversation:\n" +
+              userLines.map((line, i) => i + 1 + ". " + line).join("\n") +
+              "\n\nEscrow budget: $" +
+              draft.budget +
+              " USDC\nDeadline: " +
+              draft.days +
+              " days\n\nWrite the agent task brief.",
+          },
+        ],
+      }),
+    });
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      /* non-JSON */
+    }
+    if (!res.ok) {
+      throw new Error(data.error || "Could not format task brief");
+    }
+    const text = (data.text ?? "").trim();
+    if (!text || text.length < 40) throw new Error("Task brief too short");
+    return text;
   }
 
   function isAffirmative(text) {
@@ -193,7 +264,14 @@
   }
 
   async function pushPosterReadyAssistant() {
-    const d = extractTaskDraft(chats.poster);
+    const raw = extractTaskDraft(chats.poster);
+    let scope = raw.scope;
+    try {
+      if (chatOnline) scope = await formatTaskBrief(raw);
+    } catch {
+      scope = buildScopeFallback(raw);
+    }
+    const d = { scope, budget: raw.budget, days: raw.days };
     postCheckout()?.saveDraft(d);
     let quotaLine = "Free plan · **3 tasks/day**.";
     if (walletAddress) {
@@ -211,6 +289,8 @@
         /* keep default */
       }
     }
+    const briefPreview =
+      scope.length > 320 ? scope.slice(0, 317).trim() + "…" : scope;
     chats.poster.push({
       role: "assistant",
       content:
@@ -219,6 +299,9 @@
         " USDC**, due in **" +
         d.days +
         " days**.\n\n" +
+        "**Task brief for agents:**\n" +
+        briefPreview +
+        "\n\n" +
         quotaLine,
       actions: [
         { id: "deposit", label: "Deposit $20 USDC" },
@@ -366,6 +449,9 @@
       } else if (!draft.budget) {
         system +=
           " Scope and deadline are clear, but the user has NOT stated a job budget in USDC yet — ask for their budget now. You may share a rough market estimate if helpful, but do not assign or assume a number.";
+      } else {
+        system +=
+          " All task details are collected. If the user asks a question, answer briefly. Do NOT tell them to visit /post or leave this chat — Deposit and Post buttons appear here automatically when they proceed.";
       }
     }
     if (walletAddress && role === "poster") {
@@ -508,15 +594,37 @@
     }
 
     if (activeRole === "poster") {
-      const wasReady = isPosterScopeReady(chats.poster);
       chats.poster.push({ role: "user", content: text });
       input.value = "";
       input.style.height = "auto";
       const nowReady = isPosterScopeReady(chats.poster);
 
-      if (nowReady && (!wasReady || isAffirmative(text))) {
-        await pushPosterReadyAssistant();
-        finishPosterReadyReply();
+      if (nowReady && !isPosterFollowUpQuestion(text)) {
+        if (!chatOnline && location.protocol !== "file:") await checkHealth();
+        if (!chatOnline) {
+          chats.poster.pop();
+          setFoot(chatOfflineFoot(), "err");
+          return;
+        }
+        busy = true;
+        $("rd-send").disabled = true;
+        syncHero();
+        renderMessages();
+        $("rd-typing").hidden = false;
+        try {
+          await pushPosterReadyAssistant();
+          finishPosterReadyReply();
+        } catch (e) {
+          chats.poster.pop();
+          syncHero();
+          renderMessages();
+          setFoot((e && e.message) || "Could not prepare task", "err");
+        } finally {
+          busy = false;
+          $("rd-typing").hidden = true;
+          $("rd-send").disabled = false;
+          input.focus();
+        }
         return;
       }
 
@@ -535,10 +643,6 @@
       try {
         await callLlm(activeRole);
         $("rd-typing").hidden = true;
-        if (isPosterScopeReady(chats.poster)) {
-          chats.poster.pop();
-          await pushPosterReadyAssistant();
-        }
         finishPosterReadyReply();
       } catch (e) {
         $("rd-typing").hidden = true;
