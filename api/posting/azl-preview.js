@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     if (!plan?.priceUsdc) throw new Error("Invalid upgrade tier");
 
     const { fetchAzlUsdPrice, azlTokensForUsd, azlWeiForUsd, azlCheckoutAllowed, formatAzlHuman } =
-      await import("./lib/azl-price.js");
+      await import("../lib/azl-price.js");
     const { priceUsd, source, updatedAt } = await fetchAzlUsdPrice();
     const discountedUsd = plan.priceUsdc * (1 - AZL_PAY_DISCOUNT);
     const azlAmount = azlTokensForUsd(discountedUsd, priceUsd);

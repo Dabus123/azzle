@@ -4,10 +4,6 @@
   "outputDirectory": "public",
   "framework": null,
   "rewrites": [
-    { "source": "/api/poster/tasks", "destination": "/api/poster-tasks" },
-    { "source": "/api/posting/plans", "destination": "/api/posting-plans" },
-    { "source": "/api/posting/quota", "destination": "/api/posting-quota" },
-    { "source": "/api/posting/azl-preview", "destination": "/api/posting-azl-preview" },
     { "source": "/post", "destination": "/post.html" },
     { "source": "/post/", "destination": "/post.html" },
     { "source": "/pricing", "destination": "/pricing.html" },
