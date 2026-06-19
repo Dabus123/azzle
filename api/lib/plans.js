@@ -1,5 +1,6 @@
 /** Posting tier definitions for /api/site-config (kept under api/ for Vercel bundling). */
 export const AZL_PAY_DISCOUNT = 0.1;
+export const QUOTE_TTL_MS = 15 * 60 * 1000;
 
 export const PLANS = {
   free: {

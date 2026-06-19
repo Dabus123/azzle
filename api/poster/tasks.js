@@ -1,27 +1,24 @@
-import { handleSiteApi } from "../../scripts/site-api.mjs";
-import { readJsonBody, requestUrl } from "../../scripts/vercel-http.mjs";
+import { getPosterTasks } from "../lib/poster-tasks.js";
+import { readJsonBody, requestUrl } from "../lib/vercel-http.js";
 import { sendJson } from "../lib/respond.js";
 
 export default async function handler(req, res) {
   try {
-    const url = requestUrl(req, "/api/poster/tasks");
-    let body = {};
-    if (req.method === "POST") {
-      try {
-        body = await readJsonBody(req);
-      } catch {
-        sendJson(res, 400, { error: "Invalid JSON body" });
-        return;
-      }
+    if (req.method === "OPTIONS") {
+      res.writeHead(204, { "Access-Control-Allow-Origin": "*" });
+      res.end();
+      return;
     }
-    const result = await handleSiteApi({
-      method: req.method ?? "GET",
-      pathname: "/api/poster/tasks",
-      searchParams: url.searchParams,
-      body,
-    });
-    sendJson(res, result.status, result.json);
+    if (req.method !== "GET") {
+      sendJson(res, 405, { error: "method_not_allowed" });
+      return;
+    }
+
+    const url = requestUrl(req, "/api/poster/tasks");
+    const address = url.searchParams.get("address");
+    const tasks = await getPosterTasks(address);
+    sendJson(res, 200, { tasks });
   } catch (err) {
-    sendJson(res, 500, { error: err?.message ?? String(err) });
+    sendJson(res, 400, { error: err?.message ?? String(err) });
   }
 }

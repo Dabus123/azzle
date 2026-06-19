@@ -16,7 +16,7 @@
   "functions": {
     "api/**/*.js": {
       "maxDuration": 60,
-      "includeFiles": "contracts/deployments/**"
+      "includeFiles": ["contracts/deployments/**", "scripts/**"]
     }
   }
 }

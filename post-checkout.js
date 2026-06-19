@@ -13,6 +13,15 @@
 
   const $ = (id) => document.getElementById(id);
 
+  async function parseJsonResponse(res) {
+    const text = await res.text();
+    try {
+      return text ? JSON.parse(text) : {};
+    } catch {
+      throw new Error(text.slice(0, 120) || "HTTP " + res.status);
+    }
+  }
+
   function posterApi() {
     return window.azzlePoster ?? null;
   }
@@ -88,7 +97,7 @@
     try {
       const res = await fetch("/api/site-config", { cache: "no-store" });
       if (res.ok) {
-        const cfg = await res.json();
+        const cfg = await parseJsonResponse(res);
         postingPlans = cfg.postingPlans?.length ? cfg.postingPlans : DEFAULT_PLANS;
       } else {
         postingPlans = DEFAULT_PLANS;
@@ -105,7 +114,7 @@
       cache: "no-store",
     });
     if (!res.ok) return null;
-    return res.json();
+    return parseJsonResponse(res);
   }
 
   async function checkCanPost(address) {
@@ -114,7 +123,7 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address }),
     });
-    const data = await res.json();
+    const data = await parseJsonResponse(res);
     if (!res.ok) {
       const err = new Error(data.error || "Daily posting limit reached");
       err.quota = data.quota ?? null;
@@ -129,7 +138,7 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address, taskId, txHash }),
     });
-    const data = await res.json();
+    const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(data.error || "Could not record post");
     return data;
   }
@@ -191,7 +200,7 @@
             cache: "no-store",
           });
           if (!res.ok) return [p.id, null];
-          return [p.id, await res.json()];
+          return [p.id, await parseJsonResponse(res)];
         } catch {
           return [p.id, null];
         }
@@ -592,7 +601,7 @@
             "&payWith=azl",
           { cache: "no-store" }
         );
-        quote = await qRes.json();
+        quote = await parseJsonResponse(qRes);
         if (!qRes.ok) throw new Error(quote.error || "Could not quote AZL price");
         onProgress?.(
           "Pay " + fmtAzlAmount(quote.azlAmountFormatted ?? quote.azlAmount) + " (~$" + quote.discountedUsd + ")…",
@@ -617,7 +626,7 @@
           quoteId: quote?.quoteId,
         }),
       });
-      const data = await res.json();
+      const data = await parseJsonResponse(res);
       if (!res.ok) throw new Error(data.error || "Upgrade failed");
       currentQuota = data;
       onProgress?.("Upgraded to " + data.plan + ". " + formatQuotaLine(data), "ok");

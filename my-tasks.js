@@ -72,11 +72,20 @@
     return map[state] ?? { label: state, hint: "", tone: "muted" };
   }
 
+  async function parseJsonResponse(res) {
+    const text = await res.text();
+    try {
+      return text ? JSON.parse(text) : {};
+    } catch {
+      throw new Error(text.slice(0, 120) || "HTTP " + res.status);
+    }
+  }
+
   async function fetchTasks(address) {
     const res = await fetch("/api/poster/tasks?address=" + encodeURIComponent(address), {
       cache: "no-store",
     });
-    const data = await res.json();
+    const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(data.error || "Could not load tasks");
     return data.tasks ?? [];
   }
