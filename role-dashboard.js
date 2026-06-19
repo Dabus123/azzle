@@ -261,6 +261,23 @@
     if (kind) el.classList.add(kind);
   }
 
+  function chatOfflineFoot(status) {
+    const local =
+      location.hostname === "localhost" ||
+      location.hostname === "127.0.0.1" ||
+      location.port === "8080";
+    if (local) {
+      return "Start chat server: npm start  then  http://localhost:8080";
+    }
+    if (status === 404) {
+      return "Chat API not found — confirm Vercel deploy includes /api and env vars";
+    }
+    if (status === 503) {
+      return "Add BANKR_API_KEY in Vercel → Settings → Environment Variables";
+    }
+    return "Chat unavailable — check Vercel deploy logs and env vars";
+  }
+
   async function checkHealth() {
     if (location.protocol === "file:") {
       chatOnline = false;
@@ -269,16 +286,28 @@
     }
     try {
       const res = await fetch("/api/role-chat/health", { cache: "no-store" });
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        chatOnline = false;
+        setFoot(chatOfflineFoot(res.status), "err");
+        return;
+      }
+      if (!res.ok) {
+        chatOnline = false;
+        setFoot(chatOfflineFoot(res.status), "err");
+        return;
+      }
       chatOnline = Boolean(data.ok);
       if (chatOnline) {
         setFoot(walletFoot(), "ok");
       } else {
-        setFoot("Server running but BANKR_API_KEY missing — check azzle-force/.env", "err");
+        setFoot(chatOfflineFoot(503), "err");
       }
     } catch {
       chatOnline = false;
-      setFoot("Start chat server: npm start  then  http://localhost:8080", "err");
+      setFoot(chatOfflineFoot(), "err");
     }
   }
 
@@ -456,7 +485,7 @@
       if (!chatOnline && location.protocol !== "file:") await checkHealth();
       if (!chatOnline) {
         chats.poster.pop();
-        setFoot("Start chat server: npm start  then  http://localhost:8080", "err");
+        setFoot(chatOfflineFoot(), "err");
         return;
       }
 
@@ -488,7 +517,7 @@
 
     if (!chatOnline && location.protocol !== "file:") await checkHealth();
     if (!chatOnline) {
-      setFoot("Start chat server: npm start  then  http://localhost:8080", "err");
+      setFoot(chatOfflineFoot(), "err");
       return;
     }
     busy = true;

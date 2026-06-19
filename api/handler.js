@@ -12,11 +12,29 @@ async function readJsonBody(req) {
   return JSON.parse(raw);
 }
 
+function apiPathname(req) {
+  const host = req.headers?.host || "azzle.org";
+  const url = new URL(req.url || "/", `https://${host}`);
+  if (url.pathname === "/api/handler") {
+    const sub = url.searchParams.get("path") || "";
+    return "/api/" + sub.replace(/^\/+/, "");
+  }
+  return url.pathname;
+}
+
+function sendApiResult(res, result) {
+  const headers = result.headers ?? { "Content-Type": "application/json" };
+  if (result.json == null) {
+    res.status(result.status).set(headers).end();
+    return;
+  }
+  res.status(result.status).set(headers).json(result.json);
+}
+
 export default async function handler(req, res) {
-  const segments = req.query.path;
-  const parts = segments ? (Array.isArray(segments) ? segments : [segments]) : [];
-  const pathname = "/api/" + parts.map(decodeURIComponent).join("/");
-  const url = new URL(req.url ?? pathname, "https://azzle.org");
+  const pathname = apiPathname(req);
+  const host = req.headers?.host || "azzle.org";
+  const url = new URL(req.url || pathname, `https://${host}`);
 
   let body = {};
   try {
@@ -38,13 +56,4 @@ export default async function handler(req, res) {
   });
 
   sendApiResult(res, result);
-}
-
-function sendApiResult(res, result) {
-  const headers = result.headers ?? { "Content-Type": "application/json" };
-  if (result.json == null) {
-    res.status(result.status).set(headers).end();
-    return;
-  }
-  res.status(result.status).set(headers).json(result.json);
 }

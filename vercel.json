@@ -4,6 +4,7 @@
   "outputDirectory": "public",
   "framework": null,
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/handler?path=$1" },
     { "source": "/post", "destination": "/post.html" },
     { "source": "/post/", "destination": "/post.html" },
     { "source": "/pricing", "destination": "/pricing.html" },
@@ -14,7 +15,7 @@
     { "source": "/wallet/", "destination": "/wallet.html" }
   ],
   "functions": {
-    "api/[...path].mjs": {
+    "api/handler.js": {
       "maxDuration": 60
     }
   }
