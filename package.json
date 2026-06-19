@@ -2,7 +2,8 @@
   "name": "azzle",
   "private": true,
   "scripts": {
-    "build": "npm run build:wallet",
+    "build": "node scripts/vercel-build.mjs",
+    "vercel-build": "node scripts/vercel-build.mjs",
     "build:wallet": "node scripts/build-wallet.mjs",
     "prestart": "node scripts/build-wallet.mjs",
     "start": "node scripts/site-server.mjs",

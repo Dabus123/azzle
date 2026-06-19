@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:wallet",
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "public",
   "framework": null,
   "rewrites": [
     { "source": "/post", "destination": "/post.html" },
