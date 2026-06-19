@@ -30,8 +30,10 @@
   }
 
   function readDraftFromForm() {
+    const text = ($("rd-task-scope")?.value ?? "").trim();
     return {
-      scope: ($("rd-task-scope")?.value ?? "").trim(),
+      scope: text,
+      taskPrompt: text,
       budget: ($("rd-task-budget")?.value ?? "").trim(),
       days: parseInt($("rd-task-days")?.value ?? "7", 10),
     };
@@ -39,7 +41,8 @@
 
   function syncFormFromDraft(draft) {
     if (!draft || !$("rd-checkout")) return;
-    if (draft.scope) $("rd-task-scope").value = draft.scope;
+    const text = (draft.taskPrompt || draft.scope || "").trim();
+    if (text) $("rd-task-scope").value = text;
     if (draft.budget) $("rd-task-budget").value = draft.budget;
     if (draft.days) $("rd-task-days").value = draft.days;
   }
@@ -459,12 +462,14 @@
   function resolveDraft(override) {
     const fromForm = $("rd-checkout") ? readDraftFromForm() : null;
     const draft = override ?? (fromForm?.scope ? fromForm : null) ?? loadDraft();
-    if (!draft?.scope) throw new Error("No task scope — start from the chat first.");
+    if (!draft?.scope && !draft?.taskPrompt) throw new Error("No task scope — start from the chat first.");
     const budgetUsdc = parseFloat(draft.budget);
     const deadlineDays = parseInt(draft.days, 10);
     if (!Number.isFinite(budgetUsdc) || budgetUsdc <= 0) throw new Error("Invalid budget in USDC.");
     if (!Number.isFinite(deadlineDays) || deadlineDays <= 0) throw new Error("Invalid deadline.");
-    return { description: draft.scope.trim(), budgetUsdc, deadlineDays };
+    const description = (draft.taskPrompt || draft.scope || "").trim();
+    if (!description) throw new Error("No task description — start from the chat first.");
+    return { description, budgetUsdc, deadlineDays };
   }
 
   async function runDeposit(onProgress) {
@@ -533,6 +538,7 @@
 
     saveDraft({
       scope: task.description,
+      taskPrompt: task.description,
       budget: String(task.budgetUsdc),
       days: task.deadlineDays,
     });

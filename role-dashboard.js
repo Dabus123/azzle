@@ -132,8 +132,26 @@
     return window.AzzlePostCheckout ?? null;
   }
 
+  function getStoredTaskPrompt() {
+    const msg = [...chats.poster].reverse().find((m) => m.role === "assistant" && m.taskPrompt);
+    return msg?.taskPrompt ?? null;
+  }
+
   function savePosterDraft() {
-    const draft = extractTaskDraft(chats.poster);
+    const extracted = extractTaskDraft(chats.poster);
+    const existing = postCheckout()?.loadDraft?.() ?? null;
+    const fromChat = getStoredTaskPrompt();
+    const sameTerms =
+      fromChat &&
+      String(existing?.budget) === String(extracted.budget) &&
+      Number(existing?.days) === Number(extracted.days);
+    const taskPrompt = (sameTerms && existing?.taskPrompt) || fromChat || null;
+    const draft = {
+      scope: extracted.scope,
+      budget: extracted.budget,
+      days: extracted.days,
+      ...(taskPrompt ? { taskPrompt } : {}),
+    };
     postCheckout()?.saveDraft(draft);
     return draft;
   }
@@ -306,7 +324,7 @@
     } catch {
       scope = buildScopeFallback(raw);
     }
-    const d = { scope, budget: raw.budget, days: raw.days };
+    const d = { scope: raw.scope, taskPrompt: scope, budget: raw.budget, days: raw.days };
     postCheckout()?.saveDraft(d);
     let quotaLine = "Free plan · **3 tasks/day**.";
     if (walletAddress) {
@@ -338,6 +356,7 @@
         briefPreview +
         "\n\n" +
         quotaLine,
+      taskPrompt: scope,
       actions: [
         { id: "deposit", label: "Deposit $20 USDC" },
         { id: "post", label: "Post to market" },
