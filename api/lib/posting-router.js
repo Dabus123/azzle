@@ -1,14 +1,5 @@
 import { PLANS, AZL_PAY_DISCOUNT } from "./plans.js";
 import { loadManifest } from "./manifest.js";
-import { fetchAzlUsdPrice } from "./azl-price.js";
-import {
-  getQuota,
-  previewAzlUpgrade,
-  createUpgradeQuote,
-  assertCanPost,
-  recordPost,
-  applyUpgrade,
-} from "./posting-limits.js";
 
 function billingWallet() {
   const manifest = loadManifest();
@@ -33,6 +24,7 @@ export async function handlePostingApi({ method, pathname, searchParams, body = 
 
   if (method === "GET" && pathname === "/api/posting/azl-price") {
     try {
+      const { fetchAzlUsdPrice } = await import("./azl-price.js");
       const price = await fetchAzlUsdPrice();
       return { status: 200, json: { ...price, discountPercent: AZL_PAY_DISCOUNT * 100 } };
     } catch (e) {
@@ -46,6 +38,7 @@ export async function handlePostingApi({ method, pathname, searchParams, body = 
     const payWith = searchParams.get("payWith") ?? "azl";
     try {
       if (payWith !== "azl") throw new Error("Only payWith=azl is supported for quotes.");
+      const { createUpgradeQuote } = await import("./posting-limits.js");
       const quote = await createUpgradeQuote({ address, tier });
       return { status: 200, json: quote };
     } catch (e) {
@@ -56,6 +49,7 @@ export async function handlePostingApi({ method, pathname, searchParams, body = 
   if (method === "GET" && pathname === "/api/posting/azl-preview") {
     const tier = searchParams.get("tier");
     try {
+      const { previewAzlUpgrade } = await import("./posting-limits.js");
       const preview = await previewAzlUpgrade(tier);
       return { status: 200, json: preview };
     } catch (e) {
@@ -66,6 +60,7 @@ export async function handlePostingApi({ method, pathname, searchParams, body = 
   if (method === "GET" && pathname === "/api/posting/quota") {
     const address = searchParams.get("address");
     try {
+      const { getQuota } = await import("./posting-limits.js");
       const quota = await getQuota(address);
       return { status: 200, json: quota };
     } catch (e) {
@@ -75,6 +70,7 @@ export async function handlePostingApi({ method, pathname, searchParams, body = 
 
   if (method === "POST" && pathname === "/api/posting/record") {
     try {
+      const { recordPost } = await import("./posting-limits.js");
       const quota = await recordPost(body.address, {
         taskId: body.taskId,
         txHash: body.txHash,
@@ -88,6 +84,7 @@ export async function handlePostingApi({ method, pathname, searchParams, body = 
 
   if (method === "POST" && pathname === "/api/posting/check") {
     try {
+      const { assertCanPost } = await import("./posting-limits.js");
       const quota = await assertCanPost(body.address);
       return { status: 200, json: quota };
     } catch (e) {
@@ -99,6 +96,7 @@ export async function handlePostingApi({ method, pathname, searchParams, body = 
     try {
       if (!BILLING_WALLET) throw new Error("Billing wallet not configured on server.");
       if (!MANIFEST?.usdc) throw new Error("USDC address missing from manifest.");
+      const { applyUpgrade } = await import("./posting-limits.js");
       const quota = await applyUpgrade({
         address: body.address,
         tier: body.tier,

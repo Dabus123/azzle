@@ -1,4 +1,3 @@
-import { handlePostingApi } from "../lib/posting-router.js";
 import { readJsonBody, requestUrl } from "../lib/vercel-http.js";
 import { CORS, sendJson } from "../lib/respond.js";
 
@@ -28,6 +27,7 @@ export default async function handler(req, res) {
       }
     }
 
+    const { handlePostingApi } = await import("../lib/posting-router.js");
     const result = await handlePostingApi({
       method: req.method ?? "GET",
       pathname,
