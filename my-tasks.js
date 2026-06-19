@@ -82,7 +82,7 @@
   }
 
   async function fetchTasks(address) {
-    const res = await fetch("/api/poster/tasks?address=" + encodeURIComponent(address), {
+    const res = await fetch("/api/get-poster-tasks?address=" + encodeURIComponent(address), {
       cache: "no-store",
     });
     const data = await parseJsonResponse(res);

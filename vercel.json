@@ -4,6 +4,13 @@
   "outputDirectory": "public",
   "framework": null,
   "rewrites": [
+    { "source": "/api/posting/azl-preview", "destination": "/api/get-azl-preview" },
+    { "source": "/api/posting/quota", "destination": "/api/get-posting-quota" },
+    { "source": "/api/posting/check", "destination": "/api/posting-check" },
+    { "source": "/api/posting/record", "destination": "/api/posting-record" },
+    { "source": "/api/posting/upgrade", "destination": "/api/posting-upgrade" },
+    { "source": "/api/posting/quote", "destination": "/api/posting-quote" },
+    { "source": "/api/poster/tasks", "destination": "/api/get-poster-tasks" },
     { "source": "/post", "destination": "/post.html" },
     { "source": "/post/", "destination": "/post.html" },
     { "source": "/pricing", "destination": "/pricing.html" },
@@ -15,8 +22,7 @@
   ],
   "functions": {
     "api/**/*.js": {
-      "maxDuration": 60,
-      "includeFiles": ["contracts/deployments/**", "scripts/**"]
+      "maxDuration": 60
     }
   }
 }

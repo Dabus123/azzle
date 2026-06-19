@@ -65,11 +65,11 @@ export default async function handler(req, res) {
     }
 
     const host = req.headers?.host || "azzle.org";
-    const url = new URL(req.url || "/api/posting/quota", "https://" + host);
+    const url = new URL(req.url || "/api/get-posting-quota", "https://" + host);
     const addr = normAddr(url.searchParams.get("address"));
     if (!addr) throw new Error("Wallet address required");
 
-    const { loadPostingAccounts } = await import("../lib/posting-store.js");
+    const { loadPostingAccounts } = await import("./lib/posting-store.js");
     const store = await loadPostingAccounts();
     const user = store.users[addr] ?? { tier: "free", dailyPosts: {} };
     sendJson(res, 200, getQuotaForUser(user));

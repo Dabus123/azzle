@@ -118,7 +118,7 @@ export default async function handler(req, res) {
     }
 
     const host = req.headers?.host || "azzle.org";
-    const url = new URL(req.url || "/api/posting/azl-preview", "https://" + host);
+    const url = new URL(req.url || "/api/get-azl-preview", "https://" + host);
     const tier = url.searchParams.get("tier");
     const plan = PLANS[tier];
     if (!plan?.priceUsdc) throw new Error("Invalid upgrade tier");

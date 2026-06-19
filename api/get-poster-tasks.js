@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     }
 
     const host = req.headers?.host || "azzle.org";
-    const url = new URL(req.url || "/api/poster/tasks", "https://" + host);
+    const url = new URL(req.url || "/api/get-poster-tasks", "https://" + host);
     const id = normAddr(url.searchParams.get("address"));
     if (!id) {
       sendJson(res, 400, { error: "Wallet address required" });

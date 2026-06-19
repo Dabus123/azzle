@@ -110,7 +110,7 @@
 
   async function fetchQuota(address) {
     if (!address) return null;
-    const res = await fetch("/api/posting/quota?address=" + encodeURIComponent(address), {
+    const res = await fetch("/api/get-posting-quota?address=" + encodeURIComponent(address), {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -118,7 +118,7 @@
   }
 
   async function checkCanPost(address) {
-    const res = await fetch("/api/posting/check", {
+    const res = await fetch("/api/posting-check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address }),
@@ -133,7 +133,7 @@
   }
 
   async function recordPostSuccess(address, taskId, txHash) {
-    const res = await fetch("/api/posting/record", {
+    const res = await fetch("/api/posting-record", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address, taskId, txHash }),
@@ -196,7 +196,7 @@
     const entries = await Promise.all(
       paid.map(async (p) => {
         try {
-          const res = await fetch("/api/posting/azl-preview?tier=" + encodeURIComponent(p.id), {
+          const res = await fetch("/api/get-azl-preview?tier=" + encodeURIComponent(p.id), {
             cache: "no-store",
           });
           if (!res.ok) return [p.id, null];
@@ -594,7 +594,7 @@
       if (currency === "azl") {
         onProgress?.("Fetching live AZL price…", "busy");
         const qRes = await fetch(
-          "/api/posting/quote?tier=" +
+          "/api/posting-quote?tier=" +
             encodeURIComponent(tierId) +
             "&address=" +
             encodeURIComponent(walletAddress) +
@@ -615,7 +615,7 @@
         (msg) => onProgress?.(msg, "busy")
       );
 
-      const res = await fetch("/api/posting/upgrade", {
+      const res = await fetch("/api/posting-upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
