@@ -1,17 +1,6 @@
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { PLANS, AZL_PAY_DISCOUNT } from "../scripts/posting-plans.mjs";
+import { PLANS, AZL_PAY_DISCOUNT } from "./lib/plans.js";
+import { loadManifest } from "./lib/manifest.js";
 import { CORS, sendJson } from "./lib/respond.js";
-
-function loadManifest() {
-  try {
-    const path = join(process.cwd(), "contracts", "deployments", "base-8453.json");
-    if (existsSync(path)) return JSON.parse(readFileSync(path, "utf8"));
-  } catch {
-    /* missing in some environments */
-  }
-  return null;
-}
 
 function postingStoreBackend() {
   if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) return "redis";
