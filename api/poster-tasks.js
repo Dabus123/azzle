@@ -1,8 +1,17 @@
-import { sendJson } from "../lib/respond.js";
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
 
 const SUBGRAPH_URL =
   process.env.AZZLE_SUBGRAPH_URL ??
   "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3";
+
+function sendJson(res, status, body) {
+  res.writeHead(status, { ...CORS, "Content-Type": "application/json" });
+  res.end(JSON.stringify(body));
+}
 
 function normAddr(addr) {
   if (!addr || typeof addr !== "string") return "";
@@ -15,7 +24,7 @@ async function gql(query, variables) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, variables }),
   });
-  if (!res.ok) throw new Error(`Subgraph HTTP ${res.status}`);
+  if (!res.ok) throw new Error("Subgraph HTTP " + res.status);
   const json = await res.json();
   if (json.errors?.length) {
     throw new Error(json.errors.map((e) => e.message).join("; "));
@@ -26,7 +35,7 @@ async function gql(query, variables) {
 export default async function handler(req, res) {
   try {
     if (req.method === "OPTIONS") {
-      res.writeHead(204, { "Access-Control-Allow-Origin": "*" });
+      res.writeHead(204, CORS);
       res.end();
       return;
     }
@@ -36,9 +45,8 @@ export default async function handler(req, res) {
     }
 
     const host = req.headers?.host || "azzle.org";
-    const url = new URL(req.url || "/api/poster/tasks", `https://${host}`);
-    const address = url.searchParams.get("address");
-    const id = normAddr(address);
+    const url = new URL(req.url || "/api/poster/tasks", "https://" + host);
+    const id = normAddr(url.searchParams.get("address"));
     if (!id) {
       sendJson(res, 400, { error: "Wallet address required" });
       return;
@@ -47,7 +55,6 @@ export default async function handler(req, res) {
     const data = await gql(
       `query PosterTasks($id: ID!) {
         agent(id: $id) {
-          id
           postedTasks(first: 100, orderBy: createdAt, orderDirection: desc) {
             id
             state
