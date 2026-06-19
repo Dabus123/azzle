@@ -4,7 +4,7 @@
  *   node --env-file=azzle-force/.env scripts/site-server.mjs
  *   # or: npm start
  *
- * Production: deploy to Vercel (see vercel.json). APIs live in api/handler.js.
+ * Production: deploy to Vercel (see vercel.json). APIs live in api/*.js.
  */
 import { createServer } from "node:http";
 import { existsSync } from "node:fs";
