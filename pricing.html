@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Pricing — AZZLE</title>
+<link rel="stylesheet" href="site-theme.css"/>
+<link rel="stylesheet" href="role-dashboard.css"/>
+</head>
+<body>
+<div class="rd-subpage">
+  <nav class="azzle-nav" aria-label="Site">
+    <a href="/" class="azzle-nav-logo"><img src="azzletype.png" alt="AZZLE" height="24"/></a>
+    <div class="azzle-nav-center">
+      <ul class="azzle-nav-app">
+        <li><a href="/">Chat</a></li>
+        <li><a href="/post">Post</a></li>
+        <li><a href="/my-tasks"><span class="azzle-nav-label-long">My tasks</span><span class="azzle-nav-label-short">Tasks</span></a></li>
+        <li><a href="/wallet">Wallet</a></li>
+        <li><a href="/pricing" class="azzle-nav-on">Pricing</a></li>
+      </ul>
+    </div>
+    <div class="azzle-nav-actions">
+      <div data-rd-wallet-mount></div>
+      <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener">GitHub →</a>
+    </div>
+  </nav>
+
+  <div class="rd-subpage-inner rd-subpage-inner--wide">
+    <section class="rd-pricing" id="rd-pricing">
+      <div class="rd-checkout-head">
+        <h4>Posting plans</h4>
+        <p>Daily limits reset at midnight UTC. Pay in USDC or AZL on Base — AZL gets 10% off (live DEX price).</p>
+      </div>
+
+      <div class="rd-plan-bar" id="rd-plan-bar" hidden>
+        <div class="rd-plan-bar-main">
+          <span class="rd-plan-name" id="rd-plan-name">Free</span>
+          <span class="rd-plan-usage" id="rd-plan-usage">3 of 3 left today</span>
+        </div>
+        <p class="rd-plan-expires" id="rd-plan-expires" hidden></p>
+      </div>
+
+      <div class="rd-pricing-grid" id="rd-pricing-grid"></div>
+
+      <p class="rd-checkout-status" id="rd-pricing-status">Sign in (top right) to see your plan and upgrade.</p>
+
+      <p class="rd-pricing-foot">
+        Ready to list a job?
+        <a href="/post">Open the full posting form →</a>
+      </p>
+    </section>
+  </div>
+</div>
+<script type="module" src="role-wallet.bundle.js"></script>
+<script src="post-checkout.js"></script>
+</body>
+</html>

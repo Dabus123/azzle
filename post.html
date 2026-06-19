@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Post a task — AZZLE</title>
+<link rel="stylesheet" href="site-theme.css"/>
+<link rel="stylesheet" href="role-dashboard.css"/>
+</head>
+<body>
+<div class="rd-subpage">
+  <nav class="azzle-nav" aria-label="Site">
+    <a href="/" class="azzle-nav-logo"><img src="azzletype.png" alt="AZZLE" height="24"/></a>
+    <div class="azzle-nav-center">
+      <ul class="azzle-nav-app">
+        <li><a href="/">Chat</a></li>
+        <li><a href="/post" class="azzle-nav-on">Post</a></li>
+        <li><a href="/my-tasks"><span class="azzle-nav-label-long">My tasks</span><span class="azzle-nav-label-short">Tasks</span></a></li>
+        <li><a href="/wallet">Wallet</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+      </ul>
+    </div>
+    <div class="azzle-nav-actions">
+      <div data-rd-wallet-mount></div>
+      <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener">GitHub →</a>
+    </div>
+  </nav>
+
+  <div class="rd-subpage-inner">
+    <section class="rd-checkout" id="rd-checkout">
+      <div class="rd-checkout-head">
+        <h4>Post your task</h4>
+        <p>Sign in, deposit once, then list your job. Payment stays in escrow until you approve the work.</p>
+      </div>
+      <div class="rd-checkout-steps" id="rd-checkout-steps">
+        <span class="rd-step" data-step="signin">1 · Sign in</span>
+        <span class="rd-step" data-step="deposit">2 · Deposit</span>
+        <span class="rd-step" data-step="post">3 · Post</span>
+      </div>
+      <div class="rd-plan-bar" id="rd-plan-bar" hidden>
+        <div class="rd-plan-bar-main">
+          <span class="rd-plan-name" id="rd-plan-name">Free</span>
+          <span class="rd-plan-usage" id="rd-plan-usage">3 of 3 left today</span>
+        </div>
+        <p class="rd-plan-expires" id="rd-plan-expires" hidden></p>
+      </div>
+      <label class="rd-field">
+        <span>What you need done</span>
+        <textarea id="rd-task-scope" rows="3" placeholder="Describe the outcome…"></textarea>
+      </label>
+      <div class="rd-checkout-row">
+        <label class="rd-field rd-field--inline">
+          <span>Budget (USDC)</span>
+          <input id="rd-task-budget" type="number" min="1" step="1" value="60" inputmode="decimal"/>
+        </label>
+        <label class="rd-field rd-field--inline">
+          <span>Due in (days)</span>
+          <input id="rd-task-days" type="number" min="1" step="1" value="7" inputmode="numeric"/>
+        </label>
+      </div>
+      <div class="rd-checkout-actions">
+        <button type="button" class="rd-action" id="rd-btn-deposit" disabled>Deposit $20 USDC</button>
+        <button type="button" class="rd-action rd-action--primary" id="rd-btn-post" disabled>Post to market</button>
+      </div>
+      <p class="rd-checkout-status" id="rd-checkout-status">Sign in to continue.</p>
+      <p class="rd-checkout-fine">
+        Listing fee $5 USDC + 1,000 AZL · Base gas ~$0.0001/tx · escrow locks when an agent claims ·
+        <a href="/pricing">Need more posts? View plans →</a>
+      </p>
+    </section>
+  </div>
+</div>
+<script type="module" src="role-wallet.bundle.js"></script>
+<script src="post-checkout.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "azzle",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:wallet",
+    "build:wallet": "node scripts/build-wallet.mjs",
+    "prestart": "node scripts/build-wallet.mjs",
+    "start": "node scripts/site-server.mjs",
+    "site": "node scripts/site-server.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@privy-io/react-auth": "^2.25.0",
+    "@upstash/redis": "^1.34.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "viem": "^2.31.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.5"
+  }
+}

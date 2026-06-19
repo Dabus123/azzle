@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Wallet — AZZLE</title>
+<link rel="stylesheet" href="site-theme.css"/>
+<link rel="stylesheet" href="role-dashboard.css"/>
+</head>
+<body>
+<div class="rd-subpage">
+  <nav class="azzle-nav" aria-label="Site">
+    <a href="/" class="azzle-nav-logo"><img src="azzletype.png" alt="AZZLE" height="24"/></a>
+    <div class="azzle-nav-center">
+      <ul class="azzle-nav-app">
+        <li><a href="/">Chat</a></li>
+        <li><a href="/post">Post</a></li>
+        <li><a href="/my-tasks"><span class="azzle-nav-label-long">My tasks</span><span class="azzle-nav-label-short">Tasks</span></a></li>
+        <li><a href="/wallet" class="azzle-nav-on">Wallet</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+      </ul>
+    </div>
+    <div class="azzle-nav-actions">
+      <div data-rd-wallet-mount></div>
+      <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener">GitHub →</a>
+    </div>
+  </nav>
+
+  <div class="rd-subpage-inner rd-subpage-inner--wide">
+    <section class="rd-wallet-page" id="rd-wallet-page">
+      <div class="rd-checkout-head">
+        <h4>Wallet</h4>
+        <p>Balances on Base · protocol USDC deposit for posting · send USDC, AZL, or ETH out.</p>
+      </div>
+
+      <div class="rd-wallet-receive" id="rd-wallet-receive" hidden>
+        <span class="rd-wallet-receive-label">Receive on Base</span>
+        <code class="rd-wallet-address" id="rd-wallet-address"></code>
+        <button type="button" class="rd-wallet-copy" id="rd-wallet-copy">Copy address</button>
+      </div>
+
+      <p class="rd-checkout-status" id="rd-wallet-status">Sign in (top right) to view balances.</p>
+
+      <div class="rd-wallet-grid" id="rd-wallet-grid" hidden>
+        <article class="rd-wallet-asset" data-asset="usdc">
+          <header class="rd-wallet-asset-head">
+            <h5>USDC</h5>
+            <p class="rd-wallet-bal" id="rd-bal-usdc-wallet">—</p>
+            <p class="rd-wallet-sub">In wallet</p>
+          </header>
+          <div class="rd-wallet-vault">
+            <p class="rd-wallet-vault-label">Protocol deposit</p>
+            <p class="rd-wallet-bal" id="rd-bal-usdc-vault">—</p>
+            <p class="rd-wallet-hint" id="rd-usdc-vault-hint">$20 minimum to post tasks</p>
+          </div>
+          <div class="rd-wallet-forms">
+            <div class="rd-wallet-form">
+              <span>Deposit to protocol</span>
+              <div class="rd-wallet-row">
+                <input type="number" id="rd-usdc-deposit-amt" min="1" step="1" value="20" inputmode="decimal"/>
+                <button type="button" class="rd-action rd-action--primary" id="rd-usdc-deposit-btn">Deposit</button>
+              </div>
+            </div>
+            <div class="rd-wallet-form">
+              <span>Withdraw from protocol</span>
+              <div class="rd-wallet-row">
+                <input type="number" id="rd-usdc-withdraw-amt" min="0" step="0.01" inputmode="decimal" placeholder="Amount"/>
+                <button type="button" class="rd-action" id="rd-usdc-withdraw-max">Max</button>
+                <button type="button" class="rd-action" id="rd-usdc-withdraw-btn">Withdraw</button>
+              </div>
+            </div>
+            <div class="rd-wallet-form">
+              <span>Send from wallet</span>
+              <input type="text" id="rd-usdc-send-to" placeholder="Recipient 0x…" spellcheck="false"/>
+              <div class="rd-wallet-row">
+                <input type="number" id="rd-usdc-send-amt" min="0" step="0.01" inputmode="decimal" placeholder="Amount"/>
+                <button type="button" class="rd-action" id="rd-usdc-send-btn">Send</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="rd-wallet-asset" data-asset="azl">
+          <header class="rd-wallet-asset-head">
+            <h5>AZL</h5>
+            <p class="rd-wallet-bal" id="rd-bal-azl">—</p>
+            <p class="rd-wallet-sub">In wallet · 1,000 AZL per post/claim fee</p>
+          </header>
+          <div class="rd-wallet-forms">
+            <div class="rd-wallet-form">
+              <span>Send AZL</span>
+              <input type="text" id="rd-azl-send-to" placeholder="Recipient 0x…" spellcheck="false"/>
+              <div class="rd-wallet-row">
+                <input type="number" id="rd-azl-send-amt" min="0" step="any" inputmode="decimal" placeholder="Amount"/>
+                <button type="button" class="rd-action" id="rd-azl-send-btn">Send</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="rd-wallet-asset" data-asset="eth">
+          <header class="rd-wallet-asset-head">
+            <h5>ETH</h5>
+            <p class="rd-wallet-bal" id="rd-bal-eth">—</p>
+            <p class="rd-wallet-sub">For gas on Base</p>
+          </header>
+          <div class="rd-wallet-forms">
+            <div class="rd-wallet-form">
+              <span>Send ETH</span>
+              <input type="text" id="rd-eth-send-to" placeholder="Recipient 0x…" spellcheck="false"/>
+              <div class="rd-wallet-row">
+                <input type="number" id="rd-eth-send-amt" min="0" step="any" inputmode="decimal" placeholder="Amount"/>
+                <button type="button" class="rd-action" id="rd-eth-send-btn">Send</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+      <p class="rd-wallet-foot"><button type="button" class="rd-wallet-signout" id="rd-wallet-signout">Sign out</button></p>
+    </section>
+  </div>
+</div>
+<script type="module" src="role-wallet.bundle.js"></script>
+<script src="wallet-page.js"></script>
+</body>
+</html>

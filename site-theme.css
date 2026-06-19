@@ -1,0 +1,28 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap");
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;border-radius:0}
+
+:root{
+  --bg:#ffffff; --surface:#fafafa; --s2:#f4f4f5;
+  --b:#e4e4e7; --b2:#d4d4d8; --b3:#a1a1aa;
+  --text:#18181b; --muted:#52525b; --dim:#71717a;
+  --heading:#09090b;
+  --accent:#00c896; --accent-hi:#00e5a8; --accent-lo:#00a872;
+  --on-accent:#ffffff;
+  --warn:#b45309; --danger:#be123c;
+  --row-hover:rgba(0,0,0,.03);
+  --border-faint:rgba(0,0,0,.08);
+  --mono:'Space Mono',monospace; --sans:'Inter',sans-serif;
+  --edge-2:inset 1px 0 0 var(--accent),inset 0 -1px 0 var(--accent);
+  --edge-2-fill:inset 1px 0 0 var(--accent-hi),inset 0 -1px 0 var(--accent-lo);
+}
+
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}

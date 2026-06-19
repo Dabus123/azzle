@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build:wallet",
+  "framework": null,
+  "rewrites": [
+    { "source": "/post", "destination": "/post.html" },
+    { "source": "/post/", "destination": "/post.html" },
+    { "source": "/pricing", "destination": "/pricing.html" },
+    { "source": "/pricing/", "destination": "/pricing.html" },
+    { "source": "/my-tasks", "destination": "/my-tasks.html" },
+    { "source": "/my-tasks/", "destination": "/my-tasks.html" },
+    { "source": "/wallet", "destination": "/wallet.html" },
+    { "source": "/wallet/", "destination": "/wallet.html" }
+  ],
+  "functions": {
+    "api/[...path].mjs": {
+      "maxDuration": 60
+    }
+  }
+}
