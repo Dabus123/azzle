@@ -57,7 +57,7 @@
         "You help humans hire autonomous agents on AZZLE — like talking to a concise project manager, not a developer docs bot. Plain English only. Never mention TaskRegistry, BOOTSTRAP, SDK, XMTP, smart contracts, or 'agents' as the user themselves. Ask one question at a time: (1) desired outcome, (2) deadline, (3) job budget in USDC — always ask (3) unless the user already gave an explicit USDC amount for the job." +
         POSTER_BUDGET_RULES +
         POSTER_ECONOMICS +
-        " When outcome, deadline, and user-stated budget are all collected, give a brief one-sentence acknowledgment only. NEVER send users to /post, a form, or anywhere off this chat — the app injects Deposit and Post buttons in this chat automatically. Never mention TaskRegistry, BOOTSTRAP, GitHub, SDK, or manual steps. Keep replies under 3 sentences.",
+        " When outcome, deadline, and user-stated budget are all collected, give a brief one-sentence acknowledgment only. Do NOT say buttons will appear or that the user should proceed — the app adds Deposit and Post buttons automatically in this chat. NEVER send users to /post, a form, or anywhere off this chat. Never mention TaskRegistry, BOOTSTRAP, GitHub, SDK, or manual steps. Keep replies under 3 sentences.",
     },
     worker: {
       title: "Build or run a worker agent",
@@ -154,8 +154,8 @@
         (line) =>
           line &&
           !isAffirmative(line) &&
-          !extractUserBudget([line]) &&
-          !/^(?:in\s+)?\d+\s*(?:day|days)\.?$/i.test(line)
+          !isDeadlineOnlyLine(line) &&
+          !isBudgetOnlyLine(line)
       );
     const objective = userLines[0] || draft.scope;
     const details = userLines.slice(1);
@@ -212,6 +212,39 @@
     );
   }
 
+  function extractDeadlineDays(userText) {
+    const lower = userText.toLowerCase();
+    const dayMatch = lower.match(/(?:in\s+)?(\d+)\s*(?:day|days|d)\b/);
+    if (dayMatch) return parseInt(dayMatch[1], 10);
+    const weekMatch = lower.match(/(?:in\s+)?(\d+)\s*(?:week|weeks|wk|wks)\b/);
+    if (weekMatch) return parseInt(weekMatch[1], 10) * 7;
+    if (/\b(?:tomorrow|tmrw|tomm?)\b/.test(lower)) return 1;
+    if (/\b(?:today|tonight|asap|as soon as possible)\b/.test(lower)) return 1;
+    if (/\b(?:next week|a week|one week|1 week|in a week|this week)\b/.test(lower)) return 7;
+    if (/\b(?:next month|a month|one month|1 month)\b/.test(lower)) return 30;
+    return null;
+  }
+
+  function isDeadlineOnlyLine(line) {
+    const t = line.trim();
+    if (!t) return false;
+    if (/^(?:in\s+)?\d+\s*(?:day|days|week|weeks)\.?$/i.test(t)) return true;
+    return extractDeadlineDays(t) !== null && t.length < 32;
+  }
+
+  function isBudgetOnlyLine(line) {
+    return Boolean(extractUserBudget([line.trim()]));
+  }
+
+  function posterAlreadyHasActions() {
+    return chats.poster.some((m) => m.role === "assistant" && m.actions?.length);
+  }
+
+  function formatDeadlineLabel(days) {
+    if (days === 1) return "1 day";
+    return days + " days";
+  }
+
   function extractUserBudget(userLines) {
     const feeContext =
       /\b(?:deposit|entry|access fee|posting fee|platform fee|vault|solvency|azzl|azl token)\b/i;
@@ -238,12 +271,14 @@
     const userLines = messages.filter((m) => m.role === "user").map((m) => m.content);
     const userText = userLines.join("\n");
     const budget = extractUserBudget(userLines);
-    const daysMatch = userText.match(/(?:in\s+)?(\d+)\s*(?:day|days)/i);
+    const days = extractDeadlineDays(userText);
     const scopeLine =
       userLines
         .filter(
           (line) =>
             !isAffirmative(line) &&
+            !isDeadlineOnlyLine(line) &&
+            !isBudgetOnlyLine(line) &&
             !/^(?:in\s+)?\d+\s*(?:day|days)\.?$/i.test(line.trim())
         )
         .sort((a, b) => b.length - a.length)[0] ??
@@ -252,7 +287,7 @@
     return {
       scope: scopeLine.trim(),
       budget,
-      days: daysMatch ? parseInt(daysMatch[1], 10) : null,
+      days,
     };
   }
 
@@ -297,8 +332,8 @@
         "You're set — **$" +
         d.budget +
         " USDC**, due in **" +
-        d.days +
-        " days**.\n\n" +
+        formatDeadlineLabel(d.days) +
+        "**.\n\n" +
         "**Task brief for agents:**\n" +
         briefPreview +
         "\n\n" +
@@ -599,7 +634,7 @@
       input.style.height = "auto";
       const nowReady = isPosterScopeReady(chats.poster);
 
-      if (nowReady && !isPosterFollowUpQuestion(text)) {
+      if (nowReady && !posterAlreadyHasActions() && !isPosterFollowUpQuestion(text)) {
         if (!chatOnline && location.protocol !== "file:") await checkHealth();
         if (!chatOnline) {
           chats.poster.pop();
@@ -643,6 +678,10 @@
       try {
         await callLlm(activeRole);
         $("rd-typing").hidden = true;
+        if (isPosterScopeReady(chats.poster) && !posterAlreadyHasActions()) {
+          chats.poster.pop();
+          await pushPosterReadyAssistant();
+        }
         finishPosterReadyReply();
       } catch (e) {
         $("rd-typing").hidden = true;
