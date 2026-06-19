@@ -1,3 +1,11 @@
+import {
+  fetchAzlUsdPrice,
+  azlTokensForUsd,
+  azlWeiForUsd,
+  azlCheckoutAllowed,
+  formatAzlHuman,
+} from "./lib/azl-price-lite.js";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -35,8 +43,6 @@ export default async function handler(req, res) {
     const plan = PLANS[tier];
     if (!plan?.priceUsdc) throw new Error("Invalid upgrade tier");
 
-    const { fetchAzlUsdPrice, azlTokensForUsd, azlWeiForUsd, azlCheckoutAllowed, formatAzlHuman } =
-      await import("../lib/azl-price.js");
     const { priceUsd, source, updatedAt } = await fetchAzlUsdPrice();
     const discountedUsd = plan.priceUsdc * (1 - AZL_PAY_DISCOUNT);
     const azlAmount = azlTokensForUsd(discountedUsd, priceUsd);
@@ -54,7 +60,7 @@ export default async function handler(req, res) {
       azlAmountFormatted: formatAzlHuman(azlAmount),
       azlAllowed: checkout.ok,
       azlBlockedReason: checkout.ok ? null : checkout.reason,
-      minAzlWei: azlWeiForUsd(discountedUsd, priceUsd).toString(),
+      minAzlWei: azlWeiForUsd(discountedUsd, priceUsd),
     });
   } catch (err) {
     sendJson(res, 400, { error: err?.message ?? String(err) });

@@ -4,7 +4,7 @@
 import { createPublicClient, http, parseEventLogs, formatUnits } from "viem";
 import { base } from "viem/chains";
 import { randomUUID } from "node:crypto";
-import { fetchAzlUsdPrice, azlTokensForUsd, azlWeiForUsd, azlCheckoutAllowed, formatAzlHuman } from "./azl-price.js";
+import { fetchAzlUsdPrice, azlTokensForUsd, azlWeiForUsd, azlCheckoutAllowed, formatAzlHuman } from "./azl-price-lite.js";
 import {
   loadPostingAccounts,
   savePostingAccounts,
