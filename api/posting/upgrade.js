@@ -1,6 +1,6 @@
-import { readJsonBody } from "./lib/vercel-http.js";
-import { CORS, sendJson } from "./lib/respond.js";
-import { loadManifest } from "./lib/manifest.js";
+import { readJsonBody } from "../lib/vercel-http.js";
+import { CORS, sendJson } from "../lib/respond.js";
+import { loadManifest } from "../lib/manifest.js";
 
 export default async function handler(req, res) {
   try {
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       process.env.AZZLE_BILLING_WALLET || MANIFEST?.feeRecipient || "";
     if (!billingWallet) throw new Error("Billing wallet not configured on server.");
     if (!MANIFEST?.usdc) throw new Error("USDC address missing from manifest.");
-    const { applyUpgrade } = await import("./lib/posting-limits.js");
+    const { applyUpgrade } = await import("../lib/posting-limits.js");
     const quota = await applyUpgrade({
       address: body.address,
       tier: body.tier,

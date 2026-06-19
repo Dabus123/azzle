@@ -1,5 +1,5 @@
-import { requestUrl } from "./lib/vercel-http.js";
-import { CORS, sendJson } from "./lib/respond.js";
+import { requestUrl } from "../lib/vercel-http.js";
+import { CORS, sendJson } from "../lib/respond.js";
 
 export default async function handler(req, res) {
   try {
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       return;
     }
     const url = requestUrl(req, "/api/posting/quote");
-    const { createUpgradeQuote } = await import("./lib/posting-limits.js");
+    const { createUpgradeQuote } = await import("../lib/posting-limits.js");
     const payWith = url.searchParams.get("payWith") ?? "azl";
     if (payWith !== "azl") throw new Error("Only payWith=azl is supported for quotes.");
     const quote = await createUpgradeQuote({
