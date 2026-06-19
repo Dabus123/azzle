@@ -25,18 +25,14 @@ export async function readJsonBody(req) {
 }
 
 export function sendApiResult(res, result) {
-  const headers = result.headers ?? { "Content-Type": "application/json" };
-  const body = result.json == null ? "" : JSON.stringify(result.json);
-  if (typeof res.status === "function") {
-    if (result.json == null) {
-      res.status(result.status).set(headers).end();
-      return;
-    }
-    res.status(result.status).set(headers).json(result.json);
+  const headers = result.headers ?? { "Content-Type": "application/json", ...CORS };
+  if (result.json == null) {
+    res.writeHead(result.status, headers);
+    res.end();
     return;
   }
   res.writeHead(result.status, headers);
-  res.end(body);
+  res.end(JSON.stringify(result.json));
 }
 
 export function requestUrl(req, fallbackPath = "/") {

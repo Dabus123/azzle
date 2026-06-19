@@ -1,12 +1,11 @@
 import { handleSiteApi } from "../../scripts/site-api.mjs";
-import { CORS, readJsonBody, requestUrl, sendApiResult } from "../../scripts/vercel-http.mjs";
-
-export const config = { maxDuration: 60 };
+import { readJsonBody, requestUrl } from "../../scripts/vercel-http.mjs";
+import { sendJson } from "../lib/respond.js";
 
 function postingPath(req) {
   const parts = req.query.path;
   const sub = parts ? (Array.isArray(parts) ? parts.join("/") : parts) : "";
-  return "/api/posting/" + sub.replace(/^\/+/, "");
+  return "/api/posting/" + String(sub).replace(/^\/+/, "");
 }
 
 export default async function handler(req, res) {
@@ -18,11 +17,7 @@ export default async function handler(req, res) {
       try {
         body = await readJsonBody(req);
       } catch {
-        sendApiResult(res, {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-          json: { error: "Invalid JSON body" },
-        });
+        sendJson(res, 400, { error: "Invalid JSON body" });
         return;
       }
     }
@@ -32,12 +27,13 @@ export default async function handler(req, res) {
       searchParams: url.searchParams,
       body,
     });
-    sendApiResult(res, result);
+    if (result.status === 204) {
+      res.writeHead(204, result.headers ?? {});
+      res.end();
+      return;
+    }
+    sendJson(res, result.status, result.json);
   } catch (err) {
-    sendApiResult(res, {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-      json: { error: err?.message ?? String(err) },
-    });
+    sendJson(res, 500, { error: err?.message ?? String(err) });
   }
 }

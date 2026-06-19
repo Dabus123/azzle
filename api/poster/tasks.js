@@ -1,7 +1,6 @@
 import { handleSiteApi } from "../../scripts/site-api.mjs";
-import { readJsonBody, requestUrl, sendApiResult } from "../../scripts/vercel-http.mjs";
-
-export const config = { maxDuration: 30 };
+import { readJsonBody, requestUrl } from "../../scripts/vercel-http.mjs";
+import { sendJson } from "../lib/respond.js";
 
 export default async function handler(req, res) {
   try {
@@ -11,11 +10,7 @@ export default async function handler(req, res) {
       try {
         body = await readJsonBody(req);
       } catch {
-        sendApiResult(res, {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-          json: { error: "Invalid JSON body" },
-        });
+        sendJson(res, 400, { error: "Invalid JSON body" });
         return;
       }
     }
@@ -25,12 +20,8 @@ export default async function handler(req, res) {
       searchParams: url.searchParams,
       body,
     });
-    sendApiResult(res, result);
+    sendJson(res, result.status, result.json);
   } catch (err) {
-    sendApiResult(res, {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-      json: { error: err?.message ?? String(err) },
-    });
+    sendJson(res, 500, { error: err?.message ?? String(err) });
   }
 }
