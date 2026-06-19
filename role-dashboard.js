@@ -272,6 +272,9 @@
     if (status === 404) {
       return "Chat API not found — confirm Vercel deploy includes /api and env vars";
     }
+    if (status === 405) {
+      return "Chat API route error — redeploy latest build";
+    }
     if (status === 503) {
       return "Add BANKR_API_KEY in Vercel → Settings → Environment Variables";
     }

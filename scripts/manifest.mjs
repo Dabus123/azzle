@@ -45,7 +45,7 @@ export function baseCfg() {
   const MANIFEST = loadManifest();
   return {
     BANKR_BASE: (process.env.OPENAI_BASE_URL ?? "https://llm.bankr.bot/v1").replace(/\/$/, ""),
-    BANKR_KEY: process.env.BANKR_API_KEY ?? "",
+    BANKR_KEY: process.env.BANKR_API_KEY ?? process.env.BANKR_KEY ?? "",
     MODEL: process.env.AZZLE_LLM_MODEL ?? "deepseek-v4-flash",
     PRIVY_APP_ID: process.env.PRIVY_APP_ID ?? "",
     PRIVY_CLIENT_ID: process.env.PRIVY_CLIENT_ID ?? "",

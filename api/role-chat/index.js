@@ -1,5 +1,5 @@
-import { handleSiteApi } from "../scripts/site-api.mjs";
-import { CORS, readJsonBody, requestUrl, sendApiResult } from "../scripts/vercel-http.mjs";
+import { handleSiteApi } from "../../scripts/site-api.mjs";
+import { CORS, readJsonBody, requestUrl, sendApiResult } from "../../scripts/vercel-http.mjs";
 
 export const config = { maxDuration: 60 };
 
