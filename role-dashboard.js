@@ -40,7 +40,7 @@
     " Economics: Base gas ~$0.0001/tx — never cite network fees as a reason to reject a budget. Posting costs $5 USDC + 1,000 AZL (once per listing) plus a reusable $20 USDC deposit — not the job budget. Accept whatever task budget the user states; never ask them to raise it.";
 
   const POSTER_BUDGET_RULES =
-    " Budget rules: NEVER invent, assume, or set a job budget for the user. The escrow budget must be a USDC amount the user explicitly chooses — if they have not given a clear number, ask for it (one question at a time). You MAY offer an honest ballpark range (e.g. 'similar weekly reports often run $40–$120') but always label it as a rough market estimate, not their budget. Do not treat your estimate as decided, do not skip the budget question, and do not say you're ready until the user states their own USDC amount.";
+    " Budget rules: NEVER invent, assume, or set a job budget for the user. The escrow budget must be a USDC amount the user explicitly chooses — if they have not given a clear number, ask for it (one question at a time). You MAY offer an honest ballpark range (e.g. 'similar weekly reports often run $40–$120') but always label it as a rough market estimate, not their budget. Do not treat your estimate as decided, do not skip the budget question, and do not say you're ready until the user states their own USDC amount. FORBIDDEN phrases: 'buttons will appear', 'shortly', 'the app will add', 'proceed to post' — the app handles buttons silently; never mention them.";
 
   const ROLES = {
     poster: {
@@ -225,7 +225,7 @@
   }
 
   function isAffirmative(text) {
-    return /^(ye|yes|yeah|yep|yup|sure|ok|okay|ready|proceed|go ahead|let'?s go|do it|sounds good)$/i.test(
+    return /^(ye|yes|yeah|yep|yup|sure|ok|okay|k|fine|cool|great|thanks|thank you|ready|proceed|go ahead|let'?s go|do it|sounds good|that'?s all|all good)$/i.test(
       text.trim()
     );
   }
@@ -269,9 +269,13 @@
     const budgetPatterns = [
       /\b(?:my\s+)?budget\s*(?:is|:|=)?\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?\b/i,
       /\b(?:i(?:'ll|'d| will| would)?\s*(?:pay|offer|fund|put up|spend|allocate))\s+(?:up to|around|about|exactly|at least)?\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?\b/i,
+      /\b(?:i\s+)?(?:have|got|only|just)\s+\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?\b/i,
+      /\b(?:about|around|upto|up to|at most|max|maximum)\s+\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?\b/i,
+      /\b(?:it'?s|that's|thats)\s+\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?\b/i,
       /\b(\d+(?:\.\d+)?)\s*(?:usdc|usd)\s+(?:for the job|for this|total|escrow|budget)\b/i,
+      /\b(\d+(?:\.\d+)?)\s*(?:usdc|usd)\b/i,
       /^\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?\s*\.?\s*$/i,
-      /\$\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)\b/i,
+      /\$\s*(\d+(?:\.\d+)?)\b/i,
     ];
 
     for (const line of userLines) {
@@ -653,7 +657,7 @@
       input.style.height = "auto";
       const nowReady = isPosterScopeReady(chats.poster);
 
-      if (nowReady && !posterAlreadyHasActions() && !isPosterFollowUpQuestion(text)) {
+      if (nowReady && !posterAlreadyHasActions() && (!isPosterFollowUpQuestion(text) || isAffirmative(text))) {
         if (!chatOnline && location.protocol !== "file:") await checkHealth();
         if (!chatOnline) {
           chats.poster.pop();
