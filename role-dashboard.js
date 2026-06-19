@@ -39,6 +39,9 @@
   const POSTER_ECONOMICS =
     " Economics: Base gas ~$0.0001/tx — never cite network fees as a reason to reject a budget. Posting costs $5 USDC + 1,000 AZL (once per listing) plus a reusable $20 USDC deposit — not the job budget. Accept whatever task budget the user states; never ask them to raise it.";
 
+  const POSTER_BUDGET_RULES =
+    " Budget rules: NEVER invent, assume, or set a job budget for the user. The escrow budget must be a USDC amount the user explicitly chooses — if they have not given a clear number, ask for it (one question at a time). You MAY offer an honest ballpark range (e.g. 'similar weekly reports often run $40–$120') but always label it as a rough market estimate, not their budget. Do not treat your estimate as decided, do not skip the budget question, and do not say you're ready until the user states their own USDC amount.";
+
   const ROLES = {
     poster: {
       title: "What do you need done?",
@@ -51,9 +54,10 @@
         "Help me hire an agent to build a simple API",
       ],
       system:
-        "You help humans hire autonomous agents on AZZLE — like talking to a concise project manager, not a developer docs bot. Plain English only. Never mention TaskRegistry, BOOTSTRAP, SDK, XMTP, smart contracts, or 'agents' as the user themselves. Ask one question at a time: (1) desired outcome, (2) deadline, (3) job budget in USDC." +
+        "You help humans hire autonomous agents on AZZLE — like talking to a concise project manager, not a developer docs bot. Plain English only. Never mention TaskRegistry, BOOTSTRAP, SDK, XMTP, smart contracts, or 'agents' as the user themselves. Ask one question at a time: (1) desired outcome, (2) deadline, (3) job budget in USDC — always ask (3) unless the user already gave an explicit USDC amount for the job." +
+        POSTER_BUDGET_RULES +
         POSTER_ECONOMICS +
-        " When you have outcome + deadline + budget, confirm they're ready — the app will show deposit/post buttons in your reply. Never mention TaskRegistry, BOOTSTRAP, GitHub, SDK, or manual steps. Keep replies under 3 sentences.",
+        " When you have outcome + deadline + a user-stated job budget, confirm they're ready — the app will show deposit/post buttons in your reply. Never mention TaskRegistry, BOOTSTRAP, GitHub, SDK, or manual steps. Keep replies under 3 sentences.",
     },
     worker: {
       title: "Build or run a worker agent",
@@ -137,13 +141,32 @@
     );
   }
 
+  function extractUserBudget(userLines) {
+    const feeContext =
+      /\b(?:deposit|entry|access fee|posting fee|platform fee|vault|solvency|azzl|azl token)\b/i;
+    const budgetPatterns = [
+      /\b(?:my\s+)?budget\s*(?:is|:|=)?\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?\b/i,
+      /\b(?:i(?:'ll|'d| will| would)?\s*(?:pay|offer|fund|put up|spend|allocate))\s+(?:up to|around|about|exactly|at least)?\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?\b/i,
+      /\b(\d+(?:\.\d+)?)\s*(?:usdc|usd)\s+(?:for the job|for this|total|escrow|budget)\b/i,
+      /^\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?\s*\.?\s*$/i,
+      /\$\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)\b/i,
+    ];
+
+    for (const line of userLines) {
+      const trimmed = line.trim();
+      if (!trimmed || feeContext.test(trimmed)) continue;
+      for (const pattern of budgetPatterns) {
+        const match = trimmed.match(pattern);
+        if (match?.[1]) return match[1];
+      }
+    }
+    return null;
+  }
+
   function extractTaskDraft(messages) {
     const userLines = messages.filter((m) => m.role === "user").map((m) => m.content);
     const userText = userLines.join("\n");
-    const budgetMatch = userText.match(
-      /(?:budget|pay|offer|use)?\s*\$?\s*(\d+(?:\.\d+)?)\s*(?:usdc|usd)?|\b(\d+(?:\.\d+)?)\s*\$/i
-    );
-    const budget = budgetMatch ? budgetMatch[1] || budgetMatch[2] : null;
+    const budget = extractUserBudget(userLines);
     const daysMatch = userText.match(/(?:in\s+)?(\d+)\s*(?:day|days)/i);
     const scopeLine =
       userLines
@@ -333,6 +356,18 @@
 
   async function callLlm(role) {
     let system = ROLES[role].system;
+    if (role === "poster") {
+      const draft = extractTaskDraft(chats.poster);
+      if (!draft.scope || draft.scope.length < 12) {
+        system +=
+          " Outcome/scope is not clear yet — ask what deliverable they want before deadline or budget.";
+      } else if (!draft.days) {
+        system += " Scope is clear; ask for deadline next — do not ask about budget yet.";
+      } else if (!draft.budget) {
+        system +=
+          " Scope and deadline are clear, but the user has NOT stated a job budget in USDC yet — ask for their budget now. You may share a rough market estimate if helpful, but do not assign or assume a number.";
+      }
+    }
     if (walletAddress && role === "poster") {
       system += " The user is signed in as " + walletAddress + " on Base.";
     } else if (walletAddress) {
