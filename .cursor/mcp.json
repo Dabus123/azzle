@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "azzle": {
+      "command": "node",
+      "args": ["${workspaceFolder}/agents/mcp/server.mjs"],
+      "cwd": "${workspaceFolder}/agents"
+    },
+    "base-mcp": {
+      "url": "https://mcp.base.org"
+    }
+  }
+}

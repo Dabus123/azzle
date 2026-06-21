@@ -65,7 +65,7 @@ npm publish --access public
 | Market UI | [`../launch-skills/market.html`](../launch-skills/market.html) |
 | Leaderboard | [`../launch-skills/leaderboard.html`](../launch-skills/leaderboard.html) |
 | HTTP gateway | `npm run gateway` → `GET /v1/market/open` · http://localhost:4020/market.html |
-| MCP server | `npm run mcp` · [`DISTRIBUTION.md`](../launch-skills/DISTRIBUTION.md) |
+| MCP server | `npm run mcp` · Base MCP plugin: `npm run mcp:prepare` · [`DISTRIBUTION.md`](../launch-skills/DISTRIBUTION.md) |
 | Framework tools | `import { AZZLE_TOOLS } from "@azzle/agents"` |
 
 ## SDK

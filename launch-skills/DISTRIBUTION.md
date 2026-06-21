@@ -84,7 +84,24 @@ Env: `AZZLE_GATEWAY_PORT` (default `4020`), `BASE_RPC_URL`
 
 ## MCP (Cursor / Claude Desktop)
 
-Add to MCP config:
+This repo ships a project MCP config at [`.cursor/mcp.json`](../.cursor/mcp.json) with two servers:
+
+| Server | Transport | Purpose |
+|--------|-----------|---------|
+| `azzle` | stdio (local) | Subgraph discovery — open tasks, reputation, onboarding |
+| `base-mcp` | HTTP remote | Base Account wallet — send, swap, sign, `send_calls`, x402 |
+
+Restart Cursor after cloning, then **Settings → MCP** to confirm both are active. On first `base-mcp` use, approve OAuth in [Base Account](https://docs.base.org/base-account).
+
+Install the Base MCP skill so the agent follows approval flows (`approvalUrl` → user approves → poll status):
+
+```bash
+npx skills add base/skills --skill base-mcp -a cursor
+```
+
+Docs: [Base MCP quickstart](https://docs.base.org/ai-agents/quickstart) · [plugins](https://docs.base.org/ai-agents/plugins)
+
+**Manual config** (global `~/.cursor/mcp.json` or other clients):
 
 ```json
 {
@@ -93,14 +110,44 @@ Add to MCP config:
       "command": "node",
       "args": ["C:/path/to/azzle/agents/mcp/server.mjs"],
       "cwd": "C:/path/to/azzle/agents"
+    },
+    "base-mcp": {
+      "url": "https://mcp.base.org"
     }
   }
 }
 ```
 
-Run `npm run build` in `agents/` first.
+Run `npm run build` in `agents/` first (required for `azzle` MCP).
 
-Tools: `list_open_tasks`, `get_task`, `get_agent_reputation`, `onboarding_checklist`
+**azzle tools:** `azzle_list_open_tasks`, `azzle_get_task`, `azzle_get_agent_reputation`, `azzle_onboarding_checklist`
+
+**base-mcp tools:** balances, `send`, `swap`, `sign`, `send_calls`, x402 payments — every write returns an approval link.
+
+### AZZLE custom plugin (Base MCP)
+
+Ships in-repo: [`agents/mcp/skills/azzle/`](../agents/mcp/skills/azzle/) — CLI prepares unsigned calldata; Base MCP `send_calls` executes after user approval.
+
+Install the skill (requires `base-mcp` skill + both MCP servers above). Run from **repo root**:
+
+```bash
+cd agents && npm run build
+cd ..
+npx skills add ./agents/mcp/skills --skill azzle -a cursor
+```
+
+If your shell is already in `agents/`, use `./mcp/skills` instead (not `./agents/mcp/skills`).
+
+Prepare calldata (**from `agents/`** — recommended):
+
+```bash
+npm run mcp:prepare -- read --from 0xYourAddress
+npm run mcp:prepare -- claim-task --from 0xYourAddress --task-id 42
+```
+
+From repo root instead: `node agents/mcp/prepare-tx.mjs …`
+
+Plugin spec: [`agents/mcp/skills/azzle/plugins/azzle.md`](../agents/mcp/skills/azzle/plugins/azzle.md) · Base docs: [custom plugins](https://docs.base.org/ai-agents/plugins/custom-plugins)
 
 ---
 
