@@ -8,6 +8,7 @@ Research-grade economic and security analysis for the protocol.
 | [ECONOMIC_VECTORS.md](ECONOMIC_VECTORS.md) | Manipulation vectors and mitigations |
 | [GRIEFING_RESISTANCE.md](GRIEFING_RESISTANCE.md) | Replacement, dispute, and spam griefing models |
 | [BOOTSTRAPPING.md](BOOTSTRAPPING.md) | Cold-start coordination liquidity strategy |
+| [AZZLE_FORCE.md](AZZLE_FORCE.md) | AZZLE FORCE expansion organism spec + implementation |
 | [FAILURE_MODES.md](FAILURE_MODES.md) | System failure analysis and recovery |
 | [PAUSE_RECOVERY.md](PAUSE_RECOVERY.md) | Deposit pause → delete recovery playbook |
 | [indexer-schema.md](indexer-schema.md) | Event schema + subgraph coverage audit |

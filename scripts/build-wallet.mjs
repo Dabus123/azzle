@@ -18,4 +18,14 @@ await esbuild.build({
   logLevel: "info",
 });
 
+await esbuild.build({
+  entryPoints: [join(root, "src", "wallet-qr.mjs")],
+  bundle: true,
+  format: "iife",
+  outfile: join(root, "wallet-qr.js"),
+  target: ["es2022", "chrome109", "firefox109", "safari16"],
+  logLevel: "info",
+});
+
 console.log("[build-wallet] role-wallet.bundle.js");
+console.log("[build-wallet] wallet-qr.js");

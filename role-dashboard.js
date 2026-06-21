@@ -772,6 +772,68 @@
     renderMessages();
   }
 
+  const GET_STARTED_SKILLS = {
+    bankr: {
+      cmd: "install the bankr skill from https://github.com/BankrBot/skills/tree/main/bankr",
+      alt: "",
+    },
+    azzle: {
+      cmd: "npx @azzle/agents@latest init my-agent",
+      alt: 'Agent skill: install the azzle worker skill from https://github.com/Dabus123/azzle/tree/main/agents/scaffolding/aeon/skills/azzle-worker',
+    },
+  };
+
+  function initGetStarted() {
+    document.querySelectorAll("[data-gs]").forEach((root) => {
+      const textEl = root.querySelector("[data-gs-text]");
+      const altEl = root.querySelector("[data-gs-alt]");
+      const copyBtn = root.querySelector("[data-gs-copy]");
+      if (!textEl) return;
+
+      let active = "bankr";
+
+      function applySkill(id) {
+        active = id;
+        const skill = GET_STARTED_SKILLS[id];
+        if (!skill) return;
+        textEl.textContent = skill.cmd;
+        root.querySelectorAll("[data-gs-skill]").forEach((btn) => {
+          const on = btn.dataset.gsSkill === id;
+          btn.classList.toggle("on", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        if (altEl) {
+          if (skill.alt) {
+            altEl.hidden = false;
+            altEl.innerHTML = "Or: <code>" + skill.alt + "</code>";
+          } else {
+            altEl.hidden = true;
+            altEl.textContent = "";
+          }
+        }
+      }
+
+      root.querySelectorAll("[data-gs-skill]").forEach((btn) => {
+        btn.addEventListener("click", () => applySkill(btn.dataset.gsSkill));
+      });
+
+      copyBtn?.addEventListener("click", () => {
+        const cmd = textEl.textContent || "";
+        navigator.clipboard.writeText(cmd).then(() => {
+          copyBtn.classList.add("ok");
+          const prev = copyBtn.textContent;
+          copyBtn.textContent = "Copied";
+          setTimeout(() => {
+            copyBtn.classList.remove("ok");
+            copyBtn.textContent = prev;
+          }, 1400);
+        });
+      });
+
+      applySkill(active);
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".rd-role").forEach((btn) => {
       btn.addEventListener("click", () => setRole(btn.dataset.rd));
@@ -791,6 +853,7 @@
     });
     setRole("poster");
     checkHealth();
+    initGetStarted();
     $("rd-input").focus();
   });
 })();

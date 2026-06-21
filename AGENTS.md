@@ -99,6 +99,8 @@ Default subgraph: `https://api.studio.thegraph.com/query/1754651/azzle-protocol/
 
 **Distribution (Tier 1 + 2):** [`launch-skills/DISTRIBUTION.md`](launch-skills/DISTRIBUTION.md) · market UI via `npm run gateway` → http://localhost:4020/market.html
 
+**Expansion organism (AZZLE FORCE):** [`azzle-force/README.md`](azzle-force/README.md) · spec [`docs/AZZLE_FORCE.md`](docs/AZZLE_FORCE.md)
+
 ## Rules for agents editing this repo
 
 - **Do not modify** `contracts/src/*.sol` unless explicitly asked.

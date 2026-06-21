@@ -128,6 +128,47 @@
       });
     });
 
+    function closeQrModal() {
+      const modal = $("rd-wallet-qr-modal");
+      if (modal) modal.hidden = true;
+    }
+
+    async function openQrModal() {
+      if (!walletAddress) return;
+      const modal = $("rd-wallet-qr-modal");
+      const mount = $("rd-wallet-qr-canvas");
+      const addrEl = $("rd-wallet-qr-address");
+      if (!modal || !mount || !addrEl) return;
+
+      mount.innerHTML = "";
+      addrEl.textContent = walletAddress;
+      modal.hidden = false;
+
+      const canvas = document.createElement("canvas");
+      canvas.setAttribute("role", "img");
+      canvas.setAttribute("aria-label", "Wallet address QR code");
+      mount.appendChild(canvas);
+
+      try {
+        if (typeof window.azzleRenderQr !== "function") {
+          throw new Error("QR helper not loaded");
+        }
+        await window.azzleRenderQr(canvas, walletAddress);
+      } catch (e) {
+        mount.innerHTML = "";
+        mount.textContent = "Could not generate QR code.";
+      }
+    }
+
+    $("rd-wallet-qr-btn")?.addEventListener("click", () => {
+      openQrModal();
+    });
+    $("rd-wallet-qr-close")?.addEventListener("click", closeQrModal);
+    $("rd-wallet-qr-backdrop")?.addEventListener("click", closeQrModal);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !$("rd-wallet-qr-modal")?.hidden) closeQrModal();
+    });
+
     $("rd-usdc-deposit-btn")?.addEventListener("click", () => {
       const amt = parseFloat($("rd-usdc-deposit-amt")?.value ?? "0");
       runAction((p, onProgress) => p.depositToVault(amt, onProgress));

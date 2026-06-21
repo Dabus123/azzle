@@ -1,0 +1,39 @@
+{
+  "azzleProbabilityThreshold": 0.5,
+  "minEntitiesBeforeOutreach": 50,
+  "minRankedProspectsBeforeOutreach": 10,
+  "followUpDays": [3, 7, 14],
+  "hunterBatchSizePerHour": 50,
+  "waves": {
+    "1": [
+      "repository-hunter",
+      "agent-hunter",
+      "builder-hunter",
+      "contact-discovery",
+      "relationship-mapper"
+    ],
+    "2": [
+      "startup-hunter",
+      "community-hunter",
+      "opportunity-hunter",
+      "qualification"
+    ],
+    "3": [
+      "personalizer",
+      "messenger",
+      "follow-up",
+      "ambassador"
+    ],
+    "4": [
+      "onboarding",
+      "ecosystem-matchmaker",
+      "ecosystem-analyst",
+      "trend-detector",
+      "competitive-intelligence"
+    ],
+    "5": [
+      "chief-expansion",
+      "swarm-creator"
+    ]
+  }
+}

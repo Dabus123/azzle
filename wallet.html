@@ -15,6 +15,7 @@
       <ul class="azzle-nav-app">
         <li><a href="/">Chat</a></li>
         <li><a href="/post">Post</a></li>
+        <li><a href="/market"><span class="azzle-nav-label-long">Open market</span><span class="azzle-nav-label-short">Market</span></a></li>
         <li><a href="/my-tasks"><span class="azzle-nav-label-long">My tasks</span><span class="azzle-nav-label-short">Tasks</span></a></li>
         <li><a href="/wallet" class="azzle-nav-on">Wallet</a></li>
         <li><a href="/pricing">Pricing</a></li>
@@ -36,6 +37,14 @@
       <div class="rd-wallet-receive" id="rd-wallet-receive" hidden>
         <span class="rd-wallet-receive-label">Receive on Base</span>
         <code class="rd-wallet-address" id="rd-wallet-address"></code>
+        <button type="button" class="rd-wallet-qr-btn" id="rd-wallet-qr-btn" aria-label="Show QR code" title="QR code">
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/>
+          </svg>
+        </button>
         <button type="button" class="rd-wallet-copy" id="rd-wallet-copy">Copy address</button>
       </div>
 
@@ -120,7 +129,22 @@
     </section>
   </div>
 </div>
+
+<div class="rd-wallet-qr-modal" id="rd-wallet-qr-modal" hidden role="dialog" aria-modal="true" aria-labelledby="rd-wallet-qr-title">
+  <button type="button" class="rd-wallet-qr-backdrop" id="rd-wallet-qr-backdrop" aria-label="Close"></button>
+  <div class="rd-wallet-qr-panel">
+    <div class="rd-wallet-qr-head">
+      <h5 id="rd-wallet-qr-title">Receive on Base</h5>
+      <button type="button" class="rd-wallet-qr-close" id="rd-wallet-qr-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="rd-wallet-qr-canvas" id="rd-wallet-qr-canvas"></div>
+    <code class="rd-wallet-qr-address" id="rd-wallet-qr-address"></code>
+    <p class="rd-wallet-qr-hint">Scan to send USDC, AZL, or ETH on Base</p>
+  </div>
+</div>
+
 <script type="module" src="role-wallet.bundle.js"></script>
+<script src="wallet-qr.js"></script>
 <script src="wallet-page.js"></script>
 </body>
 </html>

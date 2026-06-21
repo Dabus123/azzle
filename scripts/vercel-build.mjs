@@ -17,12 +17,14 @@ const STATIC = [
   "index.html",
   "post.html",
   "pricing.html",
+  "market.html",
   "my-tasks.html",
   "wallet.html",
   "role-dashboard.css",
   "role-dashboard.js",
   "site-theme.css",
   "post-checkout.js",
+  "market.js",
   "my-tasks.js",
   "wallet-page.js",
   "azzletype.png",
@@ -64,6 +66,15 @@ await esbuild.build({
   logLevel: "warning",
 });
 
+await esbuild.build({
+  entryPoints: [join(root, "src", "wallet-qr.mjs")],
+  bundle: true,
+  format: "iife",
+  outfile: join(stage, "wallet-qr.js"),
+  target: ["es2022", "chrome109", "firefox109", "safari16"],
+  logLevel: "warning",
+});
+
 const privyAppId = process.env.PRIVY_APP_ID ?? "";
 const privyClientId = process.env.PRIVY_CLIENT_ID ?? "";
 if (privyAppId) {
@@ -80,4 +91,4 @@ if (privyAppId) {
 await rm(out, { recursive: true, force: true });
 await rename(stage, out);
 
-console.log("[vercel-build] public/ ready (" + STATIC.length + " static files + wallet bundle)");
+console.log("[vercel-build] public/ ready (" + STATIC.length + " static files + wallet bundles)");

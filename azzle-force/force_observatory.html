@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AZZLE FORCE — Observatory</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#030308;--cyan:#00f0ff;--lime:#b8ff57;--orange:#e8640a;
+  --red:#ff2d6a;--gray:#6a6a78;--panel:rgba(8,10,18,.88);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff;
+  font-family:ui-monospace,'Cascadia Code','Segoe UI Mono',monospace}
+#stage-wrap{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(0,240,255,.04), transparent 70%),
+    linear-gradient(180deg, #050510 0%, var(--bg) 100%);
+}
+#stage{
+  display:block;width:100%;height:100%;
+  cursor:grab;touch-action:none;
+}
+#stage.dragging{cursor:grabbing}
+
+#hud{
+  position:fixed;inset:0;z-index:10;pointer-events:none;
+  display:grid;grid-template-columns:min(280px,28vw) 1fr min(240px,26vw);
+  grid-template-rows:auto 1fr auto;
+  padding:14px;gap:10px;
+}
+.panel{
+  pointer-events:auto;background:var(--panel);
+  border:1px solid #1e2438;border-radius:6px;padding:12px 14px;
+}
+.panel h2{
+  font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:8px;
+}
+.stat-row{display:flex;justify-content:space-between;font-size:10px;line-height:1.75;color:var(--gray)}
+.stat-row b{color:#fff;font-weight:600}
+#title-bar{grid-column:1/-1}
+#title-bar h1{font-size:clamp(.9rem,2.2vw,1.25rem);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+#title-bar .sub{font-size:9px;color:var(--gray);margin-top:3px}
+#live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--lime);
+  margin-right:7px;animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+#wave-panel{grid-row:2;align-self:start}
+.wave-btn{
+  display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:5px;
+  background:#0c0e16;border:1px solid #1e2438;border-radius:4px;color:var(--gray);
+  font:inherit;font-size:10px;cursor:pointer;
+}
+.wave-btn:hover{border-color:var(--cyan);color:#fff}
+.wave-btn.active{border-color:var(--cyan);color:var(--cyan);background:#0a1218}
+.wave-btn .num{font-weight:700;color:#fff;margin-right:6px}
+.agent-chip{
+  display:inline-block;font-size:8px;padding:2px 5px;margin:2px 1px 0 0;
+  background:#12141c;border:1px solid #252838;border-radius:2px;color:var(--lime);
+}
+
+#stats-panel{grid-row:2;justify-self:end;align-self:start}
+.type-bar{margin-bottom:5px}
+.type-bar .lbl{font-size:8px;color:var(--gray);margin-bottom:2px}
+.type-bar .bar{height:3px;background:#1a1d28;border-radius:2px;overflow:hidden}
+.type-bar .fill{height:100%;border-radius:2px;transition:width .4s}
+
+#log-panel{grid-column:1/-1;font-size:9px;color:var(--gray);max-height:72px;overflow-y:auto}
+#log-panel div{padding:2px 0;border-bottom:1px solid #141820}
+#log-panel .ts{color:var(--cyan);margin-right:6px}
+
+#tooltip{
+  position:fixed;z-index:20;pointer-events:none;
+  background:var(--panel);border:1px solid var(--cyan);
+  padding:6px 10px;font-size:10px;border-radius:4px;
+  opacity:0;transition:opacity .12s;max-width:260px;
+}
+#tooltip.visible{opacity:1}
+
+#hint{
+  position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
+  z-index:5;font-size:9px;color:var(--gray);pointer-events:none;text-align:center;
+}
+#brand-logo{
+  position:fixed;top:14px;right:14px;z-index:30;
+  height:clamp(28px,4vw,40px);width:auto;pointer-events:none;opacity:.9;
+}
+</style>
+</head>
+<body>
+<div id="stage-wrap"><canvas id="stage"></canvas></div>
+<img id="brand-logo" src="/azzlelogo.png" alt="AZZLE" width="120" height="48"/>
+<div id="tooltip"></div>
+<div id="hint">Drag to orbit · Scroll to zoom · Hover pixels for details</div>
+
+<div id="hud">
+  <div id="title-bar" class="panel">
+    <h1><span id="live-dot"></span>AZZLE FORCE OBSERVATORY</h1>
+    <div class="sub" id="sub-line">Pixel galaxy · orbit view · polls every 5s</div>
+  </div>
+
+  <div id="wave-panel" class="panel">
+    <h2>WAVES</h2>
+    <div id="wave-buttons"></div>
+  </div>
+
+  <div id="stats-panel" class="panel">
+    <h2>GRAPH</h2>
+    <div class="stat-row"><span>Total</span><b id="s-total">0</b></div>
+    <div class="stat-row"><span>Shown</span><b id="s-shown">0</b></div>
+    <div class="stat-row"><span>Edges</span><b id="s-edges">0</b></div>
+    <div class="stat-row"><span>Scored</span><b id="s-scored">0</b></div>
+    <div class="stat-row"><span>Outreach</span><b id="s-outreach">0</b></div>
+    <div style="margin-top:10px" id="type-bars"></div>
+  </div>
+
+  <div id="log-panel" class="panel"></div>
+</div>
+
+<script>
+const TYPE_COLORS = {
+  repository: '#00f0ff',
+  agent: '#b8ff57',
+  person: '#e8640a',
+  company: '#ff2d6a',
+  community: '#a78bfa',
+  task: '#fbbf24',
+  default: '#4a5568',
+};
+
+const WAVE_META = {
+  1: { label: 'Discovery', color: '#00f0ff', types: ['repository', 'agent', 'person'] },
+  2: { label: 'Scoring', color: '#b8ff57', types: ['company', 'community', 'task'] },
+  3: { label: 'Outreach', color: '#ff2d6a', types: ['person', 'company'] },
+  4: { label: 'Connect', color: '#a78bfa', types: ['person', 'agent', 'community'] },
+  5: { label: 'Expansion', color: '#e8640a', types: ['agent', 'repository'] },
+};
+
+const canvas = document.getElementById('stage');
+const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+ctx.imageSmoothingEnabled = false;
+const tooltip = document.getElementById('tooltip');
+
+let wavesConfig = {};
+let activeWave = 1;
+let lastRev = 0;
+let lastTotal = 0;
+let lastGraph = null;
+
+/** @type {Array<{id:string,name:string,type:string,score:number,x:number,y:number,z:number,sx:number,sy:number,depth:number,px:number,highlight:boolean}>} */
+let nodes = [];
+/** @type {Array<[number,number,number,number]>} */
+let edges = [];
+let hoverIdx = -1;
+let stars = [];
+/** @type {number[][]} */
+let logoVoxels = [];
+
+let orbitYaw = 0.55;
+let orbitPitch = 0.42;
+let zoom = 1;
+let dragging = false;
+let dragX = 0;
+let dragY = 0;
+let yawStart = 0;
+let pitchStart = 0;
+let redrawScheduled = false;
+let animating = false;
+
+function hashToAngle(id, salt = 0) {
+  let h = salt;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return (h % 628) / 100;
+}
+
+function layoutXYZ(id, type, index, total) {
+  const typeIdx = Object.keys(TYPE_COLORS).indexOf(type);
+  const ring = typeIdx >= 0 ? typeIdx : 5;
+  const angle = hashToAngle(id, ring) * Math.PI * 2 + (index / Math.max(total, 1)) * 0.35;
+  const radius = 8 + ring * 5 + hashToAngle(id, 99) * 2.5;
+  const x = Math.cos(angle) * radius;
+  const z = Math.sin(angle) * radius;
+  const y = (ring - 3) * 3.5 + Math.sin(angle * 2) * 1.5;
+  return { x, y, z };
+}
+
+function rotateY(x, y, z, a) {
+  const c = Math.cos(a);
+  const s = Math.sin(a);
+  return { x: x * c + z * s, y, z: -x * s + z * c };
+}
+
+function rotateX(x, y, z, a) {
+  const c = Math.cos(a);
+  const s = Math.sin(a);
+  return { x, y: y * c - z * s, z: y * s + z * c };
+}
+
+function projectRotated(x, y, z, w, h) {
+  const cam = 42 / zoom;
+  const f = cam / (cam + z);
+  const scale = Math.min(w, h) * 0.018 * zoom;
+  return {
+    sx: w * 0.5 + x * f * scale,
+    sy: h * 0.48 + y * f * scale,
+    depth: z,
+    f,
+  };
+}
+
+function transformXYZ(x, y, z, w, h) {
+  const r1 = rotateY(x, y, z, orbitYaw);
+  const r2 = rotateX(r1.x, r1.y, r1.z, orbitPitch);
+  return projectRotated(r2.x, r2.y, r2.z, w, h);
+}
+
+function pixelSize(score, highlight) {
+  if (score >= 0.75) return 3;
+  if (score >= 0.5 || highlight) return 2;
+  return 1;
+}
+
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 120; i++) {
+    stars.push({
+      x: Math.random(),
+      y: Math.random(),
+      a: 0.15 + Math.random() * 0.35,
+    });
+  }
+}
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  canvas.width = Math.floor(window.innerWidth * dpr);
+  canvas.height = Math.floor(window.innerHeight * dpr);
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  scheduleDraw();
+}
+
+function scheduleDraw() {
+  if (redrawScheduled) return;
+  redrawScheduled = true;
+  requestAnimationFrame(() => {
+    redrawScheduled = false;
+    draw();
+  });
+}
+
+function startLoop() {
+  if (animating) return;
+  animating = true;
+  function frame() {
+    if (!dragging) orbitYaw += 0.0009;
+    reprojectNodes(false);
+    draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+function drawStars(w, h) {
+  ctx.fillStyle = '#334155';
+  for (const s of stars) {
+    ctx.globalAlpha = s.a;
+    ctx.fillRect((s.x * w) | 0, (s.y * h) | 0, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawWaveRings(w, h) {
+  for (let wave = 1; wave <= 5; wave++) {
+    const meta = WAVE_META[wave];
+    const radius = 10 + wave * 6.5;
+    const baseY = (wave - 3) * 2.8;
+    const pts = [];
+    for (let i = 0; i <= 48; i++) {
+      const a = (i / 48) * Math.PI * 2;
+      const p = transformXYZ(Math.cos(a) * radius, baseY, Math.sin(a) * radius, w, h);
+      pts.push(p);
+    }
+    ctx.beginPath();
+    ctx.moveTo(pts[0].sx, pts[0].sy);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sx, pts[i].sy);
+    ctx.strokeStyle = meta.color;
+    ctx.globalAlpha = wave === activeWave ? 0.4 : 0.08;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawAgents(w, h) {
+  const agents = wavesConfig[String(activeWave)] ?? [];
+  if (!agents.length) return;
+  const meta = WAVE_META[activeWave];
+  const radius = 10 + activeWave * 6.5;
+  const baseY = (activeWave - 3) * 2.8 + 1.5;
+  agents.forEach((name, i) => {
+    const a = (i / agents.length) * Math.PI * 2;
+    const p = transformXYZ(Math.cos(a) * radius, baseY, Math.sin(a) * radius, w, h);
+    ctx.fillStyle = meta.color;
+    ctx.globalAlpha = 0.95;
+    ctx.fillRect((p.sx - 1) | 0, (p.sy - 1) | 0, 2, 2);
+    ctx.globalAlpha = 1;
+  });
+}
+
+function draw() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  ctx.fillStyle = '#030308';
+  ctx.fillRect(0, 0, w, h);
+  drawStars(w, h);
+  drawWaveRings(w, h);
+
+  const logoDraw = logoVoxels.map((v) => {
+    const p = transformXYZ(v[0], -v[1], v[2], w, h);
+    return { sx: p.sx, sy: p.sy, depth: p.depth, f: p.f, logo: true, idx: -1 };
+  });
+
+  const sorted = [
+    ...nodes.map((n, i) => ({ sx: n.sx, sy: n.sy, depth: n.depth, f: n.f, logo: false, idx: i, n })),
+    ...logoDraw,
+  ].sort((a, b) => a.depth - b.depth);
+
+  ctx.lineWidth = 1;
+  for (const [x1, y1, x2, y2] of edges) {
+    ctx.strokeStyle = 'rgba(30,58,95,.18)';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  for (const item of sorted) {
+    if (item.logo) {
+      ctx.fillStyle = '#00f0ff';
+      ctx.globalAlpha = 0.55 + item.f * 0.45;
+      ctx.fillRect(item.sx | 0, item.sy | 0, 1, 1);
+      continue;
+    }
+    const n = item.n;
+    const i = item.idx;
+    const col = TYPE_COLORS[n.type] ?? TYPE_COLORS.default;
+    const dim = n.highlight ? 1 : 0.32;
+    ctx.globalAlpha = Math.min(1, (0.25 + n.f * 0.75) * dim);
+    ctx.fillStyle = col;
+    const px = n.px;
+    const sx = (n.sx - px * 0.5) | 0;
+    const sy = (n.sy - px * 0.5) | 0;
+    ctx.fillRect(sx, sy, px, px);
+    if (i === hoverIdx) {
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = '#fff';
+      ctx.strokeRect(sx - 1, sy - 1, px + 2, px + 2);
+    }
+  }
+  ctx.globalAlpha = 1;
+  drawAgents(w, h);
+}
+
+function reprojectNodes(redraw = true) {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  for (const n of nodes) {
+    const p = transformXYZ(n.x, n.y, n.z, w, h);
+    n.sx = p.sx;
+    n.sy = p.sy;
+    n.depth = p.depth;
+    n.f = p.f;
+  }
+  const pos = new Map(nodes.map((n) => [n.id, n]));
+  edges = [];
+  if (lastGraph?.relationships) {
+    for (const r of lastGraph.relationships) {
+      const a = pos.get(r.fromId);
+      const b = pos.get(r.toId);
+      if (a && b) edges.push([a.sx, a.sy, b.sx, b.sy]);
+    }
+  }
+  if (redraw) scheduleDraw();
+}
+
+function rebuildScene(data) {
+  const entities = data.entities || {};
+  const scores = data.scores || {};
+  const ids = Object.keys(entities);
+  const total = ids.length;
+  nodes = [];
+
+  const scoreMap = new Map();
+  for (const s of Object.values(scores)) {
+    if (s.score_type !== 'azzle_probability') continue;
+    const v = Number(s.value) || 0;
+    scoreMap.set(s.entity_id, Math.max(scoreMap.get(s.entity_id) ?? 0, v));
+  }
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  ids.forEach((id, i) => {
+    const e = entities[id];
+    const type = e.type || 'default';
+    const score = scoreMap.get(id) ?? 0;
+    const { x, y, z } = layoutXYZ(id, type, i, total);
+    const p = transformXYZ(x, y, z, w, h);
+    const highlight = WAVE_META[activeWave].types.includes(type);
+    nodes.push({
+      id,
+      name: e.name,
+      type,
+      score,
+      x,
+      y,
+      z,
+      sx: p.sx,
+      sy: p.sy,
+      depth: p.depth,
+      f: p.f,
+      px: pixelSize(score, highlight),
+      highlight,
+    });
+  });
+
+  const pos = new Map(nodes.map((n) => [n.id, n]));
+  edges = [];
+  for (const r of data.relationships || []) {
+    const a = pos.get(r.fromId);
+    const b = pos.get(r.toId);
+    if (a && b) edges.push([a.sx, a.sy, b.sx, b.sy]);
+  }
+  scheduleDraw();
+}
+
+function updateStats(data) {
+  const meta = data.meta || {};
+  const entities = data.entities || {};
+  const scores = data.scores || {};
+  const outreach = data.outreach_events || {};
+
+  document.getElementById('s-total').textContent = meta.total_entities ?? Object.keys(entities).length;
+  document.getElementById('s-shown').textContent = meta.shown_entities ?? Object.keys(entities).length;
+  document.getElementById('s-edges').textContent =
+    `${meta.shown_edges ?? (data.relationships?.length ?? 0)} / ${meta.total_edges ?? '—'}`;
+  document.getElementById('s-scored').textContent = Object.keys(scores).length;
+  document.getElementById('s-outreach').textContent = Object.keys(outreach).length;
+
+  if (meta.truncated) {
+    document.getElementById('sub-line').textContent =
+      `Pixel galaxy · top ${meta.shown_entities} of ${meta.total_entities} · orbit view`;
+  }
+
+  const types = {};
+  for (const e of Object.values(entities)) types[e.type] = (types[e.type] || 0) + 1;
+  const bars = document.getElementById('type-bars');
+  bars.innerHTML = '';
+  const max = Math.max(...Object.values(types), 1);
+  for (const [t, n] of Object.entries(types).sort((a, b) => b[1] - a[1]).slice(0, 6)) {
+    const div = document.createElement('div');
+    div.className = 'type-bar';
+    const hex = TYPE_COLORS[t] ?? TYPE_COLORS.default;
+    div.innerHTML =
+      `<div class="lbl">${t} (${n})</div><div class="bar"><div class="fill" style="width:${(n / max) * 100}%;background:${hex}"></div></div>`;
+    bars.appendChild(div);
+  }
+
+  const total = meta.total_entities ?? 0;
+  if (total !== lastTotal) {
+    log(`Graph ${lastTotal} → ${total} entities`);
+    lastTotal = total;
+  }
+}
+
+function log(msg) {
+  const el = document.getElementById('log-panel');
+  const line = document.createElement('div');
+  line.innerHTML = `<span class="ts">${new Date().toLocaleTimeString()}</span>${msg}`;
+  el.prepend(line);
+  while (el.children.length > 24) el.lastChild.remove();
+}
+
+function buildWaveUI() {
+  const wrap = document.getElementById('wave-buttons');
+  wrap.innerHTML = '';
+  for (let w = 1; w <= 5; w++) {
+    const meta = WAVE_META[w];
+    const agents = wavesConfig[String(w)] ?? [];
+    const btn = document.createElement('button');
+    btn.className = 'wave-btn' + (w === activeWave ? ' active' : '');
+    btn.innerHTML =
+      `<span class="num">WAVE ${w}</span>${meta.label}<br>${agents.map((a) => `<span class="agent-chip">${a}</span>`).join('')}`;
+    btn.onclick = () => {
+      activeWave = w;
+      buildWaveUI();
+      if (lastGraph) applyGraph(lastGraph, true);
+      log(`Wave ${w} — ${meta.label}`);
+    };
+    wrap.appendChild(btn);
+  }
+}
+
+function applyGraph(data, force = false) {
+  const rev = data.meta?.rev ?? 0;
+  if (!force && rev && rev === lastRev) return;
+  lastRev = rev;
+  lastGraph = data;
+  rebuildScene(data);
+  updateStats(data);
+}
+
+async function poll() {
+  try {
+    const res = await fetch('/api/graph', { cache: 'no-store' });
+    if (!res.ok) throw new Error(String(res.status));
+    applyGraph(await res.json());
+  } catch (e) {
+    log(`Poll failed: ${e.message}`);
+  }
+}
+
+function hitTest(mx, my) {
+  let best = -1;
+  let bestD = Infinity;
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    const dx = mx - n.sx;
+    const dy = my - n.sy;
+    const d = dx * dx + dy * dy;
+    const hit = n.px + 3;
+    if (d < hit * hit && d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
+let lastHover = 0;
+canvas.addEventListener('pointermove', (e) => {
+  if (dragging) {
+    orbitYaw = yawStart + (e.clientX - dragX) * 0.006;
+    orbitPitch = Math.max(-1.1, Math.min(1.1, pitchStart + (e.clientY - dragY) * 0.006));
+    return;
+  }
+  const now = performance.now();
+  if (now - lastHover < 50) return;
+  lastHover = now;
+  const idx = hitTest(e.clientX, e.clientY);
+  if (idx !== hoverIdx) hoverIdx = idx;
+  if (idx >= 0) {
+    const n = nodes[idx];
+    tooltip.className = 'visible';
+    tooltip.style.left = e.clientX + 12 + 'px';
+    tooltip.style.top = e.clientY + 12 + 'px';
+    tooltip.innerHTML = `<b>${n.name}</b><br>${n.type} · score ${n.score.toFixed(2)}`;
+  } else {
+    tooltip.className = '';
+  }
+});
+
+canvas.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  canvas.classList.add('dragging');
+  dragX = e.clientX;
+  dragY = e.clientY;
+  yawStart = orbitYaw;
+  pitchStart = orbitPitch;
+  canvas.setPointerCapture(e.pointerId);
+});
+
+canvas.addEventListener('pointerup', (e) => {
+  dragging = false;
+  canvas.classList.remove('dragging');
+  canvas.releasePointerCapture(e.pointerId);
+});
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const factor = e.deltaY > 0 ? 0.9 : 1.1;
+  zoom = Math.min(2.2, Math.max(0.4, zoom * factor));
+}, { passive: false });
+
+window.addEventListener('resize', () => {
+  resize();
+  if (nodes.length) reprojectNodes();
+});
+
+async function loadLogo() {
+  try {
+    const res = await fetch('/api/logo');
+    if (res.ok) logoVoxels = await res.json();
+  } catch {
+    logoVoxels = [];
+  }
+}
+
+async function init() {
+  initStars();
+  resize();
+  await loadLogo();
+  try {
+    const res = await fetch('/config/waves.json');
+    wavesConfig = (await res.json()).waves || {};
+  } catch {
+    wavesConfig = {
+      '1': ['repository-hunter', 'agent-hunter', 'builder-hunter'],
+      '2': ['startup-hunter', 'qualification'],
+      '3': ['personalizer', 'messenger'],
+      '4': ['onboarding', 'ecosystem-analyst'],
+      '5': ['chief-expansion', 'swarm-creator'],
+    };
+  }
+  buildWaveUI();
+  await poll();
+  setInterval(poll, 5000);
+  log('Observatory online');
+  startLoop();
+}
+
+init();
+</script>
+</body>
+</html>

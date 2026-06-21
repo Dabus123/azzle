@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AZZLE FORCE — Film</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Anton&family=Share+Tech+Mono&family=Syne:wght@700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#e8640a;--red:#ff2d6a;--white:#fff;--gray:#7a7a7a;
+  --cyan:#00f0ff;--lime:#b8ff57;--bg:#050508;--border:#1e1e28;
+}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:var(--bg);color:var(--white);
+  cursor:none;
+}
+
+#bg-canvas,#grid-canvas{position:fixed;inset:0;width:100%;height:100%}
+#bg-canvas{z-index:1}
+#grid-canvas{z-index:2;pointer-events:none;opacity:.35}
+
+#scanlines{
+  position:fixed;inset:0;z-index:6;pointer-events:none;opacity:.22;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.25) 2px,rgba(0,0,0,.25) 4px);
+}
+#vignette{
+  position:fixed;inset:0;z-index:7;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.92) 100%);
+}
+
+#stage{
+  position:fixed;inset:0;z-index:10;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;perspective:1400px;
+}
+
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:56px 32px 96px;
+  opacity:0;pointer-events:none;
+  will-change:opacity,transform;
+}
+.slide.active{
+  opacity:1;pointer-events:auto;
+  animation:cutIn .55s cubic-bezier(.16,1,.3,1) both;
+}
+.slide.out{animation:cutOut .35s ease-in both}
+@keyframes cutIn{
+  from{opacity:0;transform:scale(1.04) translateY(12px);filter:blur(6px)}
+  to{opacity:1;transform:none;filter:none}
+}
+@keyframes cutOut{to{opacity:0;transform:scale(.97);filter:blur(4px)}}
+
+.kicker{
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(9px,1.6vw,14px);
+  letter-spacing:.45em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:20px;
+  animation:none;
+}
+.slide.active .kicker.wobble{animation:wobble .5s .05s both}
+@keyframes wobble{
+  0%,100%{transform:none}
+  25%{transform:rotate(-2deg) translateX(-4px)}
+  75%{transform:rotate(2deg) translateX(4px)}
+}
+
+.headline{
+  font-family:'Syne','Bebas Neue',sans-serif;
+  font-size:clamp(2.4rem,9.5vw,5.8rem);
+  font-weight:800;line-height:.95;
+  max-width:min(24ch,94vw);
+  text-align:center;text-wrap:balance;
+  margin-bottom:18px;
+  text-transform:uppercase;
+}
+.headline .stroke{
+  color:transparent;-webkit-text-stroke:2px var(--white);
+}
+.headline .hot{color:var(--red)}
+.headline .acid{color:var(--lime)}
+.headline .ice{color:var(--cyan)}
+.headline .burn{color:var(--orange)}
+.headline.glitch{position:relative}
+.slide.active .headline.glitch::before,
+.slide.active .headline.glitch::after{
+  content:attr(data-text);
+  position:absolute;left:0;right:0;top:0;
+  text-align:center;
+  overflow:hidden;
+}
+.slide.active .headline.glitch::before{
+  color:var(--cyan);
+  animation:glitch1 .9s .15s infinite;
+  clip-path:inset(0 0 65% 0);
+}
+.slide.active .headline.glitch::after{
+  color:var(--red);
+  animation:glitch2 .7s .1s infinite;
+  clip-path:inset(35% 0 0 0);
+}
+@keyframes glitch1{
+  0%,90%,100%{transform:translate(0)}
+  92%{transform:translate(-4px,2px)}
+  94%{transform:translate(4px,-1px)}
+}
+@keyframes glitch2{
+  0%,88%,100%{transform:translate(0)}
+  90%{transform:translate(3px,-2px)}
+  93%{transform:translate(-3px,1px)}
+}
+
+.sub{
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(.72rem,1.5vw,.95rem);
+  color:var(--gray);line-height:1.65;
+  max-width:min(50ch,92vw);text-align:center;
+  letter-spacing:.04em;
+}
+.sub b,.sub .em{color:var(--white)}
+.sub .mono{color:var(--cyan);font-size:.95em}
+.sub .acid{color:var(--lime)}
+.sub .hot{color:var(--red)}
+
+.slide.active .kicker{animation:popUp .5s .08s both cubic-bezier(.16,1,.3,1)}
+.slide.active .headline{animation:popUp .55s .18s both cubic-bezier(.16,1,.3,1)}
+.slide.active .sub{animation:popUp .5s .32s both cubic-bezier(.16,1,.3,1)}
+.slide.active .vis{animation:popUp .55s .44s both cubic-bezier(.16,1,.3,1)}
+.slide.active .badges{animation:popUp .5s .56s both cubic-bezier(.16,1,.3,1)}
+@keyframes popUp{
+  from{opacity:0;transform:translateY(24px) scale(.96)}
+  to{opacity:1;transform:none}
+}
+
+/* LOGO */
+#logo-slide .force-logo{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(3.5rem,16vw,9rem);
+  font-weight:800;line-height:.9;
+  text-align:center;
+  position:relative;z-index:2;
+}
+#logo-slide .force-logo .small{
+  display:block;font-size:.28em;
+  letter-spacing:.35em;color:var(--cyan);
+  font-family:'Share Tech Mono',monospace;
+  margin-bottom:.15em;
+}
+#logo-slide .force-logo .big{
+  display:block;
+  background:linear-gradient(135deg,var(--white),var(--green) 45%,var(--blue) 70%,var(--orange));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:logoPop 1.1s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes logoPop{
+  0%{opacity:0;transform:scale(.5) rotate(-4deg);filter:blur(20px)}
+  70%{transform:scale(1.03)}
+  100%{opacity:1;transform:none;filter:none}
+}
+.logo-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.logo-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(0,240,255,.12);
+  animation:spin 12s linear infinite;
+}
+.logo-ring:nth-child(1){width:320px;height:320px}
+.logo-ring:nth-child(2){width:440px;height:440px;animation-direction:reverse;animation-duration:18s;border-color:rgba(255,45,106,.1)}
+.logo-ring:nth-child(3){width:560px;height:560px;animation-duration:28s;border-color:rgba(184,255,57,.08)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.tagline{
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(10px,1.5vw,13px);
+  letter-spacing:.35em;text-transform:uppercase;
+  color:var(--gray);margin-top:20px;
+}
+
+/* GRAPH HUB */
+.graph-viz{
+  position:relative;width:min(92vw,520px);height:280px;margin-top:8px;
+}
+.graph-core{
+  position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);
+  width:100px;height:100px;
+  border:2px solid var(--cyan);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Share Tech Mono',monospace;font-size:.55rem;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--cyan);
+  animation:corePulse 1.2s ease-in-out infinite;
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  background:rgba(0,240,255,.06);
+}
+@keyframes corePulse{
+  50%{border-color:var(--lime);color:var(--lime);box-shadow:0 0 40px rgba(184,255,57,.25)}
+}
+.graph-node{
+  position:absolute;padding:8px 10px;
+  border:1px solid var(--border);
+  font-family:'Share Tech Mono',monospace;
+  font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;
+  background:rgba(5,5,8,.9);
+  opacity:0;
+}
+.active .graph-node{animation:nodeIn .45s both}
+.active .graph-node:nth-child(2){animation-delay:.15s}
+.active .graph-node:nth-child(3){animation-delay:.3s}
+.active .graph-node:nth-child(4){animation-delay:.45s}
+.active .graph-node:nth-child(5){animation-delay:.6s}
+.active .graph-node:nth-child(6){animation-delay:.75s}
+@keyframes nodeIn{
+  from{opacity:0;transform:scale(.4)}
+  to{opacity:1;transform:scale(1)}
+}
+.graph-node.pg{left:8%;top:18%;border-color:var(--cyan);color:var(--cyan)}
+.graph-node.neo{right:8%;top:18%;border-color:var(--lime);color:var(--lime)}
+.graph-node.qd{left:8%;bottom:18%;border-color:var(--orange);color:var(--orange)}
+.graph-node.nats{right:8%;bottom:18%;border-color:var(--red);color:var(--red)}
+.graph-line{
+  position:absolute;background:linear-gradient(90deg,transparent,var(--border),transparent);
+  height:1px;opacity:.6;
+}
+
+/* AGENT GRID */
+.agent-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  gap:6px;max-width:min(92vw,640px);margin-top:12px;
+}
+.agent-chip{
+  padding:10px 4px;
+  border:1px solid var(--border);
+  font-family:'Share Tech Mono',monospace;
+  font-size:.42rem;letter-spacing:.06em;text-transform:uppercase;
+  text-align:center;color:var(--gray);
+  opacity:0;transform:scale(.8);
+}
+.active .agent-chip{animation:chipPop .35s both}
+.active .agent-chip:nth-child(1){animation-delay:.05s}
+.active .agent-chip:nth-child(2){animation-delay:.1s}
+.active .agent-chip:nth-child(3){animation-delay:.15s}
+.active .agent-chip:nth-child(4){animation-delay:.2s}
+.active .agent-chip:nth-child(5){animation-delay:.25s}
+.active .agent-chip:nth-child(6){animation-delay:.3s}
+.active .agent-chip:nth-child(7){animation-delay:.35s}
+.active .agent-chip:nth-child(8){animation-delay:.4s}
+.active .agent-chip:nth-child(9){animation-delay:.45s}
+.active .agent-chip:nth-child(10){animation-delay:.5s}
+.active .agent-chip:nth-child(11){animation-delay:.55s}
+.active .agent-chip:nth-child(12){animation-delay:.6s}
+.active .agent-chip:nth-child(13){animation-delay:.65s}
+.active .agent-chip:nth-child(14){animation-delay:.7s}
+.active .agent-chip:nth-child(15){animation-delay:.75s}
+.active .agent-chip:nth-child(16){animation-delay:.8s}
+.active .agent-chip:nth-child(17){animation-delay:.85s}
+.active .agent-chip:nth-child(18){animation-delay:.9s}
+.active .agent-chip:nth-child(19){animation-delay:.95s}
+.active .agent-chip:nth-child(20){animation-delay:1s;color:var(--lime);border-color:rgba(184,255,57,.5)}
+@keyframes chipPop{
+  to{opacity:1;transform:scale(1)}
+}
+
+/* WAVE STEPS */
+.wave-row{
+  display:flex;align-items:center;gap:0;margin-top:20px;flex-wrap:wrap;justify-content:center;
+}
+.wave-step{
+  display:flex;flex-direction:column;align-items:center;gap:6px;min-width:64px;
+}
+.wave-num{
+  font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--border);
+  line-height:1;transition:.3s;
+}
+.wave-step.on .wave-num{color:var(--cyan)}
+.wave-step.done .wave-num{color:var(--lime)}
+.wave-lbl{
+  font-family:'Share Tech Mono',monospace;font-size:.5rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+}
+.wave-step.on .wave-lbl,.wave-step.done .wave-lbl{color:var(--white)}
+.wave-bar{width:28px;height:2px;background:var(--border);margin-bottom:22px}
+.wave-bar.on{background:var(--cyan)}
+
+/* COMMAND BLOCK */
+.cmd-block{
+  margin-top:16px;padding:18px 22px;
+  border:1px solid var(--border);
+  background:rgba(0,240,255,.04);
+  max-width:min(92vw,520px);
+  text-align:left;
+}
+.cmd-line{
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(.65rem,1.3vw,.82rem);
+  line-height:1.8;color:var(--gray);
+}
+.cmd-line .prompt{color:var(--lime)}
+.cmd-line .cmd{color:var(--white)}
+.cmd-line .comment{color:var(--red);opacity:.8}
+
+/* BADGES */
+.badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.badge{
+  font-family:'Share Tech Mono',monospace;
+  font-size:.62rem;letter-spacing:.12em;
+  padding:7px 12px;border:1px solid var(--border);
+  color:var(--gray);text-transform:uppercase;
+}
+.badge.hot{border-color:rgba(255,45,106,.5);color:var(--red)}
+.badge.ice{border-color:rgba(0,240,255,.4);color:var(--cyan)}
+.badge.acid{border-color:rgba(184,255,57,.4);color:var(--lime)}
+.badge.burn{border-color:rgba(232,100,10,.4);color:var(--orange)}
+
+/* QUOTE SLIDE */
+.big-quote{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(1.8rem,6vw,3.2rem);
+  font-weight:800;line-height:1.1;
+  max-width:min(28ch,90vw);text-align:center;
+  text-transform:uppercase;
+}
+.big-quote .sm{
+  display:block;font-size:.35em;
+  font-family:'Share Tech Mono',monospace;
+  letter-spacing:.2em;color:var(--gray);
+  margin-top:16px;font-weight:400;
+}
+
+/* LOOP ARROWS */
+.loop-viz{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px;
+}
+.loop-step{
+  padding:10px 14px;border:1px solid var(--border);
+  font-family:'Share Tech Mono',monospace;
+  font-size:.55rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gray);
+}
+.loop-arrow{color:var(--cyan);font-size:.8rem}
+.active .loop-step{animation:loopFlash 2s ease-in-out infinite}
+.active .loop-step:nth-child(1){animation-delay:0s}
+.active .loop-step:nth-child(3){animation-delay:.35s}
+.active .loop-step:nth-child(5){animation-delay:.7s}
+.active .loop-step:nth-child(7){animation-delay:1.05s}
+.active .loop-step:nth-child(9){animation-delay:1.4s}
+@keyframes loopFlash{
+  0%,100%{border-color:var(--border);color:var(--gray)}
+  50%{border-color:var(--cyan);color:var(--white)}
+}
+
+/* CHIEF CARD */
+.chief-card{
+  padding:24px 28px;border:2px solid var(--red);
+  max-width:min(88vw,400px);margin-top:12px;
+  text-align:center;
+}
+.chief-card .rule{
+  font-family:'Syne',sans-serif;font-size:clamp(1.2rem,3vw,1.6rem);
+  font-weight:800;text-transform:uppercase;color:var(--red);
+}
+
+/* END */
+.end-force{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(3rem,14vw,7rem);
+  font-weight:800;
+  background:linear-gradient(90deg,var(--cyan),var(--lime),var(--orange));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.end-sub{
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(9px,1.4vw,12px);
+  letter-spacing:.35em;color:var(--gray);
+  text-transform:uppercase;margin-top:12px;
+}
+
+/* PROGRESS + CONTROLS */
+#progress{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  z-index:50;width:200px;height:2px;background:#111;
+}
+#progress-fill{
+  height:100%;background:linear-gradient(90deg,var(--cyan),var(--lime));
+  width:0%;transition:width .2s linear;
+}
+#controls{
+  position:fixed;bottom:44px;left:50%;transform:translateX(-50%);
+  z-index:55;display:flex;align-items:center;gap:10px;
+}
+#controls.hidden{opacity:0;pointer-events:none}
+#controls button{
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:.18em;
+  padding:10px 16px;border:1px solid var(--border);
+  background:transparent;color:var(--gray);
+  cursor:none;text-transform:uppercase;
+  transition:.25s;
+}
+#controls button:hover{border-color:var(--cyan);color:var(--cyan)}
+#controls button.play-btn{padding:12px 24px;letter-spacing:.3em;color:var(--white)}
+.ctrl-dots{display:flex;gap:5px}
+.ctrl-dot{
+  width:5px;height:5px;border-radius:50%;background:#222;cursor:none;
+  transition:.2s;
+}
+.ctrl-dot.on{background:var(--cyan);transform:scale(1.3)}
+#slide-counter{
+  font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--gray);
+  letter-spacing:.1em;min-width:44px;text-align:center;
+}
+#rec-hint{
+  position:fixed;top:16px;right:16px;z-index:60;
+  font-family:'Share Tech Mono',monospace;font-size:.55rem;
+  letter-spacing:.15em;text-transform:uppercase;
+  color:var(--gray);opacity:.7;
+}
+#rec-hint.hidden{display:none}
+#beat-flash{
+  position:fixed;inset:0;z-index:99;pointer-events:none;
+  background:var(--cyan);opacity:0;
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<canvas id="grid-canvas"></canvas>
+<div id="scanlines"></div>
+<div id="vignette"></div>
+<div id="beat-flash"></div>
+<div id="rec-hint">R = hide UI · space = pause · sicko mode</div>
+
+<div id="stage">
+
+<!-- 0 SPLASH -->
+<section class="slide active" id="logo-slide" data-dur="6000">
+  <div class="logo-rings">
+    <div class="logo-ring"></div>
+    <div class="logo-ring"></div>
+    <div class="logo-ring"></div>
+  </div>
+  <div class="force-logo">
+    <span class="small">Distributed expansion organism</span>
+    <span class="big">AZZLE FORCE</span>
+  </div>
+  <div class="tagline">azzle on base · growth not governance</div>
+</section>
+
+<!-- 1 HOOK -->
+<section class="slide" data-dur="14000">
+  <p class="kicker wobble">SWARM Architecture</p>
+  <h1 class="headline glitch" data-text="NOT AN LLM"></h1>
+  <p class="sub">It's a <b>knowledge graph</b> that never sleeps. Agents are organs. <span class="acid">The graph is the organism.</span></p>
+</section>
+
+<!-- 2 PET -->
+<section class="slide" data-dur="13000">
+  <p class="kicker">Operating model</p>
+  <h1 class="headline"><span class="ice">Pet</span> the graph.<br/>Sacrifice the agents.</h1>
+  <p class="sub">Agent dies → restart it. Graph dies → <span class="hot">bad quarter.</span> Cattle herd. One pet.</p>
+  <div class="badges">
+    <span class="badge ice">postgres</span>
+    <span class="badge acid">neo4j</span>
+    <span class="badge burn">qdrant</span>
+  </div>
+</section>
+
+<!-- 3 GRAPH VIZ -->
+<section class="slide" data-dur="15000">
+  <p class="kicker">Layer 1</p>
+  <h1 class="headline">Memory <span class="stroke">state</span> truth</h1>
+  <div class="vis graph-viz">
+    <div class="graph-core">GRAPH</div>
+    <div class="graph-node pg">postgres</div>
+    <div class="graph-node neo">neo4j</div>
+    <div class="graph-node qd">qdrant</div>
+    <div class="graph-node nats">nats</div>
+  </div>
+  <p class="sub">Every discovery → upsert → edge → embed → <span class="mono">publish</span>. Same pattern. Every agent.</p>
+</section>
+
+<!-- 4 LOOP -->
+<section class="slide" data-dur="14000">
+  <p class="kicker">Mission</p>
+  <h1 class="headline"><span class="acid">Discover</span> → grow</h1>
+  <div class="vis loop-viz">
+    <span class="loop-step">discover</span>
+    <span class="loop-arrow">→</span>
+    <span class="loop-step">map</span>
+    <span class="loop-arrow">→</span>
+    <span class="loop-step">contact</span>
+    <span class="loop-arrow">→</span>
+    <span class="loop-step">convert</span>
+    <span class="loop-arrow">→</span>
+    <span class="loop-step">connect</span>
+  </div>
+  <p class="sub">Find economic actors. Find agents. Find tasks. <b>Onboard them.</b> Repeat until Base is loud.</p>
+</section>
+
+<!-- 5 20 AGENTS -->
+<section class="slide" data-dur="16000">
+  <p class="kicker">The swarm</p>
+  <h1 class="headline glitch" data-text="20 AGENTS">20 <span class="hot">agents</span></h1>
+  <p class="sub">Zero local memory. One Bankr gateway. <span class="mono">Stateless workers.</span></p>
+  <div class="vis agent-grid">
+    <div class="agent-chip">repo hunter</div>
+    <div class="agent-chip">agent hunter</div>
+    <div class="agent-chip">builder</div>
+    <div class="agent-chip">startup</div>
+    <div class="agent-chip">community</div>
+    <div class="agent-chip">opportunity</div>
+    <div class="agent-chip">contacts</div>
+    <div class="agent-chip">mapper</div>
+    <div class="agent-chip">personalizer</div>
+    <div class="agent-chip">messenger</div>
+    <div class="agent-chip">follow-up</div>
+    <div class="agent-chip">ambassador</div>
+    <div class="agent-chip">qualify</div>
+    <div class="agent-chip">onboard</div>
+    <div class="agent-chip">matchmaker</div>
+    <div class="agent-chip">analyst</div>
+    <div class="agent-chip">trends</div>
+    <div class="agent-chip">intel</div>
+    <div class="agent-chip">swarm creator</div>
+    <div class="agent-chip">chief expansion</div>
+  </div>
+</section>
+
+<!-- 6 WAVE 1 -->
+<section class="slide" data-dur="13000">
+  <p class="kicker">Wave 1</p>
+  <h1 class="headline">Map the world<br/><span class="ice">first</span></h1>
+  <p class="sub"><span class="hot">500 entities</span> before anyone gets a cold DM. Hunters only. No outreach theater.</p>
+  <div class="badges">
+    <span class="badge ice">github scan</span>
+    <span class="badge acid">subgraph tasks</span>
+    <span class="badge">communities</span>
+  </div>
+</section>
+
+<!-- 7 NERVOUS -->
+<section class="slide" data-dur="12000">
+  <p class="kicker">Layer 2</p>
+  <h1 class="headline">NATS <span class="burn">+</span> Temporal</h1>
+  <p class="sub">NATS = what just happened. Temporal = what happens <b>day 3, day 7, day 14.</b> LLMs don't own time.</p>
+  <div class="badges">
+    <span class="badge hot">follow-up timers</span>
+    <span class="badge ice">onboarding drip</span>
+    <span class="badge acid">reply cancels all</span>
+  </div>
+</section>
+
+<!-- 8 CHIEF -->
+<section class="slide" data-dur="14000">
+  <p class="kicker">Hard rule</p>
+  <div class="vis chief-card">
+    <div class="rule">Chief Expansion<br/>does not slide into DMs</div>
+  </div>
+  <p class="sub" style="margin-top:20px">Allocates missions. Frontier brain. <span class="mono">Never outreach.</span> One coordinator. That's it.</p>
+</section>
+
+<!-- 9 PERSONALITY BEAT -->
+<section class="slide" data-dur="10000">
+  <p class="kicker wobble">Sicko energy</p>
+  <div class="big-quote">
+    Your swarm has amnesia.<br/><span class="acid">Good.</span>
+    <span class="sm">the graph remembers everything</span>
+  </div>
+</section>
+
+<!-- 10 WAVES -->
+<section class="slide" data-dur="15000">
+  <p class="kicker">Rollout</p>
+  <h1 class="headline">Five waves.<br/><span class="stroke">Gates.</span></h1>
+  <div class="vis wave-row">
+    <div class="wave-step done"><span class="wave-num">1</span><span class="wave-lbl">hunt</span></div>
+    <div class="wave-bar on"></div>
+    <div class="wave-step on"><span class="wave-num">2</span><span class="wave-lbl">score</span></div>
+    <div class="wave-bar"></div>
+    <div class="wave-step"><span class="wave-num">3</span><span class="wave-lbl">outreach</span></div>
+    <div class="wave-bar"></div>
+    <div class="wave-step"><span class="wave-num">4</span><span class="wave-lbl">connect</span></div>
+    <div class="wave-bar"></div>
+    <div class="wave-step"><span class="wave-num">5</span><span class="wave-lbl">expand</span></div>
+  </div>
+  <p class="sub">Human approves Messenger until quality proves out. <span class="acid">azzle_probability ≥ threshold</span> or no send.</p>
+</section>
+
+<!-- 11 COMMANDS -->
+<section class="slide" data-dur="14000">
+  <p class="kicker">Three commands</p>
+  <h1 class="headline">Spin it <span class="acid">up</span></h1>
+  <div class="vis cmd-block">
+    <div class="cmd-line"><span class="prompt">$</span> <span class="cmd">cd azzle-force && npm run up</span></div>
+    <div class="cmd-line"><span class="prompt">$</span> <span class="cmd">npm run force wave 1</span></div>
+    <div class="cmd-line"><span class="comment">// graph lives. hunters map. organism grows.</span></div>
+  </div>
+  <div class="badges">
+    <span class="badge ice">docker</span>
+    <span class="badge acid">20 agents</span>
+    <span class="badge burn">base 8453</span>
+  </div>
+</section>
+
+<!-- 12 END -->
+<section class="slide" id="end-slide" data-dur="9999999">
+  <p class="kicker">Distribution before coordination</p>
+  <div class="end-force">AZZLE FORCE</div>
+  <div class="end-sub">graph = organism · agents = organs · adoption = mission</div>
+  <div class="badges" style="margin-top:28px">
+    <span class="badge hot">live swarm</span>
+    <span class="badge ice">bankr llm</span>
+    <span class="badge acid">azzle protocol</span>
+    <span class="badge burn">usdc escrow</span>
+  </div>
+</section>
+
+</div>
+
+<div id="progress"><div id="progress-fill"></div></div>
+<div id="controls">
+  <button id="prev-btn">←</button>
+  <button class="play-btn" id="play-btn">Pause</button>
+  <div class="ctrl-dots" id="ctrl-dots"></div>
+  <span id="slide-counter">1 / 13</span>
+  <button id="next-btn">→</button>
+</div>
+
+<script>
+/* BG — acid pulse + grain */
+(function(){
+  const c=document.getElementById('bg-canvas');
+  const ctx=c.getContext('2d');
+  let W,H,t=0;
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    t+=1.2;
+    ctx.fillStyle='#050508';
+    ctx.fillRect(0,0,W,H);
+    const pulse=.7+.3*Math.sin(t*.04);
+    const g=ctx.createRadialGradient(W*.5,H*.45,0,W*.5,H*.45,Math.max(W,H)*.6);
+    g.addColorStop(0,'rgba(0,240,255,'+(0.06*pulse)+')');
+    g.addColorStop(0.35,'rgba(255,45,106,0.03)');
+    g.addColorStop(0.7,'rgba(184,255,57,0.02)');
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    const id=ctx.createImageData(W,H),d=id.data;
+    for(let i=0;i<500;i++){
+      const p=(Math.floor(Math.random()*H)*W+Math.floor(Math.random()*W))*4;
+      const v=Math.random()*25;
+      d[p]=v;d[p+1]=v;d[p+2]=v;d[p+3]=Math.random()*40;
+    }
+    ctx.putImageData(id,0,0);
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* Retro grid floor */
+(function(){
+  const c=document.getElementById('grid-canvas');
+  const ctx=c.getContext('2d');
+  let W,H,t=0;
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    t+=2;
+    ctx.clearRect(0,0,W,H);
+    const horizon=H*.72;
+    const speed=(t*.8)%40;
+    ctx.strokeStyle='rgba(0,240,255,0.08)';
+    ctx.lineWidth=1;
+    for(let y=horizon;y<H;y+=14){
+      const pers=(y-horizon)/(H-horizon);
+      const spread=pers*W*.6;
+      ctx.beginPath();
+      ctx.moveTo(W*.5-spread,y);
+      ctx.lineTo(W*.5+spread,y);
+      ctx.stroke();
+    }
+    for(let i=-8;i<12;i++){
+      const x=W*.5+(i*60-speed)*2;
+      ctx.beginPath();
+      ctx.moveTo(x,horizon);
+      ctx.lineTo(W*.5+(i*8-speed*.2),H);
+      ctx.stroke();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* Beat flash — ~128bpm feel for Sicko */
+(function(){
+  const el=document.getElementById('beat-flash');
+  const colors=['#00f0ff','#ff2d6a','#b8ff57','#e8640a'];
+  let i=0;
+  function beat(){
+    const bpm=126;
+    const ms=60000/bpm;
+    el.style.background=colors[i%colors.length];
+    el.style.opacity='0.12';
+    setTimeout(()=>{el.style.opacity='0'},40);
+    i++;
+    setTimeout(beat,ms);
+  }
+  beat();
+})();
+
+/* Slideshow */
+(function(){
+  const slides=Array.from(document.querySelectorAll('.slide'));
+  const dotsEl=document.getElementById('ctrl-dots');
+  const fill=document.getElementById('progress-fill');
+  const counter=document.getElementById('slide-counter');
+  const controls=document.getElementById('controls');
+  const recHint=document.getElementById('rec-hint');
+  const N=slides.length;
+  let cur=0,playing=true,t0=Date.now(),tm,curDur;
+
+  slides.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='ctrl-dot'+(i===0?' on':'');
+    d.addEventListener('click',()=>{goTo(i);sched()});
+    dotsEl.appendChild(d);
+  });
+
+  function getDur(i){return parseInt(slides[i].dataset.dur||'4000',10)}
+
+  function resetAnims(slide){
+    slide.querySelectorAll('.agent-chip,.graph-node,.loop-step').forEach(el=>{
+      el.style.animation='none';void el.offsetWidth;el.style.animation='';
+    });
+  }
+
+  function goTo(n){
+    if(n===cur)return;
+    const prev=slides[cur];
+    cur=(n+N)%N;
+    prev.classList.remove('active');
+    prev.classList.add('out');
+    setTimeout(()=>prev.classList.remove('out'),400);
+    slides[cur].classList.add('active');
+    resetAnims(slides[cur]);
+    dotsEl.querySelectorAll('.ctrl-dot').forEach((d,i)=>d.classList.toggle('on',i===cur));
+    counter.textContent=(cur+1)+' / '+N;
+    curDur=getDur(cur);t0=Date.now();
+  }
+
+  function sched(){
+    clearTimeout(tm);
+    if(playing&&curDur<9000000)tm=setTimeout(()=>{goTo(cur+1);sched()},curDur);
+  }
+
+  function loop(){
+    if(playing&&curDur<9000000){
+      let total=0;for(let i=0;i<N;i++)total+=getDur(i);
+      let done=0;for(let i=0;i<cur;i++)done+=getDur(i);
+      done+=(Date.now()-t0);
+      fill.style.width=Math.min((done/total)*100,100)+'%';
+    }
+    requestAnimationFrame(loop);
+  }
+
+  curDur=getDur(0);sched();loop();
+
+  document.getElementById('play-btn').addEventListener('click',function(){
+    playing=!playing;
+    this.textContent=playing?'Pause':'Play';
+    if(playing){t0=Date.now();sched()}else clearTimeout(tm);
+  });
+  document.getElementById('next-btn').addEventListener('click',()=>{goTo(cur+1);sched()});
+  document.getElementById('prev-btn').addEventListener('click',()=>{goTo(cur-1);sched()});
+
+  document.addEventListener('keydown',e=>{
+    if(e.code==='ArrowRight'){goTo(cur+1);sched()}
+    if(e.code==='ArrowLeft'){goTo(cur-1);sched()}
+    if(e.code==='Space'){e.preventDefault();document.getElementById('play-btn').click()}
+    if(e.code==='KeyR'){
+      controls.classList.toggle('hidden');
+      recHint.classList.toggle('hidden');
+      document.getElementById('progress').style.opacity=controls.classList.contains('hidden')?'0':'1';
+    }
+  });
+
+  /* Random strobe tears */
+  (function tear(){
+    if(Math.random()<.18){
+      const el=document.createElement('div');
+      const hue=Math.random()<.5?'#00f0ff':'#ff2d6a';
+      el.style.cssText='position:fixed;inset:0;background:'+hue+';opacity:.5;pointer-events:none;z-index:100;mix-blend-mode:screen';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),45);
+    }
+    setTimeout(tear,800+Math.random()*2200);
+  })();
+})();
+</script>
+</body>
+</html>
