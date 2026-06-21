@@ -35,6 +35,7 @@ const VAULT_IFACE = new ethers.Interface([
   "function balanceOf(address agent) view returns (uint256)",
 ]);
 const REGISTRY_IFACE = new ethers.Interface([
+  "function createTask(address worker, address token, uint256 totalAmount, uint8 escrowMode, bytes32 settlementDigest, uint256 deadline, bool replacementAllowed, uint256[] milestoneAmounts, uint256 streamRate, uint256 hourBlockSize) returns (uint256)",
   "function postTask(address token, uint256 totalAmount, uint8 escrowMode, bytes32 settlementDigest, uint256 deadline, uint256[] milestoneAmounts, uint256 streamRate, uint256 hourBlockSize) returns (uint256)",
   "function claimTask(uint256 taskId)",
   "function startWork(uint256 taskId)",
@@ -257,16 +258,24 @@ async function cmdClaimTask(from, flags) {
   output(batchResponse("claim-task", transactions));
 }
 
-async function cmdPostTask(from, flags) {
+function parseTaskTerms(from, flags, { requireWorker = false } = {}) {
   const totalAmount = BigInt(flags.total_amount ?? fail("--total-amount required (USDC 6dp)"));
   const deadline = Number(flags.deadline ?? fail("--deadline required (unix seconds)"));
   const acceptanceCriteriaHash =
     flags.acceptance_criteria_hash ?? fail("--acceptance-criteria-hash required (bytes32)");
   const escrowMode = flags.escrow_mode ?? "milestone";
   const replacementAllowed = flags.replacement_allowed === "true";
+  let worker = ethers.ZeroAddress;
+  if (requireWorker) {
+    const raw = flags.worker ?? fail("--worker required (0x address, not zero)");
+    if (!ethers.isAddress(raw) || raw === ethers.ZeroAddress) {
+      fail("--worker must be a non-zero EVM address");
+    }
+    worker = ethers.getAddress(raw);
+  }
   const digest = buildSettlementDigest({
     poster: from,
-    worker: ethers.ZeroAddress,
+    worker,
     token: manifest.usdc,
     totalAmount,
     escrowMode,
@@ -276,6 +285,35 @@ async function cmdPostTask(from, flags) {
     replacementAllowed,
     feeBps: 100,
   });
+  return { totalAmount, deadline, escrowMode, replacementAllowed, worker, digest };
+}
+
+async function cmdCreateTask(from, flags) {
+  const terms = parseTaskTerms(from, flags, { requireWorker: true });
+  output(
+    batchResponse("create-task", [
+      tx(
+        "create-task",
+        manifest.TaskRegistry,
+        REGISTRY_IFACE.encodeFunctionData("createTask", [
+          terms.worker,
+          manifest.usdc,
+          terms.totalAmount,
+          ESCROW_MODE[terms.escrowMode] ?? 1,
+          terms.digest,
+          terms.deadline,
+          terms.replacementAllowed,
+          [terms.totalAmount],
+          0,
+          0,
+        ])
+      ),
+    ])
+  );
+}
+
+async function cmdPostTask(from, flags) {
+  const terms = parseTaskTerms(from, flags);
   const transactions = [];
   if (flags.skip_approvals !== "true") {
     await maybeAzlApprove(from, transactions);
@@ -286,11 +324,11 @@ async function cmdPostTask(from, flags) {
       manifest.TaskRegistry,
       REGISTRY_IFACE.encodeFunctionData("postTask", [
         manifest.usdc,
-        totalAmount,
-        ESCROW_MODE[escrowMode] ?? 1,
-        digest,
-        deadline,
-        [totalAmount],
+        terms.totalAmount,
+        ESCROW_MODE[terms.escrowMode] ?? 1,
+        terms.digest,
+        terms.deadline,
+        [terms.totalAmount],
         0,
         0,
       ])
@@ -320,7 +358,8 @@ Actions:
   approve-azl-router           ERC20 approve AZZLE → TreasuryRouter
   top-up                       AgentDepositVault.topUp
   claim-task                   TaskRegistry.claimTask (+ AZL approve if needed)
-  post-task                    TaskRegistry.postTask (+ AZL approve if needed)
+  post-task                    TaskRegistry.postTask — search market (+ AZL approve if needed)
+  create-task                  TaskRegistry.createTask — direct hire, skips POSTED/CLAIMED
   fund-task                    TaskRegistry.fundTask
   start-work                   TaskRegistry.startWork
   submit-proof                 TaskRegistry.submitProof
@@ -340,6 +379,8 @@ Action-specific:
   post-task     --total-amount --deadline --acceptance-criteria-hash
                 [--escrow-mode milestone|upfront|streaming|hour_blocks]
                 [--replacement-allowed true]
+  create-task   --worker --total-amount --deadline --acceptance-criteria-hash
+                (same optional flags as post-task; no access fee / no AZL approve batch)
   fund-task     --task-id --amount <usdc6>
   start-work    --task-id
   submit-proof  --task-id --milestone-index --receipt-hash <bytes32>
@@ -383,6 +424,9 @@ async function main() {
       break;
     case "post-task":
       await cmdPostTask(from, flags);
+      break;
+    case "create-task":
+      await cmdCreateTask(from, flags);
       break;
     case "fund-task":
       await cmdRegistryCall("fund-task", "fundTask", flags, [

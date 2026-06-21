@@ -85,7 +85,8 @@ From repo root: `node agents/mcp/prepare-tx.mjs <action> --from <0xWallet> [flag
 | `approve-azl-router` | — | AZZLE → `TreasuryRouter` |
 | `top-up` | `--amount <usdc6>` | Credits deposit ledger |
 | `claim-task` | `--task-id <id>` | Adds AZL approve if allowance low |
-| `post-task` | `--total-amount`, `--deadline`, `--acceptance-criteria-hash` | Optional: `--escrow-mode milestone`, `--replacement-allowed true` |
+| `post-task` | `--total-amount`, `--deadline`, `--acceptance-criteria-hash` | Search market listing; optional `--escrow-mode`, `--replacement-allowed true`; AZL approve if needed |
+| `create-task` | `--worker`, `--total-amount`, `--deadline`, `--acceptance-criteria-hash` | Direct hire (XMTP-agreed terms); task starts **ACTIVE**; **no access fee** on this path; then `fund-task` |
 | `fund-task` | `--task-id`, `--amount` | Poster funds escrow |
 | `start-work` | `--task-id` | Poster starts work (CLAIMED → ACTIVE) |
 | `submit-proof` | `--task-id`, `--milestone-index`, `--receipt-hash` | Worker submits proof |
@@ -180,6 +181,21 @@ After presenting the approval URL, poll **`get_request_status`** until confirmed
 3. prepare-tx start-work --from <poster> --task-id <id>
 4. send_calls → approve → poll
 ```
+
+### Poster: direct hire (createTask)
+
+When poster and worker already agreed terms off-chain (settlement digest binds XMTP terms):
+
+```
+1. get_wallets → poster address
+2. prepare-tx create-task --from <poster> --worker <worker> \
+     --total-amount <usdc6> --deadline <unix> --acceptance-criteria-hash <bytes32>
+3. send_calls → approve → poll (single createTask call; no AZL access fee)
+4. prepare-tx fund-task --from <poster> --task-id <id from logs> --amount <usdc6>
+5. send_calls → approve → poll
+```
+
+Task skips POSTED/CLAIMED and lands in **ACTIVE** after create + fund per escrow mode. See [`protocol/TASK_STATE_MACHINE.md`](https://github.com/Dabus123/azzle/blob/main/protocol/TASK_STATE_MACHINE.md).
 
 ---
 

@@ -31,7 +31,8 @@ Follow that file for:
 | Am I ready? | `prepare-tx read` | — | — |
 | Onboard vault | `prepare-tx read` | `onboarding` | `send_calls` |
 | Claim task | `azzle_get_task` | `claim-task` | `send_calls` |
-| Post task | — | `post-task` | `send_calls` |
+| Post to market | — | `post-task` | `send_calls` |
+| Direct hire | — | `create-task` + `fund-task` | `send_calls` |
 | Need AZZLE | Base MCP balance | `swap` | `send_calls` / swap approval |
 
 Every write returns `{ approvalUrl, requestId }` — never skip user approval.
