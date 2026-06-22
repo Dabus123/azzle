@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
+const site = join(root, "site");
 const out = join(root, "public");
 const stage = join(root, ".vercel-static");
 
@@ -39,7 +40,7 @@ const STATIC = [
 ];
 
 async function requireFile(name) {
-  const src = join(root, name);
+  const src = join(site, name);
   try {
     await access(src, constants.R_OK);
   } catch {

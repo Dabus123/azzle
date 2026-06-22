@@ -14,9 +14,10 @@ import { fileURLToPath } from "node:url";
 import { handleSiteApi, loadEnvFile, sendApiResult } from "./site-api.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = normalize(join(__dirname, ".."));
+const REPO_ROOT = normalize(join(__dirname, ".."));
+const ROOT = join(REPO_ROOT, "site");
 
-loadEnvFile(resolve(ROOT, "azzle-force", ".env"));
+loadEnvFile(resolve(REPO_ROOT, "azzle-force", ".env"));
 const PORT = Number(process.env.AZZLE_SITE_PORT ?? "8080");
 
 const MIME = {

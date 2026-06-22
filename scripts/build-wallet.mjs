@@ -7,12 +7,13 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
+const site = join(root, "site");
 
 await esbuild.build({
   entryPoints: [join(root, "src", "wallet-entry.jsx")],
   bundle: true,
   format: "esm",
-  outfile: join(root, "role-wallet.bundle.js"),
+  outfile: join(site, "role-wallet.bundle.js"),
   jsx: "automatic",
   target: ["es2022", "chrome109", "firefox109", "safari16"],
   logLevel: "info",
@@ -22,7 +23,7 @@ await esbuild.build({
   entryPoints: [join(root, "src", "wallet-qr.mjs")],
   bundle: true,
   format: "iife",
-  outfile: join(root, "wallet-qr.js"),
+  outfile: join(site, "wallet-qr.js"),
   target: ["es2022", "chrome109", "firefox109", "safari16"],
   logLevel: "info",
 });
