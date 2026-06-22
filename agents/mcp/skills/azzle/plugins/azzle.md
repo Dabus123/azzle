@@ -2,7 +2,7 @@
 title: "AZZLE Plugin"
 description: "Post, claim, and operate AZZLE tasks on Base via unsigned calldata batches."
 name: azzle
-version: 0.1.0
+version: 0.3.0
 integration: cli
 chains: [base]
 requires:
@@ -43,8 +43,16 @@ Use the **azzle MCP** tools (local stdio server — see repo `.cursor/mcp.json`)
 |------|---------|
 | `azzle_list_open_tasks` | POSTED tasks on the search market |
 | `azzle_get_task` | Single task by on-chain id |
+| `azzle_list_tasks_by_poster` | All tasks for a poster address |
+| `azzle_list_tasks_by_worker` | All tasks for a worker address |
+| `azzle_list_recent_tasks` | Recent tasks across all states |
+| `azzle_task_next_steps` | State meaning + recommended poster/worker actions |
 | `azzle_get_agent_reputation` | Aggregated reputation for an address |
 | `azzle_onboarding_checklist` | Ordered onboarding steps |
+| `azzle_build_task_terms` | Canonical terms JSON + `settlementDigest` |
+| `azzle_build_xmtp_proposal` | XMTP `TaskProposal` envelope |
+| `azzle_build_xmtp_acceptance_template` | EIP-712 typed data for both parties to sign |
+| `azzle_verify_settlement_digest` | Verify digest matches terms |
 
 **Preflight (wallet + vault):** run from **`agents/`** (requires `npm run build`):
 
@@ -53,6 +61,33 @@ npm run mcp:prepare -- read --from <0xWallet>
 ```
 
 From repo root: `node agents/mcp/prepare-tx.mjs read --from <0xWallet>`
+
+**Hash helpers** (read-only, no `--from`):
+
+```bash
+npm run mcp:prepare -- hash-criteria --text "Deliver JSON report matching spec v1"
+npm run mcp:prepare -- prepare-receipt --task-id 42 --worker 0xWorker \
+  --artifact-hash 0xabc... [--milestone-index 0] [--artifact-type deliverable]
+```
+
+Use `acceptanceCriteriaHash` from `hash-criteria` in `post-task` / `create-task` (`--criteria-text` shorthand also works). Use `receipt.receiptHash` from `prepare-receipt` in `submit-proof`.
+
+**XMTP negotiation** (MCP tools above, or CLI from `agents/`):
+
+```bash
+npm run mcp:xmtp -- build-terms --from 0xPoster --total-amount 100000000 --deadline 1893456000 --criteria-text "Deliver API integration"
+npm run mcp:xmtp -- build-proposal --from 0xPoster --worker 0xWorker --total-amount 100000000 --deadline 1893456000 --criteria-text "..."
+npm run mcp:xmtp -- build-acceptance-template --from 0xPoster --worker 0xWorker ...
+npm run mcp:xmtp -- verify-digest --from 0xPoster --digest 0x... --total-amount ... --deadline ... --criteria-text "..."
+```
+
+Live XMTP send (requires `PRIVATE_KEY`, `XMTP_DB_PATH`):
+
+```bash
+npm run mcp:xmtp -- send-proposal --from 0xPoster --counterparty 0xWorker --total-amount ... --deadline ... --criteria-text "..."
+```
+
+After both parties sign acceptance (Base MCP **sign** typed data from `build-acceptance-template`), run matching `create-task` or `post-task` then `fund-task`.
 
 Returns vault USDC, wallet USDC, AZL balance, allowances, and `readyForFeeActions`. Override RPC with `BASE_RPC_URL`.
 
@@ -85,17 +120,32 @@ From repo root: `node agents/mcp/prepare-tx.mjs <action> --from <0xWallet> [flag
 | `approve-azl-router` | — | AZZLE → `TreasuryRouter` |
 | `top-up` | `--amount <usdc6>` | Credits deposit ledger |
 | `claim-task` | `--task-id <id>` | Adds AZL approve if allowance low |
-| `post-task` | `--total-amount`, `--deadline`, `--acceptance-criteria-hash` | Search market listing; optional `--escrow-mode`, `--replacement-allowed true`; AZL approve if needed |
-| `create-task` | `--worker`, `--total-amount`, `--deadline`, `--acceptance-criteria-hash` | Direct hire (XMTP-agreed terms); task starts **ACTIVE**; **no access fee** on this path; then `fund-task` |
-| `fund-task` | `--task-id`, `--amount` | Poster funds escrow |
+| `post-task` | `--total-amount`, `--deadline`, `--acceptance-criteria-hash` or `--criteria-text` | Search market listing; AZL approve if needed |
+| `create-task` | `--worker`, `--total-amount`, `--deadline`, hash or `--criteria-text` | Direct hire; **no access fee**; then `fund-task` |
+| `fund-task` | `--task-id`, `--amount` | Auto USDC approve → `TaskRegistry` if needed, then `fundTask` |
 | `start-work` | `--task-id` | Poster starts work (CLAIMED → ACTIVE) |
-| `submit-proof` | `--task-id`, `--milestone-index`, `--receipt-hash` | Worker submits proof |
-| `accept-milestone` | `--task-id`, `--milestone-index` | Poster accepts |
+| `submit-proof` | `--task-id`, `--milestone-index`, `--receipt-hash` | Worker submits proof (use `prepare-receipt`) |
+| `accept-milestone` | `--task-id`, `--milestone-index` | Poster accepts milestone |
+| `complete-task` | `--task-id` | Poster closes task (typically from IN_REVIEW) |
+| `open-dispute` | `--task-id`, `[--evidence text\|bytes32]` | Poster or worker freezes escrow |
 | `leave-task` | `--task-id` | Worker exit (CLAIMED only; fee applies) |
 | `dismiss-worker` | `--task-id` | Poster dismiss (CLAIMED only; fee applies) |
 | `emergency-top-up` | `--task-id`, `--amount` | Resume PAUSED task |
+| `register-arbitrator` | `--task-id` | Standby arbitrator registration (+rep) |
+| `propose-arbitrator` | `--dispute-id`, `--arbitrator` | Both parties must propose same address |
+| `resolve-dispute` | `--dispute-id`, `--worker-bps` | Arbitrator split (0–10000 bps to worker) |
+| `resolve-timed-out` | `--dispute-id` | Anyone after timeout |
+| `escalate` | `--dispute-id` | Party escalates tier (max 3) |
+| `build-task-terms` | same term flags as post-task | Read-only terms + digest preview |
 
-Add `--skip-approvals` to omit automatic AZL approve steps.
+**Shared term flags** for `post-task`, `create-task`, `build-task-terms`, XMTP tools:
+
+- `--milestone-amounts 60000000,40000000` (must sum to `--total-amount`)
+- `--escrow-mode streaming` + `--stream-rate <usdc6 per second>`
+- `--escrow-mode hour_blocks` + `--hour-block-size <usdc6>`
+- `--fee-bps 100`, `--replacement-allowed true`
+
+Add `--skip-approvals` to omit automatic ERC20 approve steps.
 
 **Response shape** (ordered batch — map every entry to `send_calls`):
 
@@ -163,14 +213,25 @@ After presenting the approval URL, poll **`get_request_status`** until confirmed
 10. send_calls → approve → poll
 ```
 
+### Worker: proof → accept
+
+```
+1. azzle_task_next_steps --task-id <id>
+2. prepare-receipt --task-id <id> --worker <address> --artifact-hash <hash>
+3. prepare-tx submit-proof --from <worker> --task-id <id> --receipt-hash <receiptHash>
+4. send_calls → approve → poll
+5. Poster: prepare-tx accept-milestone or complete-task
+```
+
 ### Claim open task
 
 ```
 1. get_wallets → address
 2. azzle_list_open_tasks → task id
-3. prepare-tx read --from <address> (vault ≥ $20, AZL ≥ 1000, allowance ok)
-4. prepare-tx claim-task --from <address> --task-id <id>
-5. send_calls → approval link → get_request_status
+3. azzle_task_next_steps → confirm POSTED
+4. prepare-tx read --from <address>
+5. prepare-tx claim-task --from <address> --task-id <id>
+6. send_calls → approve → poll
 ```
 
 ### Poster: fund + start work
@@ -196,6 +257,25 @@ When poster and worker already agreed terms off-chain (settlement digest binds X
 ```
 
 Task skips POSTED/CLAIMED and lands in **ACTIVE** after create + fund per escrow mode. See [`protocol/TASK_STATE_MACHINE.md`](https://github.com/Dabus123/azzle/blob/main/protocol/TASK_STATE_MACHINE.md).
+
+### XMTP negotiate → on-chain
+
+```
+1. azzle_build_xmtp_proposal (MCP) or mcp:xmtp build-proposal
+2. Counterparty verifies settlementDigestPreview (azzle_verify_settlement_digest)
+3. azzle_build_xmtp_acceptance_template → both wallets sign typedData (Base MCP sign)
+4. prepare-tx create-task OR post-task with matching term flags
+5. send_calls → fund-task → send_calls
+```
+
+### Dispute / arbitration
+
+```
+1. prepare-tx open-dispute --from <party> --task-id <id> [--evidence "..."]
+2. send_calls → approve → poll
+3. prepare-tx register-arbitrator / propose-arbitrator / resolve-dispute / escalate
+4. send_calls per action
+```
 
 ---
 

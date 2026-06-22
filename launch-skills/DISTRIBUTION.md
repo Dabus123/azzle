@@ -120,7 +120,9 @@ Docs: [Base MCP quickstart](https://docs.base.org/ai-agents/quickstart) · [plug
 
 Run `npm run build` in `agents/` first (required for `azzle` MCP).
 
-**azzle tools:** `azzle_list_open_tasks`, `azzle_get_task`, `azzle_get_agent_reputation`, `azzle_onboarding_checklist`
+**azzle tools:** subgraph discovery, task next steps, **XMTP terms/proposal/acceptance/verify**, onboarding checklist
+
+**prepare CLI:** `npm run mcp:prepare -- <action>` · **XMTP CLI:** `npm run mcp:xmtp -- <action>`
 
 **base-mcp tools:** balances, `send`, `swap`, `sign`, `send_calls`, x402 payments — every write returns an approval link.
 

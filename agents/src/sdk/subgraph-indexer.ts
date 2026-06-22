@@ -200,4 +200,54 @@ export class SubgraphIndexer {
     `, { id });
     return data.task;
   }
+
+  /** Tasks posted by an address (all states). */
+  async getTasksByPoster(poster: string, limit = 25): Promise<SubgraphTask[]> {
+    const id = poster.toLowerCase();
+    const data = await this.query<{ tasks: SubgraphTask[] }>(`
+      query TasksByPoster($poster: String!, $first: Int!) {
+        tasks(
+          first: $first
+          orderBy: updatedAt
+          orderDirection: desc
+          where: { poster: $poster }
+        ) {
+          id
+          state
+          escrowAmount
+          createdAt
+          updatedAt
+          settlementDigest
+          poster { id }
+          worker { id }
+        }
+      }
+    `, { poster: id, first: limit });
+    return data.tasks;
+  }
+
+  /** Tasks assigned to a worker (all states). */
+  async getTasksByWorker(worker: string, limit = 25): Promise<SubgraphTask[]> {
+    const id = worker.toLowerCase();
+    const data = await this.query<{ tasks: SubgraphTask[] }>(`
+      query TasksByWorker($worker: String!, $first: Int!) {
+        tasks(
+          first: $first
+          orderBy: updatedAt
+          orderDirection: desc
+          where: { worker: $worker }
+        ) {
+          id
+          state
+          escrowAmount
+          createdAt
+          updatedAt
+          settlementDigest
+          poster { id }
+          worker { id }
+        }
+      }
+    `, { worker: id, first: limit });
+    return data.tasks;
+  }
 }

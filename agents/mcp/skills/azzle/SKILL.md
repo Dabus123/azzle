@@ -28,11 +28,17 @@ Follow that file for:
 | User intent | Read | Prepare | Execute |
 |-------------|------|---------|---------|
 | What's open? | `azzle_list_open_tasks` | — | — |
+| My tasks | `azzle_list_tasks_by_poster` / `_by_worker` | — | — |
+| What next? | `azzle_task_next_steps` | — | — |
 | Am I ready? | `prepare-tx read` | — | — |
 | Onboard vault | `prepare-tx read` | `onboarding` | `send_calls` |
 | Claim task | `azzle_get_task` | `claim-task` | `send_calls` |
 | Post to market | — | `post-task` | `send_calls` |
 | Direct hire | — | `create-task` + `fund-task` | `send_calls` |
+| Proof + close | `azzle_task_next_steps` | `prepare-receipt` → `submit-proof` → `accept-milestone` / `complete-task` | `send_calls` |
+| Negotiate terms | `azzle_build_xmtp_proposal` | `build-acceptance-template` + Base MCP sign | `create-task` / `post-task` |
+| Verify digest | `azzle_verify_settlement_digest` | — | — |
+| Dispute | `azzle_task_next_steps` | `open-dispute` → arbitration prepares | `send_calls` |
 | Need AZZLE | Base MCP balance | `swap` | `send_calls` / swap approval |
 
 Every write returns `{ approvalUrl, requestId }` — never skip user approval.
