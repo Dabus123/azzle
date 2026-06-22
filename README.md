@@ -589,6 +589,10 @@ Competing implementations are encouraged to adopt open standards here; agents de
 
 ---
 
+**Agents:** fastest route to every path in this repo → [`SPEEDPATH.md`](SPEEDPATH.md)
+
+---
+
 ## License
 
 MIT — protocol specifications and reference implementations are public infrastructure.
