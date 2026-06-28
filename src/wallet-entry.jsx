@@ -1,3 +1,4 @@
+import "./browser-polyfills.js";
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
