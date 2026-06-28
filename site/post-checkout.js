@@ -405,8 +405,8 @@
       const quotaBlocked = currentQuota && !currentQuota.canPost;
 
       if (status.depositReady) {
-        setStepState("deposit", status.canPost ? "done" : "on");
-        setStepState("post", quotaBlocked ? null : status.canPost ? "on" : null);
+        setStepState("deposit", "done");
+        setStepState("post", quotaBlocked ? null : "on");
         if (quotaBlocked) {
           setCheckoutStatus(
             "Daily limit reached (" + quotaLine + "). Upgrade at /pricing.",
@@ -414,12 +414,14 @@
           );
         } else if (status.needsPostTopUp) {
           setCheckoutStatus(
-            "Protocol deposit is $" +
+            "$" +
               status.depositUsdc +
-              " — add $" +
+              " entry on file — listing debits $" +
               status.listingFeeUsdc +
-              " for the listing fee (entry on file). Top up on /wallet or below.",
-            "err"
+              " from your deposit (+ 1,000 AZL). Post will top up $" +
+              status.listingFeeUsdc +
+              " automatically if needed.",
+            undefined
           );
         } else if (status.canPost) {
           setCheckoutStatus(
@@ -435,10 +437,10 @@
         }
         if (depositBtn) {
           depositBtn.disabled = checkoutBusy;
-          depositBtn.textContent = status.needsPostTopUp ? "Add $5 USDC" : "Add USDC";
+          depositBtn.textContent = "Add USDC";
         }
         if (postBtn) {
-          postBtn.disabled = checkoutBusy || !status.canPost || quotaBlocked;
+          postBtn.disabled = checkoutBusy || quotaBlocked || (!status.canPost && !status.needsPostTopUp);
         }
       } else {
         setStepState("deposit", "on");
@@ -450,9 +452,9 @@
           );
         } else {
           setCheckoutStatus(
-            "One-time $20 USDC deposit on Base (wallet USDC: $" +
+            "One-time $20 USDC entry deposit on Base (wallet USDC: $" +
               status.usdcWallet +
-              "). " +
+              "). First listing also debits $5 from this deposit. " +
               (quotaLine || "Free: 3 posts/day."),
             undefined
           );

@@ -681,9 +681,8 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         throw new Error("Deposit $20 USDC first — /wallet");
       }
       if (status.needsPostTopUp) {
-        throw new Error(
-          "Add $5 USDC to your protocol deposit for the listing fee ($20 entry on file)."
-        );
+        onProgress?.("Topping up $5 USDC for listing fee…");
+        await this.depositToVault(5, onProgress);
       }
       if ((await publicClient.readContract({
         address: c.azlToken,

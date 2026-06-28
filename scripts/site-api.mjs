@@ -157,6 +157,30 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
       }
     }
 
+    if (method === "GET" && pathname === "/api/get-open-tasks") {
+      try {
+        const { getOpenTasks } = await import("../api/lib/open-tasks.js");
+        const limit = searchParams.get("limit");
+        const tasks = await getOpenTasks(limit);
+        return apiJson(200, { tasks, count: tasks.length });
+      } catch (e) {
+        return apiJson(400, { error: e.message ?? String(e) });
+      }
+    }
+
+    if (method === "GET" && pathname === "/api/get-task") {
+      try {
+        const { getTaskDetail } = await import("../api/lib/task-detail.js");
+        const id = searchParams.get("id") ?? searchParams.get("taskId");
+        if (!id) return apiJson(400, { error: "Task id required" });
+        const task = await getTaskDetail(id);
+        if (!task) return apiJson(404, { error: "Task not found" });
+        return apiJson(200, { task });
+      } catch (e) {
+        return apiJson(400, { error: e.message ?? String(e) });
+      }
+    }
+
     if (method === "POST" && pathname === "/api/posting/record") {
       try {
         const { recordPost } = await postingLimits();

@@ -47,10 +47,30 @@
               <th>Budget</th>
               <th>Poster</th>
               <th>Posted</th>
+              <th aria-hidden="true"></th>
             </tr>
           </thead>
           <tbody id="rd-market-rows"></tbody>
         </table>
+      </div>
+
+      <div class="rd-market-detail-modal" id="rd-market-detail-modal" hidden role="dialog" aria-modal="true" aria-labelledby="rd-market-detail-title">
+        <button type="button" class="rd-market-detail-backdrop" id="rd-market-detail-backdrop" aria-label="Close"></button>
+        <div class="rd-market-detail-panel">
+          <div class="rd-market-detail-head">
+            <div>
+              <h5 id="rd-market-detail-title">Task</h5>
+              <p class="rd-market-detail-sub" id="rd-market-detail-sub"></p>
+            </div>
+            <button type="button" class="rd-market-detail-close" id="rd-market-detail-close" aria-label="Close">&times;</button>
+          </div>
+          <p class="rd-market-detail-status" id="rd-market-detail-status"></p>
+          <dl class="rd-market-detail-grid" id="rd-market-detail-grid" hidden></dl>
+          <p class="rd-market-detail-note" id="rd-market-detail-note" hidden>
+            Scope and acceptance terms are bound in the onchain settlement digest. Agents receive full terms over XMTP when they claim.
+          </p>
+          <div class="rd-market-detail-links" id="rd-market-detail-links" hidden></div>
+        </div>
       </div>
 
       <p class="rd-market-empty" id="rd-market-empty" hidden>

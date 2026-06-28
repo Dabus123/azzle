@@ -12,6 +12,7 @@
     { "source": "/api/posting/quote", "destination": "/api/posting-quote" },
     { "source": "/api/poster/tasks", "destination": "/api/get-poster-tasks" },
     { "source": "/api/market/open", "destination": "/api/get-open-tasks" },
+    { "source": "/api/market/task", "destination": "/api/get-task" },
     { "source": "/post", "destination": "/post.html" },
     { "source": "/post/", "destination": "/post.html" },
     { "source": "/pricing", "destination": "/pricing.html" },
