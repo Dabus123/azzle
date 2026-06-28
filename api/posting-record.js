@@ -20,7 +20,13 @@ export default async function handler(req, res) {
       return;
     }
     const { recordPost } = await import("./lib/posting-limits.js");
-    const quota = await recordPost(body.address, { taskId: body.taskId, txHash: body.txHash });
+    const quota = await recordPost(body.address, {
+      taskId: body.taskId,
+      txHash: body.txHash,
+      description: body.description,
+      budgetUsdc: body.budgetUsdc,
+      deadlineDays: body.deadlineDays,
+    });
     sendJson(res, 200, quota);
   } catch (err) {
     const status = err.code === "QUOTA_EXCEEDED" ? 429 : 400;

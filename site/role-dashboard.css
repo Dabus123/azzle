@@ -1009,6 +1009,27 @@ body.rd-market-modal-open{overflow:hidden}
 }
 .rd-market-detail-status.busy{color:var(--accent)}
 .rd-market-detail-status.err{color:#c44}
+.rd-market-detail-scope{
+  margin:0 0 14px;
+  padding:12px 14px;
+  border:1px solid var(--b2);
+  background:var(--bg);
+}
+.rd-market-detail-scope h6{
+  margin:0 0 8px;
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--dim);
+}
+.rd-market-detail-scope p{
+  margin:0;
+  font-size:14px;
+  line-height:1.6;
+  color:var(--heading);
+  white-space:pre-wrap;
+}
 .rd-market-detail-grid{
   margin:0;
   display:grid;

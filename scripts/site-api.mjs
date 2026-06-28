@@ -181,12 +181,15 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
       }
     }
 
-    if (method === "POST" && pathname === "/api/posting/record") {
+    if (method === "POST" && (pathname === "/api/posting/record" || pathname === "/api/posting-record")) {
       try {
         const { recordPost } = await postingLimits();
         const quota = await recordPost(body.address, {
           taskId: body.taskId,
           txHash: body.txHash,
+          description: body.description,
+          budgetUsdc: body.budgetUsdc,
+          deadlineDays: body.deadlineDays,
         });
         return apiJson(200, quota);
       } catch (e) {

@@ -74,6 +74,9 @@ export async function handlePostingApi({ method, pathname, searchParams, body = 
       const quota = await recordPost(body.address, {
         taskId: body.taskId,
         txHash: body.txHash,
+        description: body.description,
+        budgetUsdc: body.budgetUsdc,
+        deadlineDays: body.deadlineDays,
       });
       return { status: 200, json: quota };
     } catch (e) {

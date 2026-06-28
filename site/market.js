@@ -111,6 +111,8 @@
 
   function renderDetail(task) {
     const grid = $("rd-market-detail-grid");
+    const scope = $("rd-market-detail-scope");
+    const scopeText = $("rd-market-detail-description");
     const note = $("rd-market-detail-note");
     const links = $("rd-market-detail-links");
     const title = $("rd-market-detail-title");
@@ -130,6 +132,16 @@
       status.className = "rd-market-detail-status";
     }
 
+    if (scope && scopeText) {
+      if (task.description) {
+        scopeText.textContent = task.description;
+        scope.hidden = false;
+      } else {
+        scopeText.textContent = "";
+        scope.hidden = true;
+      }
+    }
+
     const stateBadge =
       '<span class="rd-market-detail-badge rd-market-detail-badge--' +
       (task.claimable ? "open" : "other") +
@@ -146,6 +158,9 @@
         task.funded ? "Yes — full budget locked" : "Not yet — locks when poster funds"
       ) +
       detailRow("Deadline", escapeHtml(fmtDate(task.deadline))) +
+      (task.listingDeadlineDays
+        ? detailRow("Duration posted", escapeHtml(task.listingDeadlineDays + " days"))
+        : "") +
       detailRow("Posted", escapeHtml(fmtDate(task.createdAt) + " (" + fmtAgo(task.createdAt) + ")")) +
       (task.updatedAt
         ? detailRow("Updated", escapeHtml(fmtDate(task.updatedAt)))
@@ -155,7 +170,7 @@
       detailRow("Settlement digest", "<code>" + escapeHtml(fmtDigest(task.settlementDigest)) + "</code>");
 
     grid.hidden = false;
-    if (note) note.hidden = false;
+    if (note) note.hidden = !task.description;
 
     if (links) {
       links.innerHTML =
@@ -212,6 +227,7 @@
     syncUrl(openTaskId);
 
     if (grid) grid.hidden = true;
+    if ($("rd-market-detail-scope")) $("rd-market-detail-scope").hidden = true;
     if (note) note.hidden = true;
     if (links) links.hidden = true;
     setDetailStatus("Loading task #" + openTaskId + "…", "busy");

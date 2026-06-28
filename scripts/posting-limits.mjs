@@ -175,7 +175,7 @@ export async function getQuota(address) {
   return getQuotaForUser(user);
 }
 
-export async function recordPost(address, { taskId, txHash } = {}) {
+export async function recordPost(address, { taskId, txHash, description, budgetUsdc, deadlineDays } = {}) {
   const addr = normAddr(address);
   if (!addr) throw new Error("Wallet address required");
   const store = await loadStore();
@@ -197,6 +197,19 @@ export async function recordPost(address, { taskId, txHash } = {}) {
   };
   store.users[addr] = user;
   await saveStore(store);
+
+  if (taskId && description) {
+    const { saveTaskListing } = await import("../api/lib/task-listings.js");
+    await saveTaskListing({
+      taskId,
+      description,
+      budgetUsdc,
+      deadlineDays,
+      poster: addr,
+      txHash,
+    });
+  }
+
   return getQuotaForUser(user);
 }
 

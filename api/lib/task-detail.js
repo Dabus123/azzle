@@ -145,6 +145,14 @@ export async function getTaskDetail(taskIdRaw) {
     row.settlementDigest ??
     (chainRow.settlementDigest ? chainRow.settlementDigest : null);
 
+  let listing = null;
+  try {
+    const { getTaskListing } = await import("./task-listings.js");
+    listing = await getTaskListing(taskId);
+  } catch {
+    /* listing store optional */
+  }
+
   return {
     id: taskId,
     state,
@@ -158,6 +166,10 @@ export async function getTaskDetail(taskIdRaw) {
     poster,
     worker,
     settlementDigest: digest,
+    description: listing?.description ?? null,
+    listingBudgetUsdc: listing?.budgetUsdc ?? null,
+    listingDeadlineDays: listing?.deadlineDays ?? null,
+    listingSavedAt: listing?.savedAt ?? null,
     escrowMode: Number(chainRow.escrowMode),
     replacementAllowed: Boolean(chainRow.replacementAllowed),
     parentTaskId: chainRow.parentTaskId ? String(chainRow.parentTaskId) : "0",

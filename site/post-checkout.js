@@ -132,11 +132,18 @@
     return data;
   }
 
-  async function recordPostSuccess(address, taskId, txHash) {
+  async function recordPostSuccess(address, taskId, txHash, task) {
     const res = await fetch("/api/posting-record", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address, taskId, txHash }),
+      body: JSON.stringify({
+        address,
+        taskId,
+        txHash,
+        description: task?.description,
+        budgetUsdc: task?.budgetUsdc,
+        deadlineDays: task?.deadlineDays,
+      }),
     });
     const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(data.error || "Could not record post");
@@ -567,7 +574,7 @@
     onProgress?.("Confirm in your wallet…", "busy");
     try {
       const result = await api.postTask(task, (msg) => onProgress?.(msg, "busy"));
-      await recordPostSuccess(walletAddress, result.taskId, result.hash);
+      await recordPostSuccess(walletAddress, result.taskId, result.hash, task);
       localStorage.setItem(TASK_ID_KEY, result.taskId);
       onProgress?.(
         "Posted · task #" + result.taskId + ". Track it at /my-tasks.",
