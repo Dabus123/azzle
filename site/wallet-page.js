@@ -61,6 +61,23 @@
     if (withdrawInput && !withdrawInput.value) {
       withdrawInput.placeholder = "Max " + b.maxVaultWithdraw;
     }
+
+    const allowanceHint = $("rd-usdc-allowance-hint");
+    const approveBtn = $("rd-usdc-approve-btn");
+    if (allowanceHint) {
+      if (b.needsUsdcApprove) {
+        allowanceHint.textContent =
+          "Allowance: $" + b.usdcVaultAllowance + " — approve before depositing";
+      } else {
+        allowanceHint.textContent =
+          "Allowance: $" + b.usdcVaultAllowance + " — ready to deposit";
+      }
+    }
+    if (approveBtn) {
+      approveBtn.disabled = !b.needsUsdcApprove;
+      approveBtn.classList.toggle("rd-action--primary", !!b.needsUsdcApprove);
+      approveBtn.textContent = b.needsUsdcApprove ? "Approve USDC" : "Approved";
+    }
   }
 
   async function refresh() {
@@ -167,6 +184,10 @@
     $("rd-wallet-qr-backdrop")?.addEventListener("click", closeQrModal);
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !$("rd-wallet-qr-modal")?.hidden) closeQrModal();
+    });
+
+    $("rd-usdc-approve-btn")?.addEventListener("click", () => {
+      runAction((p, onProgress) => p.approveUsdcVault(onProgress));
     });
 
     $("rd-usdc-deposit-btn")?.addEventListener("click", () => {

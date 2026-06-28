@@ -436,17 +436,19 @@ export function createPosterApi({ ready, authenticated, wallet }) {
 
       const publicClient = getPublicClient(cfg);
       const eth = await publicClient.getBalance({ address });
-      const [usdc, azl, vault, maxW] = await publicClient.multicall({
+      const [usdc, azl, vault, maxW, usdcAllowVault] = await publicClient.multicall({
         contracts: [
           { address: c.usdc, abi: ERC20_ABI, functionName: "balanceOf", args: [address] },
           { address: c.azlToken, abi: ERC20_ABI, functionName: "balanceOf", args: [address] },
           { address: c.AgentDepositVault, abi: VAULT_ABI, functionName: "balanceOf", args: [address] },
           { address: c.TaskRegistry, abi: REGISTRY_ABI, functionName: "maxWithdrawableDeposit", args: [address] },
+          { address: c.usdc, abi: ERC20_ABI, functionName: "allowance", args: [address, c.AgentDepositVault] },
         ],
       });
 
       const vaultAmt = vault.result ?? 0n;
       const maxWithdrawAmt = maxW.result ?? 0n;
+      const usdcAllowance = usdcAllowVault.result ?? 0n;
 
       return {
         signedIn: true,
@@ -455,11 +457,47 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         eth: formatUnits(eth, 18),
         usdcWallet: formatUnits(usdc.result ?? 0n, 6),
         usdcVault: formatUnits(vaultAmt, 6),
+        usdcVaultAllowance: formatUnits(usdcAllowance, 6),
+        needsUsdcApprove: usdcAllowance < ENTRY_DEPOSIT,
         maxVaultWithdraw: formatUnits(maxWithdrawAmt, 6),
         azlWallet: formatUnits(azl.result ?? 0n, 18),
         entryDepositMin: formatUnits(ENTRY_DEPOSIT, 6),
         depositReady: vaultAmt >= ENTRY_DEPOSIT,
       };
+    },
+
+    async approveUsdcVault(onProgress) {
+      const cfg = await loadSiteConfig();
+      const c = cfg.contracts;
+      const walletClient = await getWalletClient(wallet, cfg);
+      const publicClient = getPublicClient(cfg);
+
+      const allowance = await publicClient.readContract({
+        address: c.usdc,
+        abi: ERC20_ABI,
+        functionName: "allowance",
+        args: [address, c.AgentDepositVault],
+      });
+      if (allowance >= ENTRY_DEPOSIT) {
+        throw new Error("USDC already approved for protocol deposit.");
+      }
+
+      const eth = await publicClient.getBalance({ address });
+      if (eth < MIN_ETH_WEI) {
+        throw new Error("Not enough ETH on Base for gas.");
+      }
+
+      onProgress?.("Approve USDC for protocol deposit…");
+      const receipt = await runTx("approveUsdc", async () => {
+        const hash = await walletClient.writeContract({
+          address: c.usdc,
+          abi: ERC20_ABI,
+          functionName: "approve",
+          args: [c.AgentDepositVault, parseUnits("1000000", 6)],
+        });
+        return publicClient.waitForTransactionReceipt({ hash });
+      }, onProgress);
+      return { hash: receipt.transactionHash };
     },
 
     async depositToVault(amountUsdc, onProgress) {
