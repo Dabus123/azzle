@@ -60,14 +60,15 @@
           <div class="rd-wallet-vault">
             <p class="rd-wallet-vault-label">Protocol deposit</p>
             <p class="rd-wallet-bal" id="rd-bal-usdc-vault">—</p>
-            <p class="rd-wallet-hint" id="rd-usdc-vault-hint">$20 minimum to post tasks</p>
+            <p class="rd-wallet-hint" id="rd-usdc-vault-hint">$20 entry · $8 in-task floor while live</p>
           </div>
           <div class="rd-wallet-forms">
             <div class="rd-wallet-form">
               <span>Approve USDC for protocol deposit</span>
               <p class="rd-wallet-hint" id="rd-usdc-allowance-hint">Allowance: —</p>
               <div class="rd-wallet-row">
-                <button type="button" class="rd-action rd-action--primary" id="rd-usdc-approve-btn">Approve USDC</button>
+                <input type="number" id="rd-usdc-approve-amt" min="1" step="1" value="50" inputmode="decimal" title="USDC amount the vault may pull from your wallet"/>
+                <button type="button" class="rd-action rd-action--primary" id="rd-usdc-approve-btn">Approve</button>
               </div>
             </div>
             <div class="rd-wallet-form">

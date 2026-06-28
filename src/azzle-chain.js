@@ -14,7 +14,10 @@ import {
 } from "viem";
 import { base } from "viem/chains";
 
-const ENTRY_DEPOSIT = 20_000_000n; // $20 USDC (6 decimals)
+const ENTRY_DEPOSIT = 20_000_000n; // $20 USDC entry minimum (6 decimals)
+const TASK_FLOOR_USDC = 8_000_000n; // $8 USDC in-task floor while live (6 decimals)
+const ACCESS_FEE_USDC = 5_000_000n; // $5 USDC listing/claim fee (6 decimals)
+const LISTING_DEPOSIT = ENTRY_DEPOSIT + ACCESS_FEE_USDC; // $20 entry + $5 fee at list/claim time
 const AZL_PER_ACTION = 1000n * 10n ** 18n;
 const MIN_ETH_WEI = 50_000_000_000_000n; // ~0.00005 ETH for gas buffer
 
@@ -36,6 +39,9 @@ function formatTxError(err) {
     lower.includes("rejected the request")
   ) {
     return "Transaction cancelled — nothing was charged.";
+  }
+  if (lower.includes("below min+fee")) {
+    return "Add $5 USDC to your protocol deposit for the listing fee ($20 entry on file).";
   }
   if (lower.includes("exceeds balance") || lower.includes("erc20: transfer amount")) {
     return "Not enough USDC in your wallet. You need $20 USDC on Base (plus a little ETH for gas).";
@@ -90,7 +96,7 @@ async function ensureUsdcAllowance(walletClient, publicClient, usdc, owner, spen
     address: usdc,
     abi: ERC20_ABI,
     functionName: "approve",
-    args: [spender, parseUnits("1000000", 6)],
+    args: [spender, needed],
   });
   await publicClient.waitForTransactionReceipt({ hash });
 }
@@ -411,6 +417,7 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       const deposit = depositBal.result ?? 0n;
       const usdc = usdcBal.result ?? 0n;
       const needsDeposit = deposit < ENTRY_DEPOSIT;
+      const needsPostTopUp = deposit >= ENTRY_DEPOSIT && deposit < LISTING_DEPOSIT;
       const needsUsdcApprove = (usdcAllowVault.result ?? 0n) < ENTRY_DEPOSIT;
       const needsAzlApprove = (azlAllowTreasury.result ?? 0n) < AZL_PER_ACTION;
 
@@ -421,11 +428,15 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         depositUsdc: formatUnits(deposit, 6),
         azlWallet: formatUnits(azlBal.result ?? 0n, 18),
         needsDeposit,
+        needsPostTopUp,
         needsUsdcApprove,
         needsAzlApprove,
         depositReady: !needsDeposit,
         canDeposit: usdc >= ENTRY_DEPOSIT,
-        canPost: !needsDeposit && (azlBal.result ?? 0n) >= AZL_PER_ACTION,
+        canPost:
+          deposit >= LISTING_DEPOSIT && (azlBal.result ?? 0n) >= AZL_PER_ACTION,
+        taskFloorMin: formatUnits(TASK_FLOOR_USDC, 6),
+        listingFeeUsdc: formatUnits(ACCESS_FEE_USDC, 6),
       };
     },
 
@@ -462,15 +473,21 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         maxVaultWithdraw: formatUnits(maxWithdrawAmt, 6),
         azlWallet: formatUnits(azl.result ?? 0n, 18),
         entryDepositMin: formatUnits(ENTRY_DEPOSIT, 6),
+        taskFloorMin: formatUnits(TASK_FLOOR_USDC, 6),
+        listingFeeUsdc: formatUnits(ACCESS_FEE_USDC, 6),
         depositReady: vaultAmt >= ENTRY_DEPOSIT,
+        canPost: vaultAmt >= LISTING_DEPOSIT,
+        needsPostTopUp: vaultAmt >= ENTRY_DEPOSIT && vaultAmt < LISTING_DEPOSIT,
       };
     },
 
-    async approveUsdcVault(onProgress) {
+    async approveUsdcVault(amountUsdc, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
       const walletClient = await getWalletClient(wallet, cfg);
       const publicClient = getPublicClient(cfg);
+      const amount = parseUnits(String(amountUsdc), 6);
+      if (amount <= 0n) throw new Error("Enter a valid USDC amount");
 
       const allowance = await publicClient.readContract({
         address: c.usdc,
@@ -478,8 +495,12 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         functionName: "allowance",
         args: [address, c.AgentDepositVault],
       });
-      if (allowance >= ENTRY_DEPOSIT) {
-        throw new Error("USDC already approved for protocol deposit.");
+      if (allowance >= amount) {
+        throw new Error(
+          "Already approved for $" +
+            formatUnits(allowance, 6) +
+            " — enter a higher amount to increase allowance."
+        );
       }
 
       const eth = await publicClient.getBalance({ address });
@@ -487,13 +508,13 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         throw new Error("Not enough ETH on Base for gas.");
       }
 
-      onProgress?.("Approve USDC for protocol deposit…");
+      onProgress?.("Approve $" + amountUsdc + " USDC for protocol deposit…");
       const receipt = await runTx("approveUsdc", async () => {
         const hash = await walletClient.writeContract({
           address: c.usdc,
           abi: ERC20_ABI,
           functionName: "approve",
-          args: [c.AgentDepositVault, parseUnits("1000000", 6)],
+          args: [c.AgentDepositVault, amount],
         });
         return publicClient.waitForTransactionReceipt({ hash });
       }, onProgress);
@@ -640,6 +661,9 @@ export function createPosterApi({ ready, authenticated, wallet }) {
 
     async deposit(onProgress) {
       const status = await this.getStatus();
+      if (status.needsPostTopUp) {
+        return this.depositToVault(5, onProgress);
+      }
       if (status.depositReady) {
         return { hash: null, alreadyDeposited: true };
       }
@@ -654,7 +678,12 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       const status = await this.getStatus();
 
       if (status.needsDeposit) {
-        throw new Error("Deposit $20 USDC first");
+        throw new Error("Deposit $20 USDC first — /wallet");
+      }
+      if (status.needsPostTopUp) {
+        throw new Error(
+          "Add $5 USDC to your protocol deposit for the listing fee ($20 entry on file)."
+        );
       }
       if ((await publicClient.readContract({
         address: c.azlToken,

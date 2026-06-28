@@ -405,14 +405,23 @@
       const quotaBlocked = currentQuota && !currentQuota.canPost;
 
       if (status.depositReady) {
-        setStepState("deposit", "done");
-        setStepState("post", quotaBlocked ? null : "on");
+        setStepState("deposit", status.canPost ? "done" : "on");
+        setStepState("post", quotaBlocked ? null : status.canPost ? "on" : null);
         if (quotaBlocked) {
           setCheckoutStatus(
             "Daily limit reached (" + quotaLine + "). Upgrade at /pricing.",
             "err"
           );
-        } else {
+        } else if (status.needsPostTopUp) {
+          setCheckoutStatus(
+            "Protocol deposit is $" +
+              status.depositUsdc +
+              " — add $" +
+              status.listingFeeUsdc +
+              " for the listing fee (entry on file). Top up on /wallet or below.",
+            "err"
+          );
+        } else if (status.canPost) {
           setCheckoutStatus(
             "Deposit on file ($" +
               status.depositUsdc +
@@ -421,16 +430,15 @@
               " · listing uses $5 + 1,000 AZL.",
             "ok"
           );
+        } else {
+          setCheckoutStatus("You need at least 1,000 AZL in your wallet to list a task.", "err");
         }
         if (depositBtn) {
           depositBtn.disabled = checkoutBusy;
-          depositBtn.textContent = "Add $20 USDC";
+          depositBtn.textContent = status.needsPostTopUp ? "Add $5 USDC" : "Add USDC";
         }
         if (postBtn) {
           postBtn.disabled = checkoutBusy || !status.canPost || quotaBlocked;
-          if (!status.canPost && !quotaBlocked) {
-            setCheckoutStatus("You need at least 1,000 AZL in your wallet to list a task.", "err");
-          }
         }
       } else {
         setStepState("deposit", "on");
@@ -499,7 +507,7 @@
       if (result?.alreadyDeposited) {
         onProgress?.("Deposit already on file — you're ready to post.", "ok");
       } else {
-        onProgress?.("$20 USDC deposited. You can post now.", "ok");
+        onProgress?.("USDC deposited.", "ok");
       }
       await refreshCheckout();
       return { ok: true };

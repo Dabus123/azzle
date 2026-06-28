@@ -40,6 +40,11 @@
     return v.toLocaleString(undefined, { maximumFractionDigits: 6 }) + " ETH";
   }
 
+  function requestedApproveAmount() {
+    const v = parseFloat($("rd-usdc-approve-amt")?.value ?? "0");
+    return Number.isFinite(v) && v > 0 ? v : 50;
+  }
+
   function renderBalances(b) {
     balances = b;
     $("rd-bal-usdc-wallet").textContent = fmtUsdc(b.usdcWallet);
@@ -49,11 +54,25 @@
 
     const hint = $("rd-usdc-vault-hint");
     if (hint) {
-      if (b.depositReady) {
-        hint.textContent = "Ready to post · max withdraw $" + b.maxVaultWithdraw;
+      const floor = "$" + b.taskFloorMin + " in-task floor while live";
+      if (b.canPost) {
+        hint.textContent = "Ready to list · " + floor + " · max withdraw $" + b.maxVaultWithdraw;
+      } else if (b.needsPostTopUp) {
+        hint.textContent =
+          "Add $" +
+          b.listingFeeUsdc +
+          " for listing fee · " +
+          floor +
+          " · max withdraw $" +
+          b.maxVaultWithdraw;
       } else {
         hint.textContent =
-          "Deposit at least $" + b.entryDepositMin + " to post · max withdraw $" + b.maxVaultWithdraw;
+          "Deposit $" +
+          b.entryDepositMin +
+          " entry minimum · " +
+          floor +
+          " · max withdraw $" +
+          b.maxVaultWithdraw;
       }
     }
 
@@ -62,21 +81,23 @@
       withdrawInput.placeholder = "Max " + b.maxVaultWithdraw;
     }
 
+    const reqApprove = requestedApproveAmount();
+    const allowance = parseFloat(b.usdcVaultAllowance);
+    const needsMoreAllowance = !Number.isFinite(allowance) || allowance < reqApprove;
     const allowanceHint = $("rd-usdc-allowance-hint");
     const approveBtn = $("rd-usdc-approve-btn");
     if (allowanceHint) {
-      if (b.needsUsdcApprove) {
-        allowanceHint.textContent =
-          "Allowance: $" + b.usdcVaultAllowance + " — approve before depositing";
-      } else {
-        allowanceHint.textContent =
-          "Allowance: $" + b.usdcVaultAllowance + " — ready to deposit";
-      }
+      allowanceHint.textContent =
+        "Allowance: $" +
+        b.usdcVaultAllowance +
+        (needsMoreAllowance
+          ? " — approve at least $" + reqApprove
+          : " — enough for $" + reqApprove);
     }
     if (approveBtn) {
-      approveBtn.disabled = !b.needsUsdcApprove;
-      approveBtn.classList.toggle("rd-action--primary", !!b.needsUsdcApprove);
-      approveBtn.textContent = b.needsUsdcApprove ? "Approve USDC" : "Approved";
+      approveBtn.disabled = !needsMoreAllowance;
+      approveBtn.classList.toggle("rd-action--primary", needsMoreAllowance);
+      approveBtn.textContent = needsMoreAllowance ? "Approve" : "Approved";
     }
   }
 
@@ -186,8 +207,13 @@
       if (e.key === "Escape" && !$("rd-wallet-qr-modal")?.hidden) closeQrModal();
     });
 
+    $("rd-usdc-approve-amt")?.addEventListener("input", () => {
+      if (balances) renderBalances(balances);
+    });
+
     $("rd-usdc-approve-btn")?.addEventListener("click", () => {
-      runAction((p, onProgress) => p.approveUsdcVault(onProgress));
+      const amt = requestedApproveAmount();
+      runAction((p, onProgress) => p.approveUsdcVault(amt, onProgress));
     });
 
     $("rd-usdc-deposit-btn")?.addEventListener("click", () => {
