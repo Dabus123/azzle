@@ -70,7 +70,7 @@ Compared against Solidity events in `contracts/src/` (2026-06-13).
 | TreasuryRouter | `NativeFeeCollected` | Slash sink invisible |
 | TreasuryRouter | `FeeRecipientUpdated` | Admin config only |
 
-**Agent guidance:** Treat subgraph as discovery + partial state. For pause/delete, dispute consent, tier escalation, and platform blocks — poll RPC or run a supplemental indexer until gaps close. See [`PAUSE_RECOVERY.md`](PAUSE_RECOVERY.md).
+**Agent guidance:** Treat subgraph as discovery + partial state. Task **scope text** for open listings lives on `TaskScopeRegistry` (RPC `scopeOf`) — not in subgraph entities. See [`protocol/TASK_DISCOVERY.md`](../protocol/TASK_DISCOVERY.md). For pause/delete, dispute consent, tier escalation, and platform blocks — poll RPC or run a supplemental indexer until gaps close. See [`PAUSE_RECOVERY.md`](PAUSE_RECOVERY.md).
 
 ## Events
 
@@ -78,6 +78,7 @@ Compared against Solidity events in `contracts/src/` (2026-06-13).
 
 ```
 TaskPosted(taskId, poster, settlementDigest)
+TaskScopeSet(taskId, poster, scopeHash)   // TaskScopeRegistry — index for open-discovery hints
 TaskClaimed(taskId, worker)
 TaskCreated(taskId, poster, worker, settlementDigest)
 WorkerDismissed(taskId, worker)

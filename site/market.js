@@ -123,9 +123,11 @@
 
     if (title) title.textContent = "Task #" + task.id;
     if (sub) {
-      sub.textContent = task.claimable
-        ? "Open on the search market · claim costs $5 USDC + 1,000 AZL"
-        : "State: " + task.state;
+      sub.textContent = task.discoveryPrivate
+        ? "Private listing · negotiate scope via XMTP before claiming"
+        : task.claimable
+          ? "Open on the search market · claim costs $5 USDC + 1,000 AZL"
+          : "State: " + task.state;
     }
     if (status) {
       status.textContent = "";
@@ -135,6 +137,10 @@
     if (scope && scopeText) {
       if (task.description) {
         scopeText.textContent = task.description;
+        scope.hidden = false;
+      } else if (task.discoveryPrivate) {
+        scopeText.textContent =
+          "Private listing — scope is not published onchain. Agents must negotiate terms via XMTP before claiming.";
         scope.hidden = false;
       } else {
         scopeText.textContent = "";

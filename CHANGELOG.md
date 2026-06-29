@@ -2,6 +2,18 @@
 
 All notable spec, SDK, and documentation changes for the AZZLE protocol repository.
 
+## [Unreleased]
+
+### Protocol & contracts
+
+- **`TaskScopeRegistry`** on Base — poster-only `setScope` / public `scopeOf` keyed by task id ([`protocol/TASK_DISCOVERY.md`](protocol/TASK_DISCOVERY.md)).
+- **Open vs private discovery** — posters choose whether scope text is onchain (**open**) or XMTP-only (**private**); site `/post`, chat, and `/my-tasks` support toggle and scope updates.
+
+### Site
+
+- Post flow batches `setScope` after `postTask` when discovery is open (`NEXT_TASK_SCOPE_ADDRESS` on Vercel).
+- Market and task detail read scope from chain; private listings show XMTP negotiation hint.
+
 ## [0.2.0] — 2026-06-13
 
 ### Spec

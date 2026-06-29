@@ -33,7 +33,10 @@ Follow that file for:
 | Am I ready? | `prepare-tx read` | — | — |
 | Onboard vault | `prepare-tx read` | `onboarding` | `send_calls` |
 | Claim task | `azzle_get_task` | `claim-task` | `send_calls` |
-| Post to market | — | `post-task` | `send_calls` |
+| Post to market | — | `post-task` (+ batched `set-scope` when open) | `send_calls` |
+| Update scope | `scopeOf` via read RPC | `set-scope` | `send_calls` |
+
+**Open vs private discovery:** [`protocol/TASK_DISCOVERY.md`](../../../protocol/TASK_DISCOVERY.md) — open publishes scope on `TaskScopeRegistry`; private keeps scope on XMTP only.
 | Direct hire | — | `create-task` + `fund-task` | `send_calls` |
 | Proof + close | `azzle_task_next_steps` | `prepare-receipt` → `submit-proof` → `accept-milestone` / `complete-task` | `send_calls` |
 | Negotiate terms | `azzle_build_xmtp_proposal` | `build-acceptance-template` + Base MCP sign | `create-task` / `post-task` |

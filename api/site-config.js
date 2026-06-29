@@ -13,6 +13,7 @@ const MANIFEST = {
   TaskRegistry: "0x0a47c3a2d515ec3a23f225a7bac1b0a1654e4d48",
   TreasuryRouter: "0x6bEBf56a67c8B38cB4d8FF328252FbE9662201b6",
   AgentDepositVault: "0x62808379CbDEfe7E8b2FcD659158E49463c34e5D",
+  TaskScopeRegistry: "0x6D6074b5eff00f549fD9329Cd1F280F2558Ce6b0",
 };
 
 const PLANS = [
@@ -45,6 +46,8 @@ export default function handler(req, res) {
   }
 
   const billingWallet = process.env.AZZLE_BILLING_WALLET || MANIFEST.feeRecipient || "";
+  const taskScopeRegistry =
+    process.env.NEXT_TASK_SCOPE_ADDRESS?.trim() || MANIFEST.TaskScopeRegistry || null;
 
   sendJson(res, 200, {
     privyAppId: process.env.PRIVY_APP_ID || "",
@@ -59,6 +62,7 @@ export default function handler(req, res) {
       AgentDepositVault: MANIFEST.AgentDepositVault,
       TreasuryRouter: MANIFEST.TreasuryRouter,
       EscrowVault: MANIFEST.EscrowVault,
+      TaskScopeRegistry: taskScopeRegistry,
     },
     billingWallet: billingWallet || null,
     postingPlans: PLANS,

@@ -201,7 +201,7 @@ export function formatOpenTasksForAgent(tasks: SubgraphTask[]): string {
     return "No POSTED tasks on the search market. Check again later or post work via postTask.";
   }
   const lines = tasks.map((t) => formatTaskLine(t));
-  return `${tasks.length} open task(s):\n${lines.join("\n")}`;
+  return `${tasks.length} open task(s) — read scope via TaskScopeRegistry.scopeOf(id); empty scope → private listing (XMTP):\n${lines.join("\n")}`;
 }
 
 export function formatTaskLine(t: SubgraphTask): string {

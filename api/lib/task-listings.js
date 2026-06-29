@@ -89,6 +89,7 @@ export async function saveTaskListing(input) {
         : null,
     poster: input.poster ? String(input.poster).trim().toLowerCase() : null,
     txHash: input.txHash ? String(input.txHash).trim() : null,
+    discoveryOpen: input.discoveryOpen !== false,
     savedAt: new Date().toISOString(),
   };
 

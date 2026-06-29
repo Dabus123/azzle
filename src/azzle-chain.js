@@ -3,9 +3,11 @@ import {
   createWalletClient,
   custom,
   encodeAbiParameters,
+  encodeFunctionData,
   formatUnits,
   http,
   keccak256,
+  numberToHex,
   parseEventLogs,
   parseUnits,
   stringToBytes,
@@ -167,6 +169,13 @@ const VAULT_ABI = [
 const REGISTRY_ABI = [
   {
     type: "function",
+    name: "taskCount",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
     name: "postTask",
     stateMutability: "nonpayable",
     inputs: [
@@ -271,6 +280,33 @@ const ESCROW_ABI = [
   },
 ];
 
+const SCOPE_REGISTRY_ABI = [
+  {
+    type: "function",
+    name: "setScope",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "taskId", type: "uint256" },
+      { name: "scope", type: "string" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "scopeOf",
+    stateMutability: "view",
+    inputs: [{ name: "taskId", type: "uint256" }],
+    outputs: [{ type: "string" }],
+  },
+  {
+    type: "function",
+    name: "MAX_SCOPE_BYTES",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+];
+
 const TASK_STATE = [
   "DRAFT",
   "POSTED",
@@ -333,6 +369,104 @@ export function buildSettlementDigest(terms) {
 
 function scopeHash(description) {
   return keccak256(stringToBytes(description.trim()));
+}
+
+async function readOnchainScope(publicClient, scopeRegistry, taskId) {
+  if (!scopeRegistry) return null;
+  try {
+    const scope = await publicClient.readContract({
+      address: scopeRegistry,
+      abi: SCOPE_REGISTRY_ABI,
+      functionName: "scopeOf",
+      args: [BigInt(taskId)],
+    });
+    const text = String(scope ?? "").trim();
+    return text || null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeSetScope(walletClient, publicClient, scopeRegistry, taskId, scope, onProgress) {
+  onProgress?.("Publishing scope onchain…");
+  const receipt = await runTx("setScope", async () => {
+    const hash = await walletClient.writeContract({
+      address: scopeRegistry,
+      abi: SCOPE_REGISTRY_ABI,
+      functionName: "setScope",
+      args: [BigInt(taskId), scope.trim()],
+    });
+    return publicClient.waitForTransactionReceipt({ hash });
+  }, onProgress);
+  return receipt;
+}
+
+/** Batch setScope immediately after postTask when wallet supports wallet_sendCalls. */
+async function tryPostWithOpenScopeBatch(wallet, walletClient, publicClient, cfg, postArgs, scope, onProgress) {
+  const c = cfg.contracts;
+  if (!c.TaskScopeRegistry) return null;
+
+  const taskCount = await publicClient.readContract({
+    address: c.TaskRegistry,
+    abi: REGISTRY_ABI,
+    functionName: "taskCount",
+  });
+  const nextTaskId = taskCount + 1n;
+
+  const postData = encodeFunctionData({
+    abi: REGISTRY_ABI,
+    functionName: "postTask",
+    args: postArgs,
+  });
+  const scopeData = encodeFunctionData({
+    abi: SCOPE_REGISTRY_ABI,
+    functionName: "setScope",
+    args: [nextTaskId, scope.trim()],
+  });
+
+  const provider = await wallet.getEthereumProvider();
+  const chainId = numberToHex(cfg.chainId ?? base.id);
+  const from = wallet.address;
+
+  try {
+    onProgress?.("Posting task + publishing scope (batched)…");
+    const result = await provider.request({
+      method: "wallet_sendCalls",
+      params: [
+        {
+          version: "2.0.0",
+          chainId,
+          from,
+          calls: [
+            { to: c.TaskRegistry, data: postData, value: "0x0" },
+            { to: c.TaskScopeRegistry, data: scopeData, value: "0x0" },
+          ],
+        },
+      ],
+    });
+
+    const batchId = typeof result === "string" ? result : result?.id;
+    if (!batchId) return null;
+
+    let status = null;
+    for (let i = 0; i < 40; i++) {
+      status = await provider.request({
+        method: "wallet_getCallsStatus",
+        params: [batchId],
+      });
+      if (status?.status === 200 || status?.status === "CONFIRMED") break;
+      if (status?.status === 500 || status?.status === "FAILED") {
+        throw new Error("Batched post failed onchain");
+      }
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+
+    const receipts = status?.receipts ?? [];
+    const txHash = receipts[0]?.transactionHash ?? status?.transactionHash ?? null;
+    return { taskId: nextTaskId.toString(), hash: txHash, scopePublished: true, batched: true };
+  } catch {
+    return null;
+  }
 }
 
 async function getWalletClient(wallet, cfg) {
@@ -670,12 +804,13 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       return this.depositToVault(Number(formatUnits(ENTRY_DEPOSIT, 6)), onProgress);
     },
 
-    async postTask({ description, budgetUsdc, deadlineDays }, onProgress) {
+    async postTask({ description, budgetUsdc, deadlineDays, discoveryOpen = true }, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
       const walletClient = await getWalletClient(wallet, cfg);
       const publicClient = getPublicClient(cfg);
       const status = await this.getStatus();
+      const openDiscovery = discoveryOpen !== false;
 
       if (status.needsDeposit) {
         throw new Error("Deposit $20 USDC first — /wallet");
@@ -722,19 +857,79 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         feeBps: 100,
       });
 
+      const postArgs = [c.usdc, totalAmount, 1, digest, deadline, [totalAmount], 0n, 0n];
+
+      if (openDiscovery && c.TaskScopeRegistry) {
+        const batched = await tryPostWithOpenScopeBatch(
+          wallet,
+          walletClient,
+          publicClient,
+          cfg,
+          postArgs,
+          description,
+          onProgress
+        );
+        if (batched) return batched;
+      }
+
       onProgress?.("Posting to the market…");
       const receipt = await runTx("postTask", async () => {
         const hash = await walletClient.writeContract({
           address: c.TaskRegistry,
           abi: REGISTRY_ABI,
           functionName: "postTask",
-          args: [c.usdc, totalAmount, 1, digest, deadline, [totalAmount], 0n, 0n],
+          args: postArgs,
         });
         return publicClient.waitForTransactionReceipt({ hash });
       }, onProgress);
       const taskId = taskIdFromReceipt(receipt, c.TaskRegistry);
 
-      return { taskId: taskId.toString(), hash: receipt.transactionHash };
+      if (openDiscovery && c.TaskScopeRegistry) {
+        await writeSetScope(
+          walletClient,
+          publicClient,
+          c.TaskScopeRegistry,
+          taskId,
+          description,
+          onProgress
+        );
+        return {
+          taskId: taskId.toString(),
+          hash: receipt.transactionHash,
+          scopePublished: true,
+          batched: false,
+        };
+      }
+
+      return {
+        taskId: taskId.toString(),
+        hash: receipt.transactionHash,
+        scopePublished: false,
+        discoveryOpen: false,
+      };
+    },
+
+    async setTaskScope(taskId, scope, onProgress) {
+      const cfg = await loadSiteConfig();
+      const c = cfg.contracts;
+      if (!c.TaskScopeRegistry) {
+        throw new Error("Task scope registry not configured");
+      }
+      const text = String(scope ?? "").trim();
+      if (!text) throw new Error("Scope cannot be empty");
+      if (text.length > 8192) throw new Error("Scope too long (max 8192 bytes)");
+
+      const walletClient = await getWalletClient(wallet, cfg);
+      const publicClient = getPublicClient(cfg);
+      const receipt = await writeSetScope(
+        walletClient,
+        publicClient,
+        c.TaskScopeRegistry,
+        taskId,
+        text,
+        onProgress
+      );
+      return { hash: receipt.transactionHash };
     },
 
     async payUpgrade(tierId, options, onProgress) {
@@ -867,6 +1062,7 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       const stateName = TASK_STATE[Number(row.state)] ?? "UNKNOWN";
       const totalAmount = row.totalAmount;
       const lockedBal = locked.result ?? 0n;
+      const scope = await readOnchainScope(publicClient, c.TaskScopeRegistry, taskId);
       return {
         taskId: String(taskId),
         state: stateName,
@@ -875,6 +1071,8 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         lockedUsdc: formatUnits(lockedBal, 6),
         funded: lockedBal >= totalAmount && totalAmount > 0n,
         deadline: Number(row.deadline),
+        scope,
+        discoveryOpen: Boolean(scope),
       };
     },
 

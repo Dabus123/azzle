@@ -44,7 +44,7 @@ Direct hire (`createTask`) skips `POSTED`/`CLAIMED` and starts at **ACTIVE**.
 
 | State | Onchain | Description |
 |-------|----------|-------------|
-| `POSTED` | Yes | Search listing; no worker |
+| `POSTED` | Yes | Search listing; no worker — scope may be **open** (`TaskScopeRegistry`) or **private** (XMTP); see [`TASK_DISCOVERY.md`](TASK_DISCOVERY.md) |
 | `CLAIMED` | Yes | Worker assigned; work not started |
 | `ACTIVE` | Yes | Escrow funded, work in progress |
 | `IN_REVIEW` | Yes | Proof submitted, acceptance window open |

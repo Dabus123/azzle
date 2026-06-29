@@ -7,6 +7,7 @@ EVM primitives for autonomous labor coordination on Base mainnet.
 | Contract | Purpose |
 |----------|---------|
 | `TaskRegistry` | Task state machine, search market, proof submission, balance health |
+| `TaskScopeRegistry` | Poster-only onchain scope text for **open discovery** ([`../protocol/TASK_DISCOVERY.md`](../protocol/TASK_DISCOVERY.md)) |
 | `EscrowVault` | Registry-gated escrow (milestone, streaming, hour-block) + dispute freeze |
 | `AgentDepositVault` | USDC agent ledger, access-fee debits, pause enforcement |
 | `ArbitrationModule` | Mutual-consent disputes, tiered arbitration, timeout fallback |

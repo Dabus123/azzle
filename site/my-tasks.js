@@ -4,6 +4,7 @@
   let walletAddress = null;
   let busy = false;
   let refreshTimer = null;
+  const taskDetails = new Map();
 
   const $ = (id) => document.getElementById(id);
 
@@ -37,6 +38,14 @@
       day: "numeric",
       year: "numeric",
     });
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
   function stateMeta(state) {
@@ -88,6 +97,61 @@
     const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(data.error || "Could not load tasks");
     return data.tasks ?? [];
+  }
+
+  async function fetchTaskDetail(taskId) {
+    const res = await fetch("/api/get-task?id=" + encodeURIComponent(taskId), {
+      cache: "no-store",
+    });
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(data.error || "Could not load task");
+    return data.task;
+  }
+
+  function discoveryBadge(detail) {
+    if (detail?.discoveryOpen) {
+      return '<span class="rd-mytasks-discovery rd-mytasks-discovery--open">Open discovery</span>';
+    }
+    if (detail?.discoveryPrivate) {
+      return '<span class="rd-mytasks-discovery rd-mytasks-discovery--private">Private</span>';
+    }
+    if (detail?.description) {
+      return '<span class="rd-mytasks-discovery rd-mytasks-discovery--legacy">Legacy listing</span>';
+    }
+    return '<span class="rd-mytasks-discovery rd-mytasks-discovery--private">Private</span>';
+  }
+
+  function scopeSection(task, detail) {
+    const scope = detail?.description ?? "";
+    const isOpen = Boolean(detail?.discoveryOpen);
+    const isPrivate = Boolean(detail?.discoveryPrivate) && !isOpen;
+
+    let hint = "";
+    if (isPrivate) {
+      hint =
+        '<p class="rd-mytasks-scope-hint">Scope is not public. Share full terms via XMTP. Updating below publishes scope onchain (open discovery).</p>';
+    } else if (isOpen) {
+      hint =
+        '<p class="rd-mytasks-scope-hint">Scope is onchain — agents and the market can read it. Only you can update it.</p>';
+    }
+
+    return (
+      '<div class="rd-mytasks-scope">' +
+      '<label class="rd-mytasks-scope-label">Task scope</label>' +
+      discoveryBadge(detail) +
+      hint +
+      '<textarea class="rd-mytasks-scope-input" rows="4" data-id="' +
+      task.id +
+      '" placeholder="Describe what agents should deliver…">' +
+      escapeHtml(scope) +
+      "</textarea>" +
+      '<button type="button" class="rd-action rd-mytasks-btn rd-mytasks-scope-save" data-action="scope" data-id="' +
+      task.id +
+      '">' +
+      (isOpen ? "Update scope onchain" : "Publish scope onchain") +
+      "</button>" +
+      "</div>"
+    );
   }
 
   function actionButtons(task, detail) {
@@ -167,6 +231,7 @@
       "</span>" +
       (worker ? "<span>Agent " + shortAddr(worker) + "</span>" : "<span>No agent yet</span>") +
       "</div>" +
+      scopeSection(task, detail) +
       (meta.hint ? '<p class="rd-mytasks-hint">' + meta.hint + "</p>" : "") +
       '<p class="rd-mytasks-card-status" id="rd-mytasks-card-status-' +
       task.id +
@@ -178,7 +243,10 @@
 
   async function enrichTask(api, task) {
     try {
-      return await api.getTaskDetail(task.id);
+      const detail = await fetchTaskDetail(task.id);
+      taskDetails.set(task.id, detail);
+      const chain = api?.ready ? await api.getTaskDetail(task.id) : null;
+      return { ...detail, ...(chain ?? {}) };
     } catch {
       return null;
     }
@@ -199,13 +267,9 @@
     list.hidden = false;
 
     const api = posterApi();
-    const details = api?.ready && walletAddress
-      ? await Promise.all(tasks.map((t) => enrichTask(api, t)))
-      : tasks.map(() => null);
+    const details = await Promise.all(tasks.map((t) => enrichTask(api, t)));
 
-    list.innerHTML = tasks
-      .map((t, i) => renderTaskCard(t, details[i]))
-      .join("");
+    list.innerHTML = tasks.map((t, i) => renderTaskCard(t, details[i])).join("");
 
     list.querySelectorAll(".rd-mytasks-btn").forEach((btn) => {
       btn.addEventListener("click", () => handleAction(btn));
@@ -238,7 +302,19 @@
     busy = true;
     setStatus("Confirm in your wallet…", "busy");
     try {
-      if (action === "fund") {
+      if (action === "scope") {
+        const textarea = card?.querySelector(".rd-mytasks-scope-input");
+        const scope = (textarea?.value ?? "").trim();
+        if (!scope) throw new Error("Scope cannot be empty");
+        const detail = taskDetails.get(taskId);
+        if (detail?.discoveryPrivate && !window.confirm(
+          "Publish scope onchain? Agents and the market will be able to read it."
+        )) {
+          throw new Error("Cancelled");
+        }
+        await api.setTaskScope(taskId, scope, progress);
+        progress("Scope updated onchain.", "ok");
+      } else if (action === "fund") {
         await api.fundEscrow(taskId, budget, progress);
         progress("Escrow funded.", "ok");
       } else if (action === "fund-start") {

@@ -31,7 +31,7 @@ DISCOVER → QUALIFY → NEGOTIATE → ACCEPT → EXECUTE → PROVE → PAID|ARB
 
 | Phase | Actions |
 |-------|---------|
-| DISCOVER | Query indexers filtered by capability match |
+| DISCOVER | Query indexers; read `TaskScopeRegistry.scopeOf(taskId)` when open — else XMTP ([`TASK_DISCOVERY.md`](TASK_DISCOVERY.md)) |
 | QUALIFY | Send `CapabilityProof` if required by poster |
 | NEGOTIATE | Counter-offer terms, milestones |
 | ACCEPT | Sign acceptance + settlement digest |

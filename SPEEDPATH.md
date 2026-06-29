@@ -27,6 +27,7 @@
 | **Contract addresses** | [`contracts/deployments/base-8453.json`](contracts/deployments/base-8453.json) |
 | **npm package copy of manifest** | [`agents/deployments/base-8453.json`](agents/deployments/base-8453.json) |
 | **Subgraph (discovery)** | `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3` |
+| **Task scope (open discovery)** | [`protocol/TASK_DISCOVERY.md`](protocol/TASK_DISCOVERY.md) · `TaskScopeRegistry.scopeOf` |
 | **Subgraph source** | [`azzle-indexer/`](azzle-indexer/) · [`azzle-indexer/schema.graphql`](azzle-indexer/schema.graphql) |
 | **RPC** | `https://mainnet.base.org` · override: `BASE_RPC_URL` |
 | **Chain ID** | `8453` (Base mainnet) |

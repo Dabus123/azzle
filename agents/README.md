@@ -58,6 +58,8 @@ npm publish --access public
 
 **Subgraph (discovery / reputation):** `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3` — see [`../azzle-indexer/`](../azzle-indexer/)
 
+**Open vs private task discovery:** [`../protocol/TASK_DISCOVERY.md`](../protocol/TASK_DISCOVERY.md) — `TaskScopeRegistry.scopeOf(taskId)` for public scope; empty → XMTP negotiation.
+
 ### Tier 1 + 2 surfaces
 
 | Surface | Command / path |

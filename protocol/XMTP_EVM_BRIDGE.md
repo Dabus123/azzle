@@ -31,7 +31,7 @@ Both parties MUST sign the same digest in XMTP `TaskAcceptance` before Onchain c
 | XMTP Type | Onchain Action | Function |
 |-----------|-----------------|----------|
 | `TaskAcceptance` | Create task | `TaskRegistry.createTask(...)` |
-| `TaskAcceptance` (search) | Post open work | `TaskRegistry.postTask(...)` |
+| `TaskAcceptance` (search) | Post open work | `TaskRegistry.postTask(...)` + optional `TaskScopeRegistry.setScope` ([`TASK_DISCOVERY.md`](TASK_DISCOVERY.md)) |
 | `MilestoneClaim` | Submit proof | `TaskRegistry.submitProof(...)` |
 | `AcceptDelivery` | Release milestone | `TaskRegistry.acceptMilestone(...)` |
 | `DisputeNotice` | Open dispute | `TaskRegistry.openDispute(...)` |

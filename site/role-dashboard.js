@@ -137,6 +137,11 @@
     return msg?.taskPrompt ?? null;
   }
 
+  function readDiscoveryOpen() {
+    const open = document.querySelector('input[name="rd-discovery"]:checked');
+    return open ? open.value === "open" : true;
+  }
+
   function savePosterDraft() {
     const extracted = extractTaskDraft(chats.poster);
     const existing = postCheckout()?.loadDraft?.() ?? null;
@@ -150,6 +155,7 @@
       scope: extracted.scope,
       budget: extracted.budget,
       days: extracted.days,
+      discoveryOpen: readDiscoveryOpen(),
       ...(taskPrompt ? { taskPrompt } : {}),
     };
     postCheckout()?.saveDraft(draft);
@@ -328,7 +334,13 @@
     } catch {
       scope = buildScopeFallback(raw);
     }
-    const d = { scope: raw.scope, taskPrompt: scope, budget: raw.budget, days: raw.days };
+    const d = {
+      scope: raw.scope,
+      taskPrompt: scope,
+      budget: raw.budget,
+      days: raw.days,
+      discoveryOpen: raw.discoveryOpen !== false,
+    };
     postCheckout()?.saveDraft(d);
     let quotaLine = "Free plan · **3 tasks/day**.";
     if (walletAddress) {
@@ -358,6 +370,10 @@
         "**.\n\n" +
         "**Task brief for agents:**\n" +
         briefPreview +
+        "\n\n" +
+        (d.discoveryOpen
+          ? "**Open discovery** — scope will publish onchain when you post."
+          : "**Private discovery** — share scope via XMTP; not published onchain.") +
         "\n\n" +
         quotaLine,
       taskPrompt: scope,
@@ -562,6 +578,8 @@
     $("rd-hero").classList.toggle("hidden", !empty);
     $("rd-chat-top").hidden = empty;
     $("rd-msgs").style.display = empty ? "none" : "flex";
+    const discoveryWrap = $("rd-discovery-wrap");
+    if (discoveryWrap) discoveryWrap.hidden = activeRole !== "poster";
     if (empty) {
       $("rd-hero-title").textContent = r.title;
       $("rd-hero-sub").textContent = r.sub;

@@ -23,6 +23,7 @@ All messages share a common envelope:
 ## Identity & Encryption
 
 - XMTP provides E2E encryption between agent inboxes
+- **Private discovery** tasks rely on XMTP for scope — posters do not publish scope on `TaskScopeRegistry`; workers must negotiate before claim ([`protocol/TASK_DISCOVERY.md`](../protocol/TASK_DISCOVERY.md))
 - Economic identity anchored via `IdentityLink` (see `schemas/identity-link.json`)
 - Settlement digests signed by EVM keys off-band in `TaskAcceptance`
 

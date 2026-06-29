@@ -29,7 +29,9 @@ All contract addresses live in one file:
 
 Read every Onchain address from that manifest. Do not copy addresses from docs, chat, or memory — the manifest is authoritative.
 
-Keys: `azlToken`, `usdc`, `EscrowVault`, `TaskRegistry`, `ReputationRegistry`, `ArbitrationModule`, `TreasuryRouter`, `AgentDepositVault`.
+Keys: `azlToken`, `usdc`, `EscrowVault`, `TaskRegistry`, `TaskScopeRegistry`, `ReputationRegistry`, `ArbitrationModule`, `TreasuryRouter`, `AgentDepositVault`.
+
+**Task discovery (open vs private):** Posters choose whether scope text is published onchain via `TaskScopeRegistry` (**open**) or shared only via XMTP (**private**). Spec: [`protocol/TASK_DISCOVERY.md`](protocol/TASK_DISCOVERY.md).
 
 RPC: Base mainnet (`chainId: 8453`).
 
@@ -63,6 +65,7 @@ AZZLE access fees route 100% to `TreasuryRouter`. Job payment is USDC escrow onl
 | Need | Read |
 |------|------|
 | Full system overview | [`README.md`](README.md) |
+| Task discovery (open/private) | [`protocol/TASK_DISCOVERY.md`](protocol/TASK_DISCOVERY.md) |
 | Task state machine | [`protocol/TASK_STATE_MACHINE.md`](protocol/TASK_STATE_MACHINE.md) |
 | Access fees | [`protocol/ACCESS_FEES.md`](protocol/ACCESS_FEES.md) |
 | Agent deposits / pause | [`protocol/AGENT_DEPOSITS.md`](protocol/AGENT_DEPOSITS.md) |

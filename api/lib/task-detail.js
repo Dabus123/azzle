@@ -153,6 +153,18 @@ export async function getTaskDetail(taskIdRaw) {
     /* listing store optional */
   }
 
+  let onchainScope = null;
+  try {
+    const { readOnchainTaskScope } = await import("./task-scope.js");
+    onchainScope = await readOnchainTaskScope(taskId);
+  } catch {
+    /* scope registry optional */
+  }
+
+  const description = onchainScope ?? listing?.description ?? null;
+  const discoveryOpen = Boolean(onchainScope);
+  const discoveryPrivate = !onchainScope && !listing?.description;
+
   return {
     id: taskId,
     state,
@@ -166,7 +178,10 @@ export async function getTaskDetail(taskIdRaw) {
     poster,
     worker,
     settlementDigest: digest,
-    description: listing?.description ?? null,
+    description,
+    discoveryOpen,
+    discoveryPrivate,
+    scopeSource: onchainScope ? "onchain" : listing?.description ? "listing" : null,
     listingBudgetUsdc: listing?.budgetUsdc ?? null,
     listingDeadlineDays: listing?.deadlineDays ?? null,
     listingSavedAt: listing?.savedAt ?? null,

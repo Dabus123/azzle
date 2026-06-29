@@ -120,7 +120,8 @@ From repo root: `node agents/mcp/prepare-tx.mjs <action> --from <0xWallet> [flag
 | `approve-azl-router` | — | AZZLE → `TreasuryRouter` |
 | `top-up` | `--amount <usdc6>` | Credits deposit ledger |
 | `claim-task` | `--task-id <id>` | Adds AZL approve if allowance low |
-| `post-task` | `--total-amount`, `--deadline`, `--acceptance-criteria-hash` or `--criteria-text` | Search market listing; AZL approve if needed |
+| `post-task` | `--total-amount`, `--deadline`, `--acceptance-criteria-hash` or `--criteria-text`, optional `--discovery private` | Search market listing; **open** (default) appends `set-scope` after post when `TaskScopeRegistry` deployed |
+| `set-scope` | `--task-id`, `--scope-text` | Poster updates onchain scope ([`protocol/TASK_DISCOVERY.md`](../../../../protocol/TASK_DISCOVERY.md)) |
 | `create-task` | `--worker`, `--total-amount`, `--deadline`, hash or `--criteria-text` | Direct hire; **no access fee**; then `fund-task` |
 | `fund-task` | `--task-id`, `--amount` | Auto USDC approve → `TaskRegistry` if needed, then `fundTask` |
 | `start-work` | `--task-id` | Poster starts work (CLAIMED → ACTIVE) |

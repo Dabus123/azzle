@@ -15,6 +15,7 @@ export interface BaseMainnetManifest {
   ArbitrationModule: string;
   TreasuryRouter: string;
   AgentDepositVault: string;
+  TaskScopeRegistry?: string;
 }
 
 const manifestPath = join(

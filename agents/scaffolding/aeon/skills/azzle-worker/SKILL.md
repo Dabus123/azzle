@@ -37,7 +37,7 @@ If prerequisites fail, write the gap list and exit — do not attempt `claimTask
 
 3. **Evaluate** — for chosen task, document:
    - Poster address, escrow amount ($), age
-   - Whether you can execute the implied work (scope unknown → note "needs XMTP terms review")
+   - Read scope: `TaskScopeRegistry.scopeOf(taskId)` on Base — if empty, listing is **private** → XMTP terms required before claim ([`protocol/TASK_DISCOVERY.md`](../../../../protocol/TASK_DISCOVERY.md))
    - Claim economics: $5 USDC + 1,000 AZZLE fee, $20 deposit already on ledger
 
 4. **On-chain (Bankr)** — only if prerequisites pass and evaluation is GO:

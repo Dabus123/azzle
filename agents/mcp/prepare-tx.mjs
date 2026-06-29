@@ -61,6 +61,11 @@ const ARBITRATION_IFACE = new ethers.Interface([
   "function escalate(uint256 disputeId)",
 ]);
 
+const SCOPE_IFACE = new ethers.Interface([
+  "function setScope(uint256 taskId, string scope)",
+  "function scopeOf(uint256 taskId) view returns (string)",
+]);
+
 const ESCROW_MODE = { upfront: 0, milestone: 1, streaming: 2, hour_blocks: 3 };
 
 function parseArgs(argv) {
@@ -344,7 +349,43 @@ async function cmdPostTask(from, flags) {
       ])
     )
   );
+
+  const discoveryPrivate = flags.discovery === "private";
+  const scopeText = (flags.scope_text ?? flags.criteria_text ?? "").trim();
+  const scopeRegistry = manifest.TaskScopeRegistry;
+  if (!discoveryPrivate && scopeRegistry && scopeText) {
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    const taskCount = await new ethers.Contract(
+      manifest.TaskRegistry,
+      ["function taskCount() view returns (uint256)"],
+      provider
+    ).taskCount();
+    const nextTaskId = BigInt(taskCount) + 1n;
+    transactions.push(
+      tx(
+        "set-scope",
+        scopeRegistry,
+        SCOPE_IFACE.encodeFunctionData("setScope", [nextTaskId, scopeText])
+      )
+    );
+  }
+
   output({ ...batchResponse("post-task", transactions), warnings: parsed.warnings });
+}
+
+async function cmdSetScope(from, flags) {
+  const taskId = BigInt(flags.task_id ?? fail("--task-id required"));
+  const scope = (flags.scope_text ?? flags.scope ?? fail("--scope-text required")).trim();
+  if (!manifest.TaskScopeRegistry) fail("TaskScopeRegistry not in manifest");
+  output(
+    batchResponse("set-scope", [
+      tx(
+        "set-scope",
+        manifest.TaskScopeRegistry,
+        SCOPE_IFACE.encodeFunctionData("setScope", [taskId, scope])
+      ),
+    ])
+  );
 }
 
 function cmdArbitration(action, fn, extraArgs) {
@@ -542,6 +583,9 @@ async function main() {
       break;
     case "post-task":
       await cmdPostTask(from, flags);
+      break;
+    case "set-scope":
+      await cmdSetScope(from, flags);
       break;
     case "create-task":
       await cmdCreateTask(from, flags);

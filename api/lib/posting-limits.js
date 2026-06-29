@@ -175,7 +175,7 @@ export async function getQuota(address) {
   return getQuotaForUser(user);
 }
 
-export async function recordPost(address, { taskId, txHash, description, budgetUsdc, deadlineDays } = {}) {
+export async function recordPost(address, { taskId, txHash, description, budgetUsdc, deadlineDays, discoveryOpen } = {}) {
   const addr = normAddr(address);
   if (!addr) throw new Error("Wallet address required");
   const store = await loadStore();
@@ -198,16 +198,31 @@ export async function recordPost(address, { taskId, txHash, description, budgetU
   store.users[addr] = user;
   await saveStore(store);
 
+  const openDiscovery = discoveryOpen !== false;
   if (taskId && description) {
-    const { saveTaskListing } = await import("./task-listings.js");
-    await saveTaskListing({
-      taskId,
-      description,
-      budgetUsdc,
-      deadlineDays,
-      poster: addr,
-      txHash,
-    });
+    let scopeRegistry = null;
+    try {
+      const { taskScopeRegistryAddress } = await import("./task-scope.js");
+      scopeRegistry = taskScopeRegistryAddress();
+    } catch {
+      /* optional */
+    }
+    if (openDiscovery && scopeRegistry) {
+      /* scope published on TaskScopeRegistry — no off-chain brief */
+    } else if (!openDiscovery) {
+      /* private discovery — scope via XMTP only */
+    } else {
+      const { saveTaskListing } = await import("./task-listings.js");
+      await saveTaskListing({
+        taskId,
+        description,
+        budgetUsdc,
+        deadlineDays,
+        poster: addr,
+        txHash,
+        discoveryOpen: openDiscovery,
+      });
+    }
   }
 
   return getQuotaForUser(user);

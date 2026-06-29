@@ -26,6 +26,7 @@ export default async function handler(req, res) {
       description: body.description,
       budgetUsdc: body.budgetUsdc,
       deadlineDays: body.deadlineDays,
+      discoveryOpen: body.discoveryOpen,
     });
     sendJson(res, 200, quota);
   } catch (err) {

@@ -38,6 +38,11 @@
     }
   }
 
+  function readDiscoveryOpen() {
+    const open = document.querySelector('input[name="rd-discovery"]:checked');
+    return open ? open.value === "open" : true;
+  }
+
   function readDraftFromForm() {
     const text = ($("rd-task-scope")?.value ?? "").trim();
     return {
@@ -45,6 +50,7 @@
       taskPrompt: text,
       budget: ($("rd-task-budget")?.value ?? "").trim(),
       days: parseInt($("rd-task-days")?.value ?? "7", 10),
+      discoveryOpen: readDiscoveryOpen(),
     };
   }
 
@@ -54,6 +60,9 @@
     if (text) $("rd-task-scope").value = text;
     if (draft.budget) $("rd-task-budget").value = draft.budget;
     if (draft.days) $("rd-task-days").value = draft.days;
+    const mode = draft.discoveryOpen === false ? "private" : "open";
+    const radio = document.querySelector('input[name="rd-discovery"][value="' + mode + '"]');
+    if (radio) radio.checked = true;
   }
 
   function setCheckoutStatus(text, kind) {
@@ -143,6 +152,7 @@
         description: task?.description,
         budgetUsdc: task?.budgetUsdc,
         deadlineDays: task?.deadlineDays,
+        discoveryOpen: task?.discoveryOpen !== false,
       }),
     });
     const data = await parseJsonResponse(res);
@@ -495,7 +505,8 @@
     if (!Number.isFinite(deadlineDays) || deadlineDays <= 0) throw new Error("Invalid deadline.");
     const description = (draft.taskPrompt || draft.scope || "").trim();
     if (!description) throw new Error("No task description — start from the chat first.");
-    return { description, budgetUsdc, deadlineDays };
+    const discoveryOpen = draft.discoveryOpen !== false;
+    return { description, budgetUsdc, deadlineDays, discoveryOpen };
   }
 
   async function runDeposit(onProgress) {
@@ -567,6 +578,7 @@
       taskPrompt: task.description,
       budget: String(task.budgetUsdc),
       days: task.deadlineDays,
+      discoveryOpen: task.discoveryOpen,
     });
 
     checkoutBusy = true;
@@ -576,8 +588,14 @@
       const result = await api.postTask(task, (msg) => onProgress?.(msg, "busy"));
       await recordPostSuccess(walletAddress, result.taskId, result.hash, task);
       localStorage.setItem(TASK_ID_KEY, result.taskId);
+      const scopeNote =
+        task.discoveryOpen !== false && result.scopePublished
+          ? " Scope published onchain."
+          : task.discoveryOpen === false
+            ? " Private listing — share scope via XMTP."
+            : "";
       onProgress?.(
-        "Posted · task #" + result.taskId + ". Track it at /my-tasks.",
+        "Posted · task #" + result.taskId + scopeNote + " Track it at /my-tasks.",
         "ok"
       );
       if ($("rd-checkout")) setStepState("post", "done");
@@ -717,6 +735,9 @@
 
     ["rd-task-scope", "rd-task-budget", "rd-task-days"].forEach((id) => {
       $(id)?.addEventListener("change", () => saveDraft(readDraftFromForm()));
+    });
+    document.querySelectorAll('input[name="rd-discovery"]').forEach((el) => {
+      el.addEventListener("change", () => saveDraft(readDraftFromForm()));
     });
 
     const params = new URLSearchParams(location.search);

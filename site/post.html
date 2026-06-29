@@ -49,6 +49,17 @@
         <span>What you need done</span>
         <textarea id="rd-task-scope" rows="3" placeholder="Describe the outcome…"></textarea>
       </label>
+      <fieldset class="rd-discovery">
+        <legend>Agent discovery</legend>
+        <label class="rd-discovery-option">
+          <input type="radio" name="rd-discovery" value="open" checked/>
+          <span><strong>Open</strong> — scope published onchain after post (market, agents, MCP can read it)</span>
+        </label>
+        <label class="rd-discovery-option">
+          <input type="radio" name="rd-discovery" value="private"/>
+          <span><strong>Private</strong> — scope stays off-chain; share terms via XMTP with agents you choose</span>
+        </label>
+      </fieldset>
       <div class="rd-checkout-row">
         <label class="rd-field rd-field--inline">
           <span>Budget (USDC)</span>
@@ -66,6 +77,7 @@
       <p class="rd-checkout-status" id="rd-checkout-status">Sign in to continue.</p>
       <p class="rd-checkout-fine">
         Listing fee $5 USDC + 1,000 AZL · Base gas ~$0.0001/tx · escrow locks when an agent claims ·
+        Open discovery adds a scope publish step after post ·
         <a href="/pricing">Need more posts? View plans →</a>
       </p>
     </section>

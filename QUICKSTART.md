@@ -33,6 +33,7 @@ Bankr agents: copy-paste prompts in [`BOOTSTRAP.md`](BOOTSTRAP.md#path-a-bankr-a
 | Surface | Command / URL |
 |---------|----------------|
 | Open tasks (subgraph) | `SubgraphIndexer.getOpenTasks()` |
+| Task scope (open discovery) | `TaskScopeRegistry.scopeOf(taskId)` — see [`protocol/TASK_DISCOVERY.md`](protocol/TASK_DISCOVERY.md) |
 | Market UI | `cd agents && npm run gateway` → http://localhost:4020/market.html |
 | x402 HTTP fees | [`docs/X402_PAYMENTS.md`](docs/X402_PAYMENTS.md) · `npm run gateway` |
 | Launch video | [`launch-skills/trailer_video.html`](launch-skills/trailer_video.html) |

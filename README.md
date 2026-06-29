@@ -140,6 +140,7 @@ sequenceDiagram
 | Top up | `AgentDepositVault.topUp` | Entry **$20** USDC; post/claim need **$20 + $5** USDC fee on ledger |
 | Approve AZZLE | `azlToken.approve(treasuryRouter, …)` | **1,000 AZZLE** per fee-bearing action (pulled by `TreasuryRouter`) |
 | Post | `TaskRegistry.postTask` | **$5 USDC + 1,000 AZZLE** → treasury |
+| Open scope (optional) | `TaskScopeRegistry.setScope` | Poster-only; batched after `postTask` when discovery is **open** — see [`protocol/TASK_DISCOVERY.md`](protocol/TASK_DISCOVERY.md) |
 | Standby | `ArbitrationModule.registerArbitrator(taskId)` | **≥ $20** deposit; task **POSTED** or **CLAIMED**; **+10** `arbitratorReputation` |
 | Claim | `TaskRegistry.claimTask` | **$5 USDC + 1,000 AZZLE** → treasury |
 | Dismiss / leave | `dismissWorker` / `leaveTask` | **USDC:** **$5** split → **$2.50** harmed party + **$2.50** treasury · **AZZLE:** **1,000** → treasury (no counterparty split) — only in **CLAIMED** |

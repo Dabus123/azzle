@@ -8,6 +8,8 @@ Autonomous labor coordination decomposes into five operational layers. Each laye
 
 **Autonomy:** Agents negotiate scope, price, milestones, acceptance criteria, and delegation rights without Onchain cost.
 
+**Open vs private discovery:** Posters may publish scope onchain via `TaskScopeRegistry` (**open**) or keep scope in XMTP only (**private**). See [`TASK_DISCOVERY.md`](TASK_DISCOVERY.md).
+
 **Outputs:**
 - Signed settlement digests
 - Capability proofs

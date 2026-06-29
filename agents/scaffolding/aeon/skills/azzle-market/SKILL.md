@@ -33,7 +33,7 @@ Match `soul/SOUL.md` / `soul/STYLE.md` when populated; otherwise clear and direc
 
    Fallback: **WebFetch** on the same POST body if `curl` is blocked.
 
-2. **Parse** — count POSTED tasks; note `id`, poster, `escrowAmount` (USDC 6 decimals: divide by 1e6), `createdAt`. Apply `${var}` filter if set.
+2. **Parse** — count POSTED tasks; note `id`, poster, `escrowAmount` (USDC 6 decimals: divide by 1e6), `createdAt`. For each task id, read **`TaskScopeRegistry.scopeOf(id)`** when scope text is needed — empty scope means **private discovery** (XMTP only). Spec: [`protocol/TASK_DISCOVERY.md`](../../../../protocol/TASK_DISCOVERY.md). Apply `${var}` filter if set.
 
 3. **Write** `articles/azzle-market-${today}.md`:
    - Headline count of open listings

@@ -530,6 +530,85 @@
   border-bottom:1px solid var(--b2);
 }
 .rd-checkout-fine a:hover{color:var(--accent);border-color:var(--accent)}
+.rd-discovery{
+  border:1px solid var(--b2);
+  padding:10px 12px 12px;
+  margin:0 0 12px;
+  background:var(--bg);
+}
+.rd-discovery legend{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--muted);
+  padding:0 4px;
+}
+.rd-discovery-option{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  font-size:13px;
+  line-height:1.45;
+  color:var(--text);
+  margin-top:8px;
+  cursor:pointer;
+}
+.rd-discovery-option input{margin-top:3px;flex-shrink:0}
+.rd-discovery--chat{margin:0 0 8px}
+.rd-mytasks-scope{
+  margin:12px 0 8px;
+  padding-top:12px;
+  border-top:1px solid var(--b);
+}
+.rd-mytasks-scope-label{
+  display:block;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.rd-mytasks-scope-input{
+  width:100%;
+  margin:8px 0 10px;
+  padding:10px 12px;
+  border:1px solid var(--b2);
+  background:var(--bg);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.45;
+  color:var(--text);
+  resize:vertical;
+  min-height:88px;
+}
+.rd-mytasks-scope-input:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:var(--edge-2);
+}
+.rd-mytasks-scope-hint{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.45;
+  margin:6px 0 0;
+}
+.rd-mytasks-discovery{
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:2px 6px;
+  border:1px solid var(--b2);
+  margin-left:8px;
+  vertical-align:middle;
+}
+.rd-mytasks-discovery--open{border-color:var(--accent);color:var(--accent)}
+.rd-mytasks-discovery--private{color:var(--muted)}
+.rd-mytasks-discovery--legacy{color:var(--dim)}
+.rd-mytasks-scope-save{width:100%}
 .rd-checkout--ready{
   border-color:var(--accent);
   box-shadow:0 0 0 1px var(--accent), var(--edge-2);

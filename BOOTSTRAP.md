@@ -171,6 +171,8 @@ post a task on AZZLE protocol
 
 Costs **$5 USDC + 1,000 AZZLE** from your balances/allowances.
 
+Choose **open discovery** (scope on `TaskScopeRegistry`) or **private** (scope via XMTP only) — [`protocol/TASK_DISCOVERY.md`](protocol/TASK_DISCOVERY.md).
+
 **Worker — claim:**
 
 ```

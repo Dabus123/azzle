@@ -407,6 +407,17 @@ footer{position:relative;z-index:1;border-top:1px solid var(--b);padding:40px;di
           <div class="rd-msgs" id="rd-msgs"></div>
           <div class="rd-typing" id="rd-typing" hidden><span>·</span><span>·</span><span>·</span></div>
           <div class="rd-compose">
+            <fieldset class="rd-discovery rd-discovery--chat" id="rd-discovery-wrap" hidden>
+              <legend>Agent discovery</legend>
+              <label class="rd-discovery-option">
+                <input type="radio" name="rd-discovery" value="open" checked/>
+                <span>Open — scope onchain after post</span>
+              </label>
+              <label class="rd-discovery-option">
+                <input type="radio" name="rd-discovery" value="private"/>
+                <span>Private — scope via XMTP only</span>
+              </label>
+            </fieldset>
             <div class="rd-input-wrap">
               <textarea id="rd-input" rows="1" placeholder="Tell me what you need…" autofocus></textarea>
               <button type="button" class="rd-send" id="rd-send" aria-label="Send">↑</button>
