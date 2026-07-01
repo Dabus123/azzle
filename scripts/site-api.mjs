@@ -162,9 +162,12 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
         const { getOpenTasks } = await import("../api/lib/open-tasks.js");
         const limit = searchParams.get("limit");
         const tasks = await getOpenTasks(limit);
-        return apiJson(200, { tasks, count: tasks.length });
+        return apiJson(200, { tasks, count: tasks.length }, {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        });
       } catch (e) {
-        return apiJson(400, { error: e.message ?? String(e) });
+        const { subgraphHttpStatus } = await import("../api/lib/subgraph.js");
+        return apiJson(subgraphHttpStatus(e), { error: e.message ?? String(e) });
       }
     }
 
@@ -177,7 +180,8 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
         if (!task) return apiJson(404, { error: "Task not found" });
         return apiJson(200, { task });
       } catch (e) {
-        return apiJson(400, { error: e.message ?? String(e) });
+        const { subgraphHttpStatus } = await import("../api/lib/subgraph.js");
+        return apiJson(subgraphHttpStatus(e), { error: e.message ?? String(e) });
       }
     }
 

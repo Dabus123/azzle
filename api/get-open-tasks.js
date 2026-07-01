@@ -1,4 +1,5 @@
 import { getOpenTasks } from "./lib/open-tasks.js";
+import { subgraphHttpStatus } from "./lib/subgraph.js";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -6,8 +7,10 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-function sendJson(res, status, body) {
-  res.writeHead(status, { ...CORS, "Content-Type": "application/json" });
+const CACHE_CONTROL = "public, s-maxage=60, stale-while-revalidate=300";
+
+function sendJson(res, status, body, extra = {}) {
+  res.writeHead(status, { ...CORS, "Content-Type": "application/json", ...extra });
   res.end(JSON.stringify(body));
 }
 
@@ -28,8 +31,8 @@ export default async function handler(req, res) {
     const limit = url.searchParams.get("limit");
     const tasks = await getOpenTasks(limit);
 
-    sendJson(res, 200, { tasks, count: tasks.length });
+    sendJson(res, 200, { tasks, count: tasks.length }, { "Cache-Control": CACHE_CONTROL });
   } catch (err) {
-    sendJson(res, 400, { error: err?.message ?? String(err) });
+    sendJson(res, subgraphHttpStatus(err), { error: err?.message ?? String(err) });
   }
 }

@@ -3,9 +3,7 @@ import { createPublicClient, formatUnits, http, zeroAddress } from "viem";
 import { base } from "viem/chains";
 import MANIFEST from "./contracts.json" with { type: "json" };
 
-const SUBGRAPH_URL =
-  process.env.AZZLE_SUBGRAPH_URL ??
-  "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3";
+import { subgraphGql } from "./subgraph.js";
 
 const RPC_URL = process.env.BASE_RPC_URL ?? "https://mainnet.base.org";
 
@@ -62,20 +60,6 @@ const ESCROW_ABI = [
   },
 ];
 
-async function gql(query, variables) {
-  const res = await fetch(SUBGRAPH_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables }),
-  });
-  if (!res.ok) throw new Error(`Subgraph HTTP ${res.status}`);
-  const json = await res.json();
-  if (json.errors?.length) {
-    throw new Error(json.errors.map((e) => e.message).join("; "));
-  }
-  return json.data;
-}
-
 function parseTaskId(raw) {
   const id = String(raw ?? "").trim();
   if (!/^\d+$/.test(id)) throw new Error("Invalid task id");
@@ -84,7 +68,7 @@ function parseTaskId(raw) {
 
 export async function getTaskDetail(taskIdRaw) {
   const taskId = parseTaskId(taskIdRaw);
-  const data = await gql(
+  const data = await subgraphGql(
     `query TaskById($id: ID!) {
       task(id: $id) {
         id

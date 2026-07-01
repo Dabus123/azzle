@@ -318,13 +318,17 @@
         openDetail(openTaskId);
       }
     } catch (e) {
-      setStatus((e && e.message) || "Could not load open tasks", "err");
+      const msg = (e && e.message) || "Could not load open tasks";
+      setStatus(msg, "err");
+      if (msg.includes("429") || msg.toLowerCase().includes("rate")) {
+        setTimeout(loadTasks, 30000);
+      }
     }
   }
 
   function scheduleRefresh() {
     clearInterval(refreshTimer);
-    refreshTimer = setInterval(loadTasks, 45000);
+    refreshTimer = setInterval(loadTasks, 120000);
   }
 
   document.addEventListener("DOMContentLoaded", () => {

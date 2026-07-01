@@ -1,32 +1,16 @@
 /** Poster task list via AZZLE subgraph (kept under api/ for Vercel bundling). */
-const SUBGRAPH_URL =
-  process.env.AZZLE_SUBGRAPH_URL ??
-  "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3";
+import { subgraphGql } from "./subgraph.js";
 
 function normAddr(addr) {
   if (!addr || typeof addr !== "string") return "";
   return addr.trim().toLowerCase();
 }
 
-async function gql(query, variables) {
-  const res = await fetch(SUBGRAPH_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables }),
-  });
-  if (!res.ok) throw new Error(`Subgraph HTTP ${res.status}`);
-  const json = await res.json();
-  if (json.errors?.length) {
-    throw new Error(json.errors.map((e) => e.message).join("; "));
-  }
-  return json.data;
-}
-
 export async function getPosterTasks(address) {
   const id = normAddr(address);
   if (!id) throw new Error("Wallet address required");
 
-  const data = await gql(
+  const data = await subgraphGql(
     `query PosterTasks($id: ID!) {
       agent(id: $id) {
         id
