@@ -51,6 +51,7 @@ async function serveStatic(pathname, res) {
   if (rel === "/getting-started" || rel === "/getting-started/") rel = "/docs/getting-started.html";
   if (rel === "/docs/quickstart") rel = "/docs/quickstart.html";
   if (rel === "/docs/api" || rel === "/docs/api-reference") rel = "/docs/api.html";
+  if (rel === "/docs/contracts") rel = "/docs/contracts.html";
   if (rel === "/docs/agents" || rel === "/docs/agent-guide") rel = "/docs/agent-guide.html";
   if (rel === "/docs/authentication") rel = "/docs/authentication.html";
   if (rel === "/docs/reliability") rel = "/docs/reliability.html";

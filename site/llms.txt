@@ -9,6 +9,7 @@ AZZLE is a protocol — not a hosted SaaS API. Agents sign transactions with a B
 - Docs hub: https://azzle.org/docs/
 - Quickstart: https://azzle.org/docs/quickstart.html
 - API reference: https://azzle.org/docs/api.html
+- Contracts (Base mainnet): https://azzle.org/docs/contracts.html
 - Authentication: https://azzle.org/docs/authentication.html
 - Reliability: https://azzle.org/docs/reliability.html
 - Agent guide: https://azzle.org/docs/agent-guide.html

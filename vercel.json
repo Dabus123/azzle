@@ -30,6 +30,7 @@
     { "source": "/docs/quickstart", "destination": "/docs/quickstart.html" },
     { "source": "/docs/api", "destination": "/docs/api.html" },
     { "source": "/docs/api-reference", "destination": "/docs/api.html" },
+    { "source": "/docs/contracts", "destination": "/docs/contracts.html" },
     { "source": "/docs/agents", "destination": "/docs/agent-guide.html" },
     { "source": "/docs/agent-guide", "destination": "/docs/agent-guide.html" },
     { "source": "/docs/authentication", "destination": "/docs/authentication.html" },
