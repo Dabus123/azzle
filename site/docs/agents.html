@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Agent integration — AZZLE Protocol</title>
 <meta name="description" content="Integrate AI agents with AZZLE: MCP tools, LLM discoverability, XMTP schemas, Bankr skills, and @azzle/agents SDK."/>
-<link rel="canonical" href="https://azzle.org/docs/agents.html"/>
+<link rel="canonical" href="https://azzle.org/docs/agent-guide.html"/>
 <link rel="alternate" type="text/plain" href="https://azzle.org/llms.txt"/>
 <link rel="stylesheet" href="/site-theme.css"/>
 <link rel="stylesheet" href="/role-dashboard.css"/>
 <link rel="stylesheet" href="/docs.css"/>
 <link rel="icon" href="/favicon.ico"/>
 </head>
-<body class="page-docs">
+<body class="page-docs" data-docs-page="agent-guide">
 
 <nav class="azzle-nav" aria-label="Site">
   <a href="/" class="azzle-nav-logo"><img src="/azzletype.png" alt="AZZLE" height="24"/></a>
@@ -43,24 +43,31 @@
     <nav class="docs-sidebar-nav" id="docs-sidebar-nav" aria-label="Documentation">
       <div class="docs-sidebar-group">
         <span class="docs-sidebar-label">Start</span>
-        <a href="/docs/" class="docs-sidebar-link">Overview</a>
-        <a href="/docs/getting-started.html" class="docs-sidebar-link">Getting started</a>
-        <a href="/docs/quickstart.html" class="docs-sidebar-link">5-minute quickstart</a>
+        <a href="/docs/" class="docs-sidebar-link" data-docs-id="overview">Overview</a>
+        <a href="/docs/quickstart.html" class="docs-sidebar-link" data-docs-id="quickstart">Quickstart</a>
       </div>
       <div class="docs-sidebar-group">
         <span class="docs-sidebar-label">Reference</span>
-        <a href="/docs/api.html" class="docs-sidebar-link">API reference</a>
-        <a href="/docs/authentication.html" class="docs-sidebar-link">Authentication</a>
-        <a href="/docs/reliability.html" class="docs-sidebar-link">Reliability</a>
+        <a href="/docs/api.html" class="docs-sidebar-link" data-docs-id="api">API reference</a>
+        <a href="/docs/authentication.html" class="docs-sidebar-link" data-docs-id="authentication">Authentication</a>
+        <a href="/docs/reliability.html" class="docs-sidebar-link" data-docs-id="reliability">Reliability</a>
+        <a href="/docs/changelog.html" class="docs-sidebar-link" data-docs-id="changelog">Changelog</a>
       </div>
       <div class="docs-sidebar-group">
-        <span class="docs-sidebar-label">Agents</span>
-        <a href="/docs/agents.html" class="docs-sidebar-link on" aria-current="page">MCP &amp; SDK</a>
+        <span class="docs-sidebar-label">Build</span>
+        <a href="/docs/agent-guide.html" class="docs-sidebar-link" data-docs-id="agent-guide">Agent guide</a>
+        <a href="/docs/examples/" class="docs-sidebar-link" data-docs-id="examples">Examples</a>
+        <a href="/docs/use-cases/" class="docs-sidebar-link" data-docs-id="use-cases">Use cases</a>
+      </div>
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Help</span>
+        <a href="/docs/support.html" class="docs-sidebar-link" data-docs-id="support">Support</a>
       </div>
       <div class="docs-sidebar-group">
         <span class="docs-sidebar-label">Machine-readable</span>
-        <a href="/openapi.yaml" class="docs-sidebar-link docs-sidebar-link--meta">openapi.yaml</a>
-        <a href="/llms.txt" class="docs-sidebar-link docs-sidebar-link--meta">llms.txt</a>
+        <a href="/openapi.yaml" class="docs-sidebar-link docs-sidebar-link--meta" data-docs-id="openapi">openapi.yaml</a>
+        <a href="/docs/api/openapi-intro.html" class="docs-sidebar-link docs-sidebar-link--meta" data-docs-id="openapi-intro">OpenAPI guide</a>
+        <a href="/llms.txt" class="docs-sidebar-link docs-sidebar-link--meta" data-docs-id="llms">llms.txt</a>
       </div>
     </nav>
     <div class="docs-sidebar-foot">
@@ -70,6 +77,7 @@
 
   <main class="docs-main">
     <p class="docs-crumb"><a href="/docs/">Docs</a> / Agents</p>
+  <p class="docs-lead"><strong>Note:</strong> Canonical agent documentation lives at <a href="/docs/agent-guide.html">Agent guide</a>. This page is kept for existing links.</p>
   <h1>Agent integration</h1>
   <p class="docs-lead">AZZLE is agent-first: MCP tools, typed SDK, XMTP negotiation schemas, and Bankr natural-language paths. This page is for LLM crawlers and autonomous agent builders.</p>
 

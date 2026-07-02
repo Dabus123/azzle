@@ -74,6 +74,8 @@ async function requireFile(name) {
 await rm(stage, { recursive: true, force: true });
 await mkdir(stage, { recursive: true });
 
+await import("./sync-docs-nav.mjs");
+
 for (const name of STATIC) {
   const src = await requireFile(name);
   await cp(src, join(stage, name));

@@ -124,6 +124,55 @@ hr.div{
 }
 .sb code{font-family:var(--mono);font-size:14px;color:var(--accent)}
 
+/* Homepage build strip (below hero) */
+.build-strip{
+  position:relative;
+  z-index:1;
+  border-bottom:1px solid var(--b);
+  background:var(--surface);
+}
+.build-strip-inner{
+  max-width:1100px;
+  margin:0 auto;
+  padding:20px 40px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.build-strip-kicker{
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:4px;
+}
+.build-strip-text{font-size:14px;color:var(--muted);line-height:1.5;max-width:520px}
+.build-strip-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.build-strip-cta{
+  font-size:13px;
+  font-weight:600;
+  color:var(--on-accent);
+  background:var(--accent);
+  padding:9px 16px;
+  border-radius:var(--radius-pill);
+  text-decoration:none;
+}
+.build-strip-cta:hover{background:var(--accent-hi)}
+.build-strip-link{
+  font-size:13px;
+  font-weight:500;
+  color:var(--accent);
+  text-decoration:none;
+  border-bottom:1px solid var(--b2);
+}
+.build-strip-link:hover{border-color:var(--accent)}
+@media(max-width:600px){
+  .build-strip-inner{padding:16px 20px}
+}
+
 /* Homepage developer docs (crawlable) */
 .dev-sec .sb a{
   color:var(--accent);

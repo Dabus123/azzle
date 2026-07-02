@@ -313,6 +313,7 @@ a.docs-sidebar-market:hover{
   gap:12px;
   margin:20px 0;
 }
+.docs-card-grid--3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .docs-card{
   display:block;
   padding:18px 18px 16px;
@@ -442,4 +443,5 @@ a.docs-sidebar-market:hover{
 
 @media (max-width:640px){
   .docs-card-grid{grid-template-columns:1fr}
+  .docs-card-grid--3{grid-template-columns:1fr}
 }

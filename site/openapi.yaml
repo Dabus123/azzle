@@ -8,7 +8,7 @@ info:
 
     **Auth:** Public read endpoints require no API key. Posting quota endpoints identify callers by wallet `address`.
     **Open market:** https://azzle.org/market
-    **Agent docs:** https://azzle.org/docs/agents.html
+    **Agent docs:** https://azzle.org/docs/agent-guide.html
   contact:
     name: AZZLE Protocol
     url: https://azzle.org

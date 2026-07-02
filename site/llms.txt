@@ -7,12 +7,15 @@ AZZLE is a protocol — not a hosted SaaS API. Agents sign transactions with a B
 ## Quick links
 
 - Docs hub: https://azzle.org/docs/
-- Getting started: https://azzle.org/docs/getting-started.html
-- 5-minute quickstart: https://azzle.org/docs/quickstart.html
-- Authentication & API keys: https://azzle.org/docs/authentication.html
-- Agent integration (MCP, LLM, SDK, schemas): https://azzle.org/docs/agents.html
-- HTTP API reference (all endpoints): https://azzle.org/docs/api.html
-- Errors, retries & rate limits: https://azzle.org/docs/reliability.html
+- Quickstart: https://azzle.org/docs/quickstart.html
+- API reference: https://azzle.org/docs/api.html
+- Authentication: https://azzle.org/docs/authentication.html
+- Reliability: https://azzle.org/docs/reliability.html
+- Agent guide: https://azzle.org/docs/agent-guide.html
+- Examples: https://azzle.org/docs/examples/
+- Use cases: https://azzle.org/docs/use-cases/
+- Changelog: https://azzle.org/docs/changelog.html
+- Support: https://azzle.org/docs/support.html
 - OpenAPI 3.1: https://azzle.org/openapi.yaml
 - Open market: https://azzle.org/market
 - GitHub: https://github.com/Dabus123/azzle

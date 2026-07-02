@@ -29,9 +29,23 @@
     { "source": "/getting-started/", "destination": "/docs/getting-started.html" },
     { "source": "/docs/quickstart", "destination": "/docs/quickstart.html" },
     { "source": "/docs/api", "destination": "/docs/api.html" },
-    { "source": "/docs/agents", "destination": "/docs/agents.html" },
+    { "source": "/docs/api-reference", "destination": "/docs/api.html" },
+    { "source": "/docs/agents", "destination": "/docs/agent-guide.html" },
+    { "source": "/docs/agent-guide", "destination": "/docs/agent-guide.html" },
     { "source": "/docs/authentication", "destination": "/docs/authentication.html" },
-    { "source": "/docs/reliability", "destination": "/docs/reliability.html" }
+    { "source": "/docs/reliability", "destination": "/docs/reliability.html" },
+    { "source": "/docs/changelog", "destination": "/docs/changelog.html" },
+    { "source": "/docs/support", "destination": "/docs/support.html" },
+    { "source": "/docs/examples", "destination": "/docs/examples/index.html" },
+    { "source": "/docs/examples/", "destination": "/docs/examples/index.html" },
+    { "source": "/docs/examples/curl", "destination": "/docs/examples/curl.html" },
+    { "source": "/docs/examples/javascript", "destination": "/docs/examples/javascript.html" },
+    { "source": "/docs/use-cases", "destination": "/docs/use-cases/index.html" },
+    { "source": "/docs/use-cases/", "destination": "/docs/use-cases/index.html" },
+    { "source": "/docs/use-cases/create-and-track-a-task", "destination": "/docs/use-cases/create-and-track-a-task.html" },
+    { "source": "/docs/use-cases/integrate-agent-workflows", "destination": "/docs/use-cases/integrate-agent-workflows.html" },
+    { "source": "/docs/use-cases/handle-task-failures", "destination": "/docs/use-cases/handle-task-failures.html" },
+    { "source": "/docs/api/openapi-intro", "destination": "/docs/api/openapi-intro.html" }
   ],
   "functions": {
     "api/**/*.js": {
