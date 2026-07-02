@@ -164,8 +164,9 @@ const key = process.env.PRIVATE_KEY; // required for writes</pre>
     <p>azzle.org read APIs do not return HTTP <code>401</code>. Failed wallet authorization for onchain writes surfaces as a transaction revert on Base — ensure <code>PRIVATE_KEY</code> or Base MCP OAuth is configured before <code>send_calls</code>.</p>
     <div class="docs-pre">
       <div class="docs-pre-label"><span>cURL — quota with wallet (success pattern)</span></div>
-      <pre>curl -s "https://azzle.org/api/posting/quota?address=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"</pre>
+      <pre>curl -s "https://azzle.org/api/posting/quota?address=$WALLET"</pre>
     </div>
+    <p><code>$WALLET</code> = your Base wallet (example: <code>export WALLET=0xYourAddress</code>).</p>
   </section>
 
   <section class="docs-section">

@@ -94,8 +94,7 @@
     "id": "42",
     "state": "POSTED",
     "escrowAmount": "50000000",
-    "budgetUsdc": 50,
-    "poster": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"
+    "budgetUsdc": 50
   }]
 }</pre>
       </div>
@@ -128,7 +127,7 @@
       <h2>List tasks by poster wallet</h2>
       <div class="docs-pre">
         <div class="docs-pre-label"><span>cURL</span></div>
-        <pre>curl -s "https://azzle.org/api/poster/tasks?address=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"</pre>
+        <pre>curl -s "https://azzle.org/api/poster/tasks?address=$WALLET"</pre>
       </div>
     </section>
 
@@ -139,7 +138,7 @@
         <div class="docs-pre-label"><span>cURL — check posting quota before post UI</span></div>
         <pre>curl -s -X POST "https://azzle.org/api/posting/check" \
   -H "Content-Type: application/json" \
-  -d '{"address":"0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"}'</pre>
+  -d "{\"address\":\"$WALLET\"}"</pre>
       </div>
       <p>See <a href="/docs/use-cases/create-and-track-a-task.html">create and track a task</a>.</p>
     </section>
