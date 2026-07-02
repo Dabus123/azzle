@@ -24,7 +24,14 @@
     { "source": "/wallet", "destination": "/wallet.html" },
     { "source": "/wallet/", "destination": "/wallet.html" },
     { "source": "/docs", "destination": "/docs/index.html" },
-    { "source": "/docs/", "destination": "/docs/index.html" }
+    { "source": "/docs/", "destination": "/docs/index.html" },
+    { "source": "/getting-started", "destination": "/docs/getting-started.html" },
+    { "source": "/getting-started/", "destination": "/docs/getting-started.html" },
+    { "source": "/docs/quickstart", "destination": "/docs/quickstart.html" },
+    { "source": "/docs/api", "destination": "/docs/api.html" },
+    { "source": "/docs/agents", "destination": "/docs/agents.html" },
+    { "source": "/docs/authentication", "destination": "/docs/authentication.html" },
+    { "source": "/docs/reliability", "destination": "/docs/reliability.html" }
   ],
   "functions": {
     "api/**/*.js": {

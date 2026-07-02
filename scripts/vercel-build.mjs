@@ -24,6 +24,7 @@ const STATIC = [
   "role-dashboard.css",
   "role-dashboard.js",
   "home-parallax.js",
+  "home-quicknav.js",
   "site-theme.css",
   "post-checkout.js",
   "market.js",
@@ -44,6 +45,7 @@ const STATIC = [
   "openapi.yaml",
   "sitemap.xml",
   "robots.txt",
+  "docs-shell.js",
 ];
 
 async function copyDirRecursive(srcDir, destDir) {

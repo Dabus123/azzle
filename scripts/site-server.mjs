@@ -28,6 +28,8 @@ const MIME = {
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
+  ".yaml": "text/yaml; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
 };
 
 async function readBody(req) {
@@ -42,8 +44,16 @@ async function serveStatic(pathname, res) {
   let rel = pathname === "/" ? "/index.html" : pathname;
   if (rel === "/post" || rel === "/post/") rel = "/post.html";
   if (rel === "/pricing" || rel === "/pricing/") rel = "/pricing.html";
+  if (rel === "/market" || rel === "/market/") rel = "/market.html";
   if (rel === "/my-tasks" || rel === "/my-tasks/") rel = "/my-tasks.html";
   if (rel === "/wallet" || rel === "/wallet/") rel = "/wallet.html";
+  if (rel === "/docs" || rel === "/docs/") rel = "/docs/index.html";
+  if (rel === "/getting-started" || rel === "/getting-started/") rel = "/docs/getting-started.html";
+  if (rel === "/docs/quickstart") rel = "/docs/quickstart.html";
+  if (rel === "/docs/api") rel = "/docs/api.html";
+  if (rel === "/docs/agents") rel = "/docs/agents.html";
+  if (rel === "/docs/authentication") rel = "/docs/authentication.html";
+  if (rel === "/docs/reliability") rel = "/docs/reliability.html";
   const filePath = normalize(join(ROOT, rel.replace(/^\//, "")));
   if (!filePath.startsWith(ROOT) || !existsSync(filePath)) return false;
   const ext = filePath.includes(".") ? filePath.slice(filePath.lastIndexOf(".")) : "";

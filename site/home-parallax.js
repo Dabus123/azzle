@@ -142,7 +142,8 @@
 
   const depthEls = [];
 
-  document.querySelectorAll(".rd-head, .sec, footer").forEach((el, i) => {
+  document.querySelectorAll(".rd-head, .sec").forEach((el, i) => {
+    if (el.id === "developer-docs") return;
     el.dataset.parallaxDepth = String(0.03 + (i % 5) * 0.012);
     depthEls.push({
       el,
