@@ -38,6 +38,55 @@
     }
   }
 
+  const DISC_DETAIL = {
+    open: "Scope publishes onchain after post — market, agents, and MCP can discover it.",
+    private: "Scope stays off-chain — share full terms via XMTP with agents you choose.",
+  };
+
+  function updateDiscGlider(seg) {
+    const glider = seg.querySelector(".rd-disc-glider");
+    const active = seg.querySelector(".rd-disc-tab.on");
+    if (!glider || !active) return;
+    glider.style.left = active.offsetLeft + "px";
+    glider.style.top = active.offsetTop + "px";
+    glider.style.width = active.offsetWidth + "px";
+    glider.style.height = active.offsetHeight + "px";
+    glider.style.opacity = "1";
+  }
+
+  function syncDiscSeg(seg) {
+    seg.querySelectorAll(".rd-disc-tab").forEach((tab) => {
+      const input = tab.querySelector('input[name="rd-discovery"]');
+      tab.classList.toggle("on", Boolean(input?.checked));
+    });
+    const checked = seg.querySelector('input[name="rd-discovery"]:checked');
+    const detail = document.querySelector("[data-disc-detail]");
+    if (detail && checked) {
+      detail.textContent = DISC_DETAIL[checked.value] || "";
+    }
+    requestAnimationFrame(() => updateDiscGlider(seg));
+  }
+
+  function syncAllDiscoverySegs() {
+    document.querySelectorAll("[data-disc-seg]").forEach(syncDiscSeg);
+  }
+
+  let discGliderResizeTimer = 0;
+  function scheduleDiscGlider() {
+    clearTimeout(discGliderResizeTimer);
+    discGliderResizeTimer = setTimeout(syncAllDiscoverySegs, 80);
+  }
+
+  function initDiscoverySeg() {
+    document.querySelectorAll("[data-disc-seg]").forEach((seg) => {
+      seg.querySelectorAll('input[name="rd-discovery"]').forEach((el) => {
+        el.addEventListener("change", () => syncDiscSeg(seg));
+      });
+      syncDiscSeg(seg);
+    });
+    window.addEventListener("resize", scheduleDiscGlider, { passive: true });
+  }
+
   function readDiscoveryOpen() {
     const open = document.querySelector('input[name="rd-discovery"]:checked');
     return open ? open.value === "open" : true;
@@ -63,6 +112,7 @@
     const mode = draft.discoveryOpen === false ? "private" : "open";
     const radio = document.querySelector('input[name="rd-discovery"][value="' + mode + '"]');
     if (radio) radio.checked = true;
+    syncAllDiscoverySegs();
   }
 
   function setCheckoutStatus(text, kind) {
@@ -737,7 +787,10 @@
       $(id)?.addEventListener("change", () => saveDraft(readDraftFromForm()));
     });
     document.querySelectorAll('input[name="rd-discovery"]').forEach((el) => {
-      el.addEventListener("change", () => saveDraft(readDraftFromForm()));
+      el.addEventListener("change", () => {
+        saveDraft(readDraftFromForm());
+        syncAllDiscoverySegs();
+      });
     });
 
     const params = new URLSearchParams(location.search);
@@ -768,7 +821,10 @@
     formatQuotaLine,
     refreshCheckout,
     initPanel,
+    syncDiscoverySeg: syncAllDiscoverySegs,
   };
+
+  document.addEventListener("DOMContentLoaded", initDiscoverySeg);
 
   if ($("rd-checkout")) {
     document.addEventListener("DOMContentLoaded", initPanel);

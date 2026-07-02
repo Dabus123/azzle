@@ -23,7 +23,7 @@
     </div>
     <div class="azzle-nav-actions">
       <div data-rd-wallet-mount></div>
-      <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener">GitHub →</a>
+      <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub repository"><img src="GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a>
     </div>
   </nav>
 
@@ -51,14 +51,26 @@
       </label>
       <fieldset class="rd-discovery">
         <legend>Agent discovery</legend>
-        <label class="rd-discovery-option">
-          <input type="radio" name="rd-discovery" value="open" checked/>
-          <span><strong>Open</strong> — scope published onchain after post (market, agents, MCP can read it)</span>
-        </label>
-        <label class="rd-discovery-option">
-          <input type="radio" name="rd-discovery" value="private"/>
-          <span><strong>Private</strong> — scope stays off-chain; share terms via XMTP with agents you choose</span>
-        </label>
+        <div class="rd-disc-seg" data-disc-seg>
+          <span class="rd-disc-glider" aria-hidden="true"></span>
+          <label class="rd-disc-tab on">
+            <input type="radio" name="rd-discovery" value="open" checked/>
+            <svg class="rd-disc-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="5.75" stroke="currentColor" stroke-width="1.35"/><ellipse cx="8" cy="8" rx="2.25" ry="5.75" stroke="currentColor" stroke-width="1.2"/><path d="M2.25 8h11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span class="rd-disc-copy">
+              <span class="rd-disc-label">Public</span>
+              <span class="rd-disc-hint">Onchain scope</span>
+            </span>
+          </label>
+          <label class="rd-disc-tab">
+            <input type="radio" name="rd-discovery" value="private"/>
+            <svg class="rd-disc-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="4.25" y="7" width="7.5" height="6" rx="1.25" stroke="currentColor" stroke-width="1.35"/><path d="M5.5 7V5.25a2.5 2.5 0 0 1 5 0V7" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg>
+            <span class="rd-disc-copy">
+              <span class="rd-disc-label">Private</span>
+              <span class="rd-disc-hint">XMTP only</span>
+            </span>
+          </label>
+        </div>
+        <p class="rd-disc-detail" id="rd-disc-detail" data-disc-detail></p>
       </fieldset>
       <div class="rd-checkout-row">
         <label class="rd-field rd-field--inline">

@@ -579,7 +579,12 @@
     $("rd-chat-top").hidden = empty;
     $("rd-msgs").style.display = empty ? "none" : "flex";
     const discoveryWrap = $("rd-discovery-wrap");
-    if (discoveryWrap) discoveryWrap.hidden = activeRole !== "poster";
+    if (discoveryWrap) {
+      discoveryWrap.hidden = activeRole !== "poster";
+      if (!discoveryWrap.hidden) {
+        window.AzzlePostCheckout?.syncDiscoverySeg?.();
+      }
+    }
     if (empty) {
       $("rd-hero-title").textContent = r.title;
       $("rd-hero-sub").textContent = r.sub;
@@ -767,21 +772,44 @@
     input.focus();
   }
 
+  function syncRoleTabs(active) {
+    document.querySelectorAll(".rd-role").forEach((b) => {
+      const on = b.dataset.rd === active;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    requestAnimationFrame(updateRoleGlider);
+  }
+
+  function updateRoleGlider() {
+    const seg = document.querySelector(".rd-role-seg");
+    const glider = document.querySelector(".rd-role-glider");
+    const active = document.querySelector(".rd-role.on");
+    if (!seg || !glider || !active) return;
+    glider.style.left = active.offsetLeft + "px";
+    glider.style.top = active.offsetTop + "px";
+    glider.style.width = active.offsetWidth + "px";
+    glider.style.height = active.offsetHeight + "px";
+    glider.style.opacity = "1";
+  }
+
+  let roleGliderResizeTimer = 0;
+  function scheduleRoleGlider() {
+    clearTimeout(roleGliderResizeTimer);
+    roleGliderResizeTimer = setTimeout(updateRoleGlider, 80);
+  }
+
   function setRole(role) {
     if (role === "docs") {
       $("rd-chat-panel").classList.remove("on");
       $("rd-docs-panel").classList.add("on");
-      document.querySelectorAll(".rd-role").forEach((b) => {
-        b.classList.toggle("on", b.dataset.rd === "docs");
-      });
+      syncRoleTabs("docs");
       return;
     }
     activeRole = role;
     $("rd-docs-panel").classList.remove("on");
     $("rd-chat-panel").classList.add("on");
-    document.querySelectorAll(".rd-role").forEach((b) => {
-      b.classList.toggle("on", b.dataset.rd === role);
-    });
+    syncRoleTabs(role);
     const r = ROLES[role];
     roleFoot = r.foot;
     $("rd-input").placeholder = r.placeholder;
@@ -872,6 +900,8 @@
     setRole("poster");
     checkHealth();
     initGetStarted();
+    window.addEventListener("resize", scheduleRoleGlider, { passive: true });
+    requestAnimationFrame(() => requestAnimationFrame(updateRoleGlider));
     $("rd-input").focus();
   });
 })();
