@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://azzle.org/sitemap.xml
+
+# Machine-readable docs for AI agents
+# https://azzle.org/llms.txt

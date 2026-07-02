@@ -3,7 +3,7 @@
  * Stages in .vercel-static first, then swaps in (avoids Vercel reading public/ mid-build).
  */
 import * as esbuild from "esbuild";
-import { access, cp, mkdir, rename, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, rename, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,7 +39,25 @@ const STATIC = [
   "og.png",
   "icon.svg",
   "wordmark.svg",
+  "docs.css",
+  "llms.txt",
+  "openapi.yaml",
+  "sitemap.xml",
+  "robots.txt",
 ];
+
+async function copyDirRecursive(srcDir, destDir) {
+  await mkdir(destDir, { recursive: true });
+  for (const name of await readdir(srcDir)) {
+    const src = join(srcDir, name);
+    const dest = join(destDir, name);
+    if ((await stat(src)).isDirectory()) {
+      await copyDirRecursive(src, dest);
+    } else {
+      await cp(src, dest);
+    }
+  }
+}
 
 async function requireFile(name) {
   const src = join(site, name);
@@ -57,6 +75,15 @@ await mkdir(stage, { recursive: true });
 for (const name of STATIC) {
   const src = await requireFile(name);
   await cp(src, join(stage, name));
+}
+
+const docsDir = join(site, "docs");
+try {
+  await access(docsDir, constants.R_OK);
+  await copyDirRecursive(docsDir, join(stage, "docs"));
+  console.log("[vercel-build] docs/ copied");
+} catch {
+  console.warn("[vercel-build] WARN: site/docs/ missing — developer docs not staged");
 }
 
 await esbuild.build({

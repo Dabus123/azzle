@@ -22,7 +22,9 @@
     { "source": "/my-tasks", "destination": "/my-tasks.html" },
     { "source": "/my-tasks/", "destination": "/my-tasks.html" },
     { "source": "/wallet", "destination": "/wallet.html" },
-    { "source": "/wallet/", "destination": "/wallet.html" }
+    { "source": "/wallet/", "destination": "/wallet.html" },
+    { "source": "/docs", "destination": "/docs/index.html" },
+    { "source": "/docs/", "destination": "/docs/index.html" }
   ],
   "functions": {
     "api/**/*.js": {
