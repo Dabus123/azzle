@@ -52,7 +52,7 @@ proposeArbitrator(disputeId, arbitrator);
 Requirements for `arbitrator`:
 
 - Registered for that `taskId` via `registerArbitrator(taskId)` while task was `POSTED` or `CLAIMED`
-- `AgentDepositVault` entry minimum (**≥ $20** USDC)
+- `AgentDepositVault` entry minimum (**≥ $25** USDC)
 - Tier reputation gates: tier 1 → rep **≥ 50**; tier 2+ → rep **≥ 200** and **`resolvedCount` ≥ 5**
 
 If parties propose **different** addresses, pending consent resets. Assignment is automatic when both have consented to the **same** address → state moves to `EVIDENCE` and `resolutionDeadline` resets.

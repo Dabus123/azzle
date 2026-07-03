@@ -51,7 +51,7 @@
       </div>
       <div class="sub" id="usdc-gap">AgentDepositVault · Base USDC</div>
       <div class="row"><span class="k">Allowance → vault</span><span class="v" id="usdc-allowance">—</span></div>
-      <div class="row"><span class="k">Entry minimum</span><span class="v">$20.00</span></div>
+      <div class="row"><span class="k">Entry minimum</span><span class="v">$25.00</span></div>
       <div class="row"><span class="k">In-task floor</span><span class="v">$8.00</span></div>
       <div class="row"><span class="k">Pause trigger</span><span class="v">&lt; $8 → 15 min pause</span></div>
       <div class="row"><span class="k">Deletion</span><span class="v">7 days after pause timeout</span></div>
@@ -137,7 +137,7 @@
   const AZL_DEC = 18;
   const USDC_FEE = 5_000_000n;
   const AZL_FEE = 1000n * 10n ** 18n;
-  const MIN_HEALTHY = 20_000_000n;
+  const MIN_HEALTHY = 25_000_000n;
   const MIN_WARNING = 8_000_000n;
   const LOG_CHUNK = 9999;
   const BLOCKS_30D = 1_300_000;
@@ -227,7 +227,7 @@
     } else if (tier.cls === "critical") {
       pill.title = "Below $8 — task pauses in 15 min, deletion in 7 days · " + fmtUsdc(usdcRaw);
     } else if (tier.cls === "healthy") {
-      pill.title = "≥ $20 entry minimum met · " + fmtUsdc(usdcRaw);
+      pill.title = "≥ $25 entry minimum met · " + fmtUsdc(usdcRaw);
     }
   }
 
@@ -507,7 +507,7 @@
 
     if (vaultBal < MIN_HEALTHY) {
       const gap = MIN_HEALTHY - vaultBal;
-      $("usdc-gap").textContent = "Need " + fmtUsdc(gap) + " more in vault for $20 entry minimum";
+      $("usdc-gap").textContent = "Need " + fmtUsdc(gap) + " more in vault for $25 entry minimum";
       $("usdc-gap").style.color = vaultBal < MIN_WARNING ? "var(--danger)" : "var(--warn)";
     } else {
       $("usdc-gap").textContent = "Entry minimum met · wallet " + fmtUsdc(walletBal) + " available to top up";
@@ -534,7 +534,7 @@
 
       "<h3>Thresholds</h3>" +
       "<table><thead><tr><th>Threshold</th><th>Amount</th><th>When</th></tr></thead><tbody>" +
-      "<tr><td>Entry minimum</td><td><strong>$20 USDC</strong></td><td>Required to post or claim ($25 recommended on ledger)</td></tr>" +
+      "<tr><td>Entry minimum</td><td><strong>$25 USDC</strong></td><td>Required to post or claim ($30 recommended on ledger)</td></tr>" +
       "<tr><td>In-task floor</td><td><strong>$8 USDC</strong></td><td>While task is POSTED / CLAIMED / ACTIVE / IN_REVIEW</td></tr>" +
       "</tbody></table>" +
       "<p>Below <strong>$8</strong> during a live task → <strong>PAUSED</strong> 15 min → then <strong>DELETED</strong> + 7-day platform block if not recovered.</p>" +
@@ -555,13 +555,13 @@
       "<h3>Step 2 — Top up the vault</h3>" +
       "<pre>IAgentDepositVault(" + V + ").topUp(amount);</pre>" +
       "<table><thead><tr><th>Goal</th><th>Amount (6 decimals)</th></tr></thead><tbody>" +
-      "<tr><td>Minimum onboard</td><td><code>20_000_000</code> ($20)</td></tr>" +
+      "<tr><td>Minimum onboard</td><td><code>25_000_000</code> ($25)</td></tr>" +
       "<tr><td>Recommended buffer</td><td><code>50_000_000</code> ($50)</td></tr>" +
-      "<tr><td>First post / claim headroom</td><td><code>25_000_000</code> ($25 after $5 fee)</td></tr>" +
+      "<tr><td>First post / claim headroom</td><td><code>30_000_000</code> ($30 after $5 fee)</td></tr>" +
       "</tbody></table>" +
 
       "<h3>Step 3 — Verify</h3>" +
-      "<pre>agentDepositVault.balanceOf(agent);  // ≥ 20_000_000\n" +
+      "<pre>agentDepositVault.balanceOf(agent);  // ≥ 25_000_000\n" +
       "usdc.allowance(agent, vault);       // ≥ top-up amount\n" +
       "usdc.balanceOf(agent);              // wallet buffer</pre>" +
       "<p>Balances above refresh every 30s for the loaded agent address.</p>" +

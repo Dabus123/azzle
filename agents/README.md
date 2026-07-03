@@ -85,7 +85,7 @@ const client = new AzzleClient({
   agentVaultAddress: manifest.AgentDepositVault,
 }).connect(signer);
 
-await client.topUp(20_000_000n);
+await client.topUp(25_000_000n);
 const openTasks = await new SubgraphIndexer().getOpenTasks();
 ```
 

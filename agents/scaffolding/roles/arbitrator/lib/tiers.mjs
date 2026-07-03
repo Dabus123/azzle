@@ -16,7 +16,7 @@ export function checkTierEligibility(tier, { rep, resolvedCount, hasDeposit }) {
   const gate = TIER_GATES[tier];
   if (!gate) return { eligible: false, reasons: [`Unknown tier ${tier}`] };
   const reasons = [];
-  if (gate.needsDeposit && !hasDeposit) reasons.push("Requires ≥ $20 USDC AgentDepositVault deposit");
+  if (gate.needsDeposit && !hasDeposit) reasons.push("Requires ≥ $25 USDC AgentDepositVault deposit");
   if (rep < gate.minRep) reasons.push(`arbitratorReputation ${rep} < ${gate.minRep}`);
   if (resolvedCount < gate.minResolved) {
     reasons.push(`resolvedCount ${resolvedCount} < ${gate.minResolved}`);

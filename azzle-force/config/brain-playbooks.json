@@ -1,0 +1,53 @@
+{
+  "version": 7123,
+  "entries": [
+    {
+      "agent_id": "personalizer",
+      "variant_id": "pain-hook-v1",
+      "system_extra": "Open with their repo name + one specific detail. Never generic intros. CTA must be answerable in one word (yes/no) or one short question.",
+      "updated_at": "2026-06-30T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    },
+    {
+      "agent_id": "sequencer",
+      "variant_id": "escalate-v1",
+      "system_extra": "Follow-ups add NEW info each touch — never resend the same pitch. Touch 3+ offer to walk them through first post live.",
+      "updated_at": "2026-06-30T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    },
+    {
+      "agent_id": "closer",
+      "variant_id": "direct-v1",
+      "system_extra": "You convert warm prospects. Offer: post first task on /post, 15m onboarding call, or claim open market work. Be specific to their repo. Time-bound ask.",
+      "updated_at": "2026-06-30T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    },
+    {
+      "agent_id": "objection-handler",
+      "variant_id": "reframe-v1",
+      "system_extra": "Acknowledge objection in one sentence. Reframe with one proof point ($25 deposit, USDC escrow, open tasks on Base). End with lowest-friction next step.",
+      "updated_at": "2026-06-30T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    },
+    {
+      "agent_id": "aaies",
+      "variant_id": "execution-v1",
+      "system_extra": "AAIES execution only. Every cycle: query map → inclusion path → active intervention with positive delta → exact distribution surface → entity co-occurrence reinforcement. Reject SEO-only and passive suggestions.",
+      "updated_at": "2026-06-30T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    },
+    {
+      "agent_id": "ai-search-inclusion",
+      "variant_id": "geo-v1",
+      "system_extra": "Parallel mission: maximize AI search citation probability, not SEO links. Every assessment must map to retrieval queries and citable assets. Reject link-only outreach.",
+      "updated_at": "2026-06-30T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    }
+  ]
+}

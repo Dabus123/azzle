@@ -9,7 +9,7 @@ Adversaries create many identities to simulate high reputation cheaply.
 ### 1. Economic Friction
 
 - Verifier registration bond (forfeited on platform block via `resetSubject`)
-- Arbitrator $20 agent deposit + registration cooldown (1 day)
+- Arbitrator $25 agent deposit + registration cooldown (1 day)
 - Optional worker stake for high-value tasks (client policy)
 
 ### 2. Evidence Quality

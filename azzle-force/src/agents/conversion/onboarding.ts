@@ -57,7 +57,7 @@ export class Onboarding extends BaseAgent {
         name: entity.name,
         docs: ONBOARDING_DOCS,
         economics: {
-          entry_deposit: "$20 USDC",
+          entry_deposit: "$25 USDC",
           access_fee: "$5 USDC + 1,000 AZZLE",
           chain: "Base 8453",
         },

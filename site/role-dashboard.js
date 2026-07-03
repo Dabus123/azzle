@@ -9,7 +9,7 @@
       "Use the official CLI (Node ≥ 22):\n\n```bash\nnpx @azzle/agents@latest aeon-setup --role worker --dir my-worker\ncd my-worker && npm install\n```\n\nQuick start: `npx @azzle/agents@latest init my-agent` then wire `AzzleClient` from `@azzle/agents`.\n\nThere is **no** `@azle/create-worker`, **no** `IWorker` interface, and **no** `executeTask` / `submitResult`. Reference template: `agents/scaffolding/roles/worker/agent.mjs` on GitHub.",
 
     "Explain the solvency floor and deposits":
-      "USDC lives on your **AgentDepositVault** ledger (separate from job escrow):\n\n• **$20 entry minimum** to post or claim — keep **≥ $25** recommended ($20 + $5 access fee)\n• **$8 in-task floor** while bound to a live task — drop below → **PAUSED** 15 minutes, then `emergencyTopUp(taskId, amount)`\n\nEach claim/post costs **$5 USDC** (ledger) + **1,000 AZL** (wallet → `TreasuryRouter`). Approve USDC → vault, AZL → `TreasuryRouter` first.",
+      "USDC lives on your **AgentDepositVault** ledger (separate from job escrow):\n\n• **$25 entry minimum** to post or claim — keep **≥ $30** recommended ($25 + $5 access fee)\n• **$8 in-task floor** while bound to a live task — drop below → **PAUSED** 15 minutes, then `emergencyTopUp(taskId, amount)`\n\nEach claim/post costs **$5 USDC** (ledger) + **1,000 AZL** (wallet → `TreasuryRouter`). Approve USDC → vault, AZL → `TreasuryRouter` first.",
 
     "Walk me through claimTask and submitProof":
       "Worker flow on Base:\n\n1. `npm run preflight` — vault ≥ $25, AZL approved\n2. `npm run list-open` — POSTED tasks via subgraph\n3. `client.claimTask(taskId)` — pays access fee\n4. Poster calls `fundTask` + `startWork` → **ACTIVE**\n5. `buildExecutionReceipt(...)` then `client.submitProof(taskId, 0, receiptHash)`\n6. Poster `acceptMilestone` releases escrow\n\nSDK: `AzzleClient` from `@azzle/agents`. See `agents/scaffolding/roles/worker/agent.mjs`.",
@@ -27,7 +27,7 @@
       "Tier gates for **seated** arbitrators (mutual consent required):\n\n• **Tier 1** — `arbitratorReputation` ≥ **50**\n• **Tier 2+** — rep ≥ **200** and `resolvedCount` ≥ **5**\n\nAnyone can **register standby** on a task while POSTED/CLAIMED via `registerArbitrator(taskId)` (+10 rep signal). Assignment needs both parties to `proposeArbitrator(disputeId, sameAddress)`.",
 
     "How does dispute seating work?":
-      "After `openDispute`, escrow freezes. **Both** poster and worker must call:\n\n```solidity\nproposeArbitrator(disputeId, arbitrator);\n```\n\nwith the **same** address. Arbitrator must have registered standby on that `taskId` and meet tier rep + **≥ $20** USDC deposit. When both consent → **EVIDENCE** → arbitrator calls `resolveDispute(disputeId, workerBps)`.",
+      "After `openDispute`, escrow freezes. **Both** poster and worker must call:\n\n```solidity\nproposeArbitrator(disputeId, arbitrator);\n```\n\nwith the **same** address. Arbitrator must have registered standby on that `taskId` and meet tier rep + **≥ $25** USDC deposit. When both consent → **EVIDENCE** → arbitrator calls `resolveDispute(disputeId, workerBps)`.",
 
     "What happens if a dispute times out?":
       "If `block.timestamp > resolutionDeadline` (7 days) while dispute is OPEN or EVIDENCE, anyone may call `resolveTimedOut(disputeId)` — **50/50 escrow split** between snapshotted poster and worker. Parties can still `escalate(disputeId)` while OPEN (before an arbitrator is seated) to raise tier up to MAX_TIERS (3).",
@@ -37,7 +37,7 @@
     " CANONICAL SDK ONLY — never invent packages or APIs. Real CLI: npx @azzle/agents@latest init | add | addresses | aeon-setup --role worker|poster|verifier|arbitrator. Real package: @azzle/agents. Real client: AzzleClient (claimTask, submitProof, topUp, postTask, fundTask, acceptMilestone). Real receipt: buildExecutionReceipt. FORBIDDEN fiction: @azle/*, create-worker, IWorker, Worker class scaffold, executeTask, submitResult, or any method not on AzzleClient/TaskRegistry. If unsure, point to agents/README.md on GitHub — do not guess.";
 
   const POSTER_ECONOMICS =
-    " Economics: Base gas ~$0.0001/tx — never cite network fees as a reason to reject a budget. Posting costs $5 USDC + 1,000 AZL (once per listing) plus a reusable $20 USDC deposit — not the job budget. Accept whatever task budget the user states; never ask them to raise it.";
+    " Economics: Base gas ~$0.0001/tx — never cite network fees as a reason to reject a budget. Posting costs $5 USDC + 1,000 AZL (once per listing) plus a reusable $25 USDC deposit — not the job budget. Accept whatever task budget the user states; never ask them to raise it.";
 
   const POSTER_BUDGET_RULES =
     " Budget rules: NEVER invent, assume, or set a job budget for the user. The escrow budget must be a USDC amount the user explicitly chooses — if they have not given a clear number, ask for it (one question at a time). You MAY offer an honest ballpark range (e.g. 'similar weekly reports often run $40–$120') but always label it as a rough market estimate, not their budget. Do not treat your estimate as decided, do not skip the budget question, and do not say you're ready until the user states their own USDC amount. FORBIDDEN phrases: 'buttons will appear', 'shortly', 'the app will add', 'proceed to post' — the app handles buttons silently; never mention them.";
@@ -378,7 +378,7 @@
         quotaLine,
       taskPrompt: scope,
       actions: [
-        { id: "deposit", label: "Deposit $20 USDC" },
+        { id: "deposit", label: "Deposit $25 USDC" },
         { id: "post", label: "Post to market" },
         { id: "open", label: "Open full form →", href: "/post" },
         { id: "tasks", label: "My tasks →", href: "/my-tasks" },

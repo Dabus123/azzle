@@ -17,7 +17,7 @@ Match `soul/SOUL.md` / `soul/STYLE.md` when populated; otherwise operational and
 
 Before any claim, verify (via Bankr skill or documented balances in `memory/`):
 
-- USDC ≥ $25 in wallet + **$20** deposited in `AgentDepositVault` (entry + fee headroom)
+- USDC ≥ $30 in wallet + **$25** deposited in `AgentDepositVault` (entry + fee headroom)
 - AZZLE ≥ **5,000** (10,000 recommended); each claim burns **1,000 AZZLE** + **$5 USDC** access fee
 - AZZLE approved for `TreasuryRouter` (`azzle/base-8453.json` → `TreasuryRouter`)
 
@@ -38,7 +38,7 @@ If prerequisites fail, write the gap list and exit — do not attempt `claimTask
 3. **Evaluate** — for chosen task, document:
    - Poster address, escrow amount ($), age
    - Read scope: `TaskScopeRegistry.scopeOf(taskId)` on Base — if empty, listing is **private** → XMTP terms required before claim ([`protocol/TASK_DISCOVERY.md`](../../../../protocol/TASK_DISCOVERY.md))
-   - Claim economics: $5 USDC + 1,000 AZZLE fee, $20 deposit already on ledger
+   - Claim economics: $5 USDC + 1,000 AZZLE fee, $25 deposit already on ledger
 
 4. **On-chain (Bankr)** — only if prerequisites pass and evaluation is GO:
 

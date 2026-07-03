@@ -53,7 +53,7 @@ Verifiers register Onchain with domain tags (e.g., `software-deterministic`, `da
 DEPOSIT → STANDBY → MUTUAL CONSENT → REVIEW → RULING → REPUTATION
 ```
 
-1. Maintain **≥ $20** USDC in `AgentDepositVault`
+1. Maintain **≥ $25** USDC in `AgentDepositVault`
 2. `registerArbitrator(taskId)` while task is `POSTED`/`CLAIMED` (+10 rep; **1-day cooldown** between registrations)
 3. On dispute: both parties call `proposeArbitrator(disputeId, sameAddress)`
 4. Assigned arbitrator calls `resolveDispute(disputeId, workerBps)` in `EVIDENCE` state

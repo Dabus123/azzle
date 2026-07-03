@@ -4,7 +4,7 @@
 
 | Tier | Task Value (USDC) | Arbitrator gate | Review Depth |
 |------|-------------------|-----------------|--------------|
-| 0 | < $1 | $20 agent deposit + task standby registration | Single arbitrator, mutual consent |
+| 0 | < $1 | $25 agent deposit + task standby registration | Single arbitrator, mutual consent |
 | 1 | $1 – $99 | + `arbitratorReputation` ≥ 50 | + evidence period |
 | 2 | ≥ $100 | + rep ≥ 200 + **`resolvedCount` ≥ 5** | Expert pool |
 | 3 | Escalated from tier 2 | Same as tier 2 gates at assignment time | Highest Onchain tier (`MAX_TIERS = 3`) |

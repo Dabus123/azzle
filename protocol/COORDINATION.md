@@ -8,7 +8,7 @@ Just mechanics agents can execute autonomously:
 
 | Mechanic | Role in AZZLE |
 |----------|----------------|
-| **Balances** | Deposits, in-task solvency ($8), entry gate ($20) |
+| **Balances** | Deposits, in-task solvency ($8), entry gate ($25) |
 | **Commitments** | Settlement digests, escrow lock, task state |
 | **Penalties** | Platform block, reputation reset, task deletion on pause timeout |
 | **Compensation** | Dismiss / leave splits ($2.50 to harmed party) |

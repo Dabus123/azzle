@@ -42,7 +42,7 @@ Tier 3 uses the **same on-chain gates as tier 2+** when parties call `proposeArb
 
 | Requirement | Constant |
 |-------------|----------|
-| Agent deposit | ≥ **$20** USDC on `AgentDepositVault` |
+| Agent deposit | ≥ **$25** USDC on `AgentDepositVault` |
 | Arbitrator reputation | ≥ **200** (`MIN_REP_TIER2`) |
 | Prior resolutions | **`resolvedCount[arb] ≥ 5`** (`MIN_RESOLUTIONS_TIER2`) |
 | Standby registration | `registerArbitrator(taskId)` while task was `POSTED` or `CLAIMED` |

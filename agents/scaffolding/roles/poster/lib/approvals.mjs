@@ -10,7 +10,7 @@ const ERC20_ABI = [
 
 const VAULT_ABI = ["function topUp(uint256 amount) external"];
 
-/** Approve USDC for AgentDepositVault entry deposit ($20+). */
+/** Approve USDC for AgentDepositVault entry deposit ($25+). */
 export async function ensureUsdcVaultApproval(signer, minAmount = 25_000_000n) {
   const wallet = await signer.getAddress();
   const usdc = new Contract(manifest.usdc, ERC20_ABI, signer);

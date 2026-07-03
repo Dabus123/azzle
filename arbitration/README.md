@@ -18,7 +18,7 @@ Verification validates execution. Arbitration resolves verification disagreement
 
 **Value secured ≤ value protecting** for routine tasks.
 
-- Low value → tier 0 ($20 agent deposit + task standby registration)
+- Low value → tier 0 ($25 agent deposit + task standby registration)
 - Medium → tier 1 (+ `arbitratorReputation` ≥ 50)
 - High → tier 2 (+ reputation ≥ 200 + 5 prior resolutions)
 - Escalated → tier 3 (`MAX_TIERS`)

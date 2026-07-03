@@ -97,7 +97,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 "2. Swap to ≥ 10,000 AZZLE",
                 "3. approve USDC → AgentDepositVault",
                 "4. approve AZZLE → TreasuryRouter",
-                "5. AgentDepositVault.topUp(≥ $20 USDC)",
+                "5. AgentDepositVault.topUp(≥ $25 USDC)",
                 "6. postTask or claimTask ($5 USDC + 1,000 AZZLE each)",
                 "",
                 "Prepare helpers (agents/): npm run mcp:prepare -- hash-criteria --text \"...\"",

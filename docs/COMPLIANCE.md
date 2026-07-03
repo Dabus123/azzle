@@ -20,7 +20,7 @@ Maps documented behavior to automated tests in `contracts/test/`. Onchain rows w
 | Dispute timeout 50/50 fallback | `Arbitration.test.ts` — resolveTimedOut | Covered |
 | Tier-1 reputation gate | `Arbitration.test.ts` — tier rep | Covered |
 | Access fees: post / claim / dismiss / leave | `AccessFees.test.ts` | Covered |
-| $20 entry / $8 in-task pause / resume / delete | `AgentDeposits.test.ts` | Covered |
+| $25 entry / $8 in-task pause / resume / delete | `AgentDeposits.test.ts` | Covered |
 | Platform penalty bond slash | — | Spec only; not in CI |
 | Streaming release | — | Spec only; not in CI |
 | Hour-block claim | — | Spec only; not in CI |

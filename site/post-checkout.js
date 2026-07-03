@@ -514,12 +514,12 @@
         setStepState("post", null);
         if (!status.canDeposit) {
           setCheckoutStatus(
-            "Add $20 USDC on Base — you have $" + status.usdcWallet + " in your wallet.",
+            "Add $25 USDC on Base — you have $" + status.usdcWallet + " in your wallet.",
             "err"
           );
         } else {
           setCheckoutStatus(
-            "One-time $20 USDC entry deposit on Base (wallet USDC: $" +
+            "One-time $25 USDC entry deposit on Base (wallet USDC: $" +
               status.usdcWallet +
               "). First listing also debits $5 from this deposit. " +
               (quotaLine || "Free: 3 posts/day."),
@@ -528,7 +528,7 @@
         }
         if (depositBtn) {
           depositBtn.disabled = checkoutBusy;
-          depositBtn.textContent = "Deposit $20 USDC";
+          depositBtn.textContent = "Deposit $25 USDC";
         }
         if (postBtn) postBtn.disabled = true;
       }
