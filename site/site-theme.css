@@ -756,7 +756,7 @@ footer{
   background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1px);
   background-size:24px 24px;
   mask-image:radial-gradient(ellipse 90% 70% at 50% 20%,black 15%,transparent 72%);
-  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 20%,black 15%,transparent 72%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 20%,rgb(31, 103, 102) 15%,transparent 72%);
 }
 .px-orb{
   border-radius:50%;
@@ -765,9 +765,9 @@ footer{
 .px-ball-rig{
   top:18%;
   left:50%;
-  width:min(100vw,1180px);
-  height:min(48vw,420px);
-  margin-left:calc(min(100vw,1180px) / -2);
+  width:min(200vw,2180px);
+  height:min(77vh,120px);
+  margin-left:calc(min(220vw,2180px) / -2);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -781,8 +781,8 @@ footer{
     90deg,
     transparent 0%,
     rgb(0, 76, 255) 10%,
-    rgba(33, 35, 34, 0.52) 50%,
-    rgb(183, 255, 2) 90%,
+    rgba(0, 0, 0, 0.066) 50%,
+    rgba(70, 212, 217, 0.199) 90%,
     transparent 100%
   );
   box-shadow:0 0 120px rgba(142, 255, 206, 0.32),0 0 280px rgba(255,255,255,.12);

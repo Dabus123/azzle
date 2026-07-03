@@ -124,11 +124,61 @@
     track,
     ball,
     phase: Math.random() * Math.PI * 2,
+    rollDir: 1,
+    trackHalf: 0,
     curBallX: 0,
     curTilt: 0,
     curRoll: 0,
-    trackHalf: 0,
+    ballVel: 0,
+    smoothScrollNorm: 0,
+    smoothStoryTilt: 0,
+    smoothStoryBall: 0,
   };
+
+  // Scroll narrative: tilt + ball position keyed to page depth (0 = top, 1 = bottom).
+  const STORY_KEYFRAMES = [
+    { p: 0, tilt: -7, ball: -0.48 },
+    { p: 0.08, tilt: -2, ball: -0.12 },
+    { p: 0.2, tilt: 4, ball: 0.18 },
+    { p: 0.34, tilt: 11, ball: 0.48 },
+    { p: 0.48, tilt: 17, ball: 0.72 },
+    { p: 0.58, tilt: 14, ball: 0.58 },
+    { p: 0.7, tilt: 3, ball: 0.1 },
+    { p: 0.82, tilt: -9, ball: -0.42 },
+    { p: 0.92, tilt: -14, ball: -0.68 },
+    { p: 1, tilt: -8, ball: -0.38 },
+  ];
+
+  function smoothstep(t) {
+    const x = clamp(t, 0, 1);
+    return x * x * (3 - 2 * x);
+  }
+
+  function sampleStory(norm) {
+    const p = clamp(norm, 0, 1);
+    let i = 0;
+    while (i < STORY_KEYFRAMES.length - 2 && STORY_KEYFRAMES[i + 1].p < p) i += 1;
+    const a = STORY_KEYFRAMES[i];
+    const b = STORY_KEYFRAMES[i + 1];
+    const span = Math.max(b.p - a.p, 0.0001);
+    const t = smoothstep((p - a.p) / span);
+    return {
+      tilt: lerp(a.tilt, b.tilt, t),
+      ball: lerp(a.ball, b.ball, t),
+    };
+  }
+
+  function scrollProgress() {
+    const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+    return window.scrollY / maxScroll;
+  }
+
+  let lastScrollY = window.scrollY;
+  let lastTime = performance.now();
+  let velocity = 0;
+  let smoothVelocity = 0;
+  let smoothSignedVelocity = 0;
+  let scrollY = window.scrollY;
 
   function measureBallRig() {
     if (!track || !ball) return;
@@ -138,6 +188,12 @@
   }
 
   measureBallRig();
+  const bootStory = sampleStory(scrollProgress());
+  ballRig.smoothScrollNorm = scrollProgress();
+  ballRig.smoothStoryTilt = bootStory.tilt;
+  ballRig.smoothStoryBall = bootStory.ball;
+  ballRig.curTilt = bootStory.tilt;
+  ballRig.curBallX = bootStory.ball * ballRig.trackHalf;
   window.addEventListener("resize", measureBallRig, { passive: true });
 
   const depthEls = [];
@@ -191,10 +247,6 @@
   // ---------------------------------------------------------------
   // 4. Scroll velocity — drives displacement scale + aberration dx
   // ---------------------------------------------------------------
-  let lastScrollY = window.scrollY;
-  let lastTime = performance.now();
-  let velocity = 0;
-  let smoothVelocity = 0;
   let ambientClock = 0;
 
   let running = true;
@@ -208,10 +260,12 @@
 
     for (const layer of bgLayers) {
       layer.tgt.y = sy * layer.speed;
-      // deeper layers tilt more; pointer drives rotateY, scroll speed drives rotateX
       const depthFactor = 1 + layer.depthIndex * 0.6;
+      const isBallRig = layer.el.classList.contains("px-ball-rig");
       layer.tgt.rotY = pointerActive ? pointerX * 6 * depthFactor : 0;
-      layer.tgt.rotX = clamp(-smoothVelocity * 0.15 * depthFactor, -14, 14);
+      layer.tgt.rotX = isBallRig
+        ? 0
+        : clamp(-smoothVelocity * 0.15 * depthFactor, -14, 14);
     }
 
     for (const d of depthEls) {
@@ -227,22 +281,39 @@
     const { track: trackEl, ball: ballEl } = ballRig;
     if (!trackEl || !ballEl) return;
 
-    const MAX_TILT = 17;
-    const speed = 0.00052;
-    ballRig.phase += dt * speed;
+    const half = ballRig.trackHalf;
+    const normSmooth = 1 - Math.pow(0.0012, dt / 1000);
+    const motionSmooth = 1 - Math.pow(0.0025, dt / 1000);
 
-    const t = Math.sin(ballRig.phase);
-    const vel = Math.cos(ballRig.phase);
-    const tgtBallX = t * ballRig.trackHalf;
-    // Tilt ahead of the ball so the high edge catches it before it rolls off.
-    const tgtTilt = -t * MAX_TILT * 0.62 - vel * MAX_TILT * 0.55;
+    ballRig.smoothScrollNorm = lerp(ballRig.smoothScrollNorm, scrollProgress(), normSmooth);
+    const story = sampleStory(ballRig.smoothScrollNorm);
 
-    const rigSmooth = 1 - Math.pow(0.001, dt / 1000);
-    const tiltSmooth = 1 - Math.pow(0.00001, dt / 1000);
+    const velNudge = clamp(-smoothSignedVelocity * 0.055, -3.5, 3.5);
+    const velBallNudge = clamp(-smoothSignedVelocity * 0.0011, -0.1, 0.1) * half;
+
+    ballRig.smoothStoryTilt = lerp(ballRig.smoothStoryTilt, story.tilt, motionSmooth);
+    ballRig.smoothStoryBall = lerp(ballRig.smoothStoryBall, story.ball, motionSmooth);
+
+    const scrolling = Math.abs(smoothSignedVelocity) > 0.8;
+    let ambientTilt = 0;
+    let ambientBall = 0;
+    if (!scrolling) {
+      ballRig.phase += dt * 0.00042 * ballRig.rollDir;
+      const t = Math.sin(ballRig.phase);
+      const phaseVel = Math.cos(ballRig.phase) * ballRig.rollDir;
+      ambientTilt = -t * 3.2 - phaseVel * 2.4;
+      ambientBall = t * half * 0.1;
+      if (Math.abs(t) > 0.985) ballRig.rollDir = t > 0 ? -1 : 1;
+    }
+
+    const tgtTilt = ballRig.smoothStoryTilt + velNudge + ambientTilt;
+    const tgtBallX = ballRig.smoothStoryBall * half + velBallNudge + ambientBall;
+
     const prevBallX = ballRig.curBallX;
-    ballRig.curBallX = lerp(ballRig.curBallX, tgtBallX, rigSmooth);
-    ballRig.curTilt = lerp(ballRig.curTilt, tgtTilt, tiltSmooth);
-    ballRig.curRoll += (ballRig.curBallX - prevBallX) * 0.55;
+    ballRig.curTilt = lerp(ballRig.curTilt, tgtTilt, motionSmooth);
+    ballRig.curBallX = lerp(ballRig.curBallX, clamp(tgtBallX, -half, half), motionSmooth);
+    ballRig.ballVel = (ballRig.curBallX - prevBallX) / Math.max(dt, 1);
+    ballRig.curRoll += ballRig.ballVel * dt * 0.5;
 
     trackEl.style.transform = `rotate(${ballRig.curTilt.toFixed(2)}deg)`;
     ballEl.style.transform =
@@ -296,14 +367,18 @@
     lastTime = now;
 
     const sy = window.scrollY;
-    const rawVelocity = Math.abs(sy - lastScrollY) / Math.max(dt, 1) * 16.6; // normalize to px/frame-ish
+    const scrollDelta = sy - lastScrollY;
+    const rawVelocity = Math.abs(scrollDelta) / Math.max(dt, 1) * 16.6; // normalize to px/frame-ish
+    const rawSignedVelocity = scrollDelta / Math.max(dt, 1) * 16.6;
     lastScrollY = sy;
+    scrollY = sy;
     velocity = rawVelocity;
-    smoothVelocity = lerp(smoothVelocity, velocity, 0.15);
+    smoothVelocity = lerp(smoothVelocity, velocity, 0.12);
+    smoothSignedVelocity = lerp(smoothSignedVelocity, rawSignedVelocity, 0.1);
 
     updateTargets();
-    updateBallRig(dt);
     render(dt);
+    updateBallRig(dt);
     renderFilter(dt);
 
     rafId = requestAnimationFrame(frame);

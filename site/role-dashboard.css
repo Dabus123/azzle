@@ -130,18 +130,28 @@
 @media(min-width:900px){
   .rd-main-grid{
     flex:1;
-    flex-direction:row;
+    display:grid;
+    grid-template-columns:min(340px,36%) 1fr;
+    grid-template-rows:auto 1fr;
     align-items:stretch;
     gap:16px;
     min-height:min(68vh,600px);
   }
+  .rd-head{
+    grid-column:1 / -1;
+    padding:12px 0 0;
+  }
   .rd-how{
-    flex:0 0 min(340px,36%);
+    grid-column:1;
+    grid-row:2;
+    flex:none;
     align-self:stretch;
     max-height:none;
     overflow-y:auto;
   }
   .rd-chat-col{
+    grid-column:2;
+    grid-row:2;
     flex:1;
     display:flex;
     flex-direction:column;
@@ -151,22 +161,147 @@
 }
 
 @media(max-width:899px){
-  .rd-how{order:-1}
   .rd-how-steps{flex:none}
   .rd-how-note{margin-top:0}
 }
 
 .rd-head{
   flex-shrink:0;
-  padding:20px 0 16px;
+  padding:16px 0 0;
   text-align:center;
+  max-width:100%;
+  overflow:hidden;
 }
 .rd-head-top{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:16px;
+  gap:14px;
   flex-wrap:wrap;
+  flex-direction:column;
+  max-width:100%;
+}
+
+/* Airport split-flap — dark tile per letter, roll on load + hover */
+.rd-infoboard{
+  width:100%;
+  max-width:100%;
+  background:transparent;
+  border:none;
+  padding:0;
+  overflow:hidden;
+}
+.rd-infoboard-line{
+  display:flex;
+  flex-wrap:nowrap;
+  justify-content:center;
+  align-items:center;
+  gap:4px 3px;
+  margin:0 auto;
+  width:max-content;
+  max-width:100%;
+  transform:scale(var(--flap-scale,1));
+  transform-origin:center top;
+}
+.rd-flap-cell{
+  --flap-fs:15px;
+  --flap-w:1.38em;
+  --flap-h:1.92em;
+  position:relative;
+  display:inline-block;
+  width:var(--flap-w);
+  min-width:var(--flap-w);
+  height:var(--flap-h);
+  flex:0 0 auto;
+  perspective:210px;
+  transform-style:preserve-3d;
+  border-radius:5px;
+  background:#101010;
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 1px 2px rgba(0,0,0,.35);
+  cursor:default;
+  overflow:visible;
+}
+.rd-flap-cell--dot{
+  --flap-w:0.75em;
+  min-width:0.75em;
+}
+.rd-flap-cell--space{
+  width:.57em;
+  min-width:.57em;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  perspective:none;
+}
+.rd-flap-top-wrap,
+.rd-flap-bot-wrap{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  backface-visibility:hidden;
+  pointer-events:none;
+}
+.rd-flap-top-wrap{
+  clip-path:inset(0 0 50% 0);
+  transform-origin:50% 100%;
+  background:linear-gradient(180deg,#222 0%,#161616 100%);
+  transform:rotateX(-90deg);
+  z-index:1;
+}
+.rd-flap-bot-wrap{
+  clip-path:inset(50% 0 0 0);
+  background:linear-gradient(180deg,#141414 0%,#0a0a0a 100%);
+  z-index:0;
+}
+.rd-flap-glyph{
+  font-family:var(--mono);
+  font-size:var(--flap-fs);
+  font-weight:600;
+  line-height:var(--flap-h);
+  height:var(--flap-h);
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--accent);
+  text-shadow:none;
+}
+.rd-flap-cell::after{
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  top:50%;
+  height:1px;
+  margin-top:-1px;
+  background:rgba(0,0,0,.75);
+  box-shadow:0 1px 0 rgba(255,220,70,.12);
+  z-index:2;
+  pointer-events:none;
+}
+.rd-flap-cell.rd-flap-rolling .rd-flap-top-wrap{
+  animation:rdFlapRollDown .38s cubic-bezier(.34,1.12,.64,1) forwards;
+}
+.rd-flap-cell.rd-flap-settled .rd-flap-top-wrap{
+  transform:rotateX(0deg);
+}
+@keyframes rdFlapRollDown{
+  from{transform:rotateX(-90deg)}
+  to{transform:rotateX(0deg)}
+}
+@media(max-width:520px){
+  .rd-flap-cell{--flap-fs:13px;--flap-w:1.26em;--flap-h:1.77em}
+  .rd-flap-cell--dot{--flap-w:0.69em;min-width:0.69em}
+}
+@media(prefers-reduced-motion:reduce){
+  .rd-flap-top-wrap{transform:rotateX(0deg)}
+  .rd-flap-cell.rd-flap-rolling .rd-flap-top-wrap{animation:none}
 }
 .azzle-nav-actions [data-rd-wallet-mount],
 .rd-head-wallet{
@@ -194,18 +329,6 @@
 .rd-wallet-btn--on{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 .rd-wallet-btn--off{opacity:.55;cursor:not-allowed}
 .rd-mark{color:var(--accent);font-size:18px}
-.rd-name{font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--heading);margin-left:8px}
-.rd-live{
-  font-size:11px;
-  font-weight:500;
-  color:var(--accent);
-  margin-left:10px;
-  padding:3px 10px;
-  background:var(--accent-dim);
-  border:1px solid rgba(255,220,70,.25);
-  border-radius:var(--radius-pill);
-}
-.rd-head-tag{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.5;max-width:420px;margin-left:auto;margin-right:auto}
 
 /* Role switcher — premium segmented control */
 .rd-roles{
@@ -1830,7 +1953,7 @@ a.rd-wallet-btn{text-decoration:none;display:inline-flex;align-items:center}
 
 @media(max-width:700px){
   .rd-app-inner{padding:0 12px 12px}
-  .rd-head{padding:12px 0 10px}
+  .rd-head{display:none}
   .rd-shell{min-height:min(50vh,440px)}
   .rd-how{padding:16px 14px}
 }

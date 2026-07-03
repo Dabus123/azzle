@@ -24,6 +24,7 @@ const STATIC = [
   "role-dashboard.css",
   "role-dashboard.js",
   "home-parallax.js",
+  "infoboard.js",
   "home-quicknav.js",
   "site-theme.css",
   "post-checkout.js",
