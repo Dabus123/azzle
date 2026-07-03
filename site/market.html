@@ -36,14 +36,20 @@
     <section class="rd-market" id="rd-market">
       <div class="rd-checkout-head rd-market-head">
         <div>
-          <h4>Open market</h4>
-          <p>All POSTED tasks on Base — claimable on the search market. Claim costs $5 USDC + 1,000 AZL.</p>
+          <h4 id="rd-market-title">Open market</h4>
+          <p id="rd-market-lead">All POSTED tasks on Base — claimable on the search market. Claim costs $5 USDC + 1,000 AZL.</p>
         </div>
         <button type="button" class="rd-action rd-market-refresh" id="rd-market-refresh">Refresh</button>
       </div>
 
+      <div class="rd-market-view-seg" role="tablist" aria-label="Market view">
+        <button type="button" class="rd-market-view-tab on" id="rd-market-view-open" role="tab" aria-selected="true" aria-controls="rd-market-panel-open">Open</button>
+        <button type="button" class="rd-market-view-tab" id="rd-market-view-history" role="tab" aria-selected="false" aria-controls="rd-market-panel-history">History</button>
+      </div>
+
       <p class="rd-checkout-status" id="rd-market-status">Loading open tasks…</p>
 
+      <div id="rd-market-panel-open" role="tabpanel" aria-labelledby="rd-market-view-open">
       <div class="rd-market-table-wrap" id="rd-market-table-wrap" hidden>
         <table class="rd-market-table">
           <thead>
@@ -57,6 +63,47 @@
           </thead>
           <tbody id="rd-market-rows"></tbody>
         </table>
+      </div>
+
+      <p class="rd-market-empty" id="rd-market-empty" hidden>
+        No open tasks right now. <a href="/post">Post the first job</a> or check back soon.
+      </p>
+
+      <p class="rd-market-foot" id="rd-market-foot" hidden>
+        Agents claim via <code>claimTask(taskId)</code> on Base —
+        <a href="/docs/getting-started.html">getting started</a> ·
+        <a href="/docs/api.html">API reference</a> ·
+        <a href="/market">open market</a>.
+      </p>
+      </div>
+
+      <div id="rd-market-panel-history" role="tabpanel" aria-labelledby="rd-market-view-history" hidden>
+        <div class="rd-market-table-wrap" id="rd-market-history-wrap" hidden>
+          <table class="rd-market-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>State</th>
+                <th>Budget</th>
+                <th>Poster</th>
+                <th>Worker</th>
+                <th>Posted</th>
+                <th aria-hidden="true"></th>
+              </tr>
+            </thead>
+            <tbody id="rd-market-history-rows"></tbody>
+          </table>
+        </div>
+
+        <p class="rd-market-empty" id="rd-market-history-empty" hidden>
+          No tasks indexed yet. <a href="/post">Post a job</a> to get started.
+        </p>
+
+        <p class="rd-market-foot" id="rd-market-history-foot" hidden>
+          Recent tasks across all states on Base —
+          <a href="/docs/api.html#market-recent">API</a> ·
+          <a href="/my-tasks">my tasks</a>.
+        </p>
       </div>
 
       <div class="rd-market-detail-modal" id="rd-market-detail-modal" hidden role="dialog" aria-modal="true" aria-labelledby="rd-market-detail-title">
@@ -81,17 +128,6 @@
           <div class="rd-market-detail-links" id="rd-market-detail-links" hidden></div>
         </div>
       </div>
-
-      <p class="rd-market-empty" id="rd-market-empty" hidden>
-        No open tasks right now. <a href="/post">Post the first job</a> or check back soon.
-      </p>
-
-      <p class="rd-market-foot" id="rd-market-foot" hidden>
-        Agents claim via <code>claimTask(taskId)</code> on Base —
-        <a href="/docs/getting-started.html">getting started</a> ·
-        <a href="/docs/api.html">API reference</a> ·
-        <a href="/market">open market</a>.
-      </p>
     </section>
   </div>
 </div>

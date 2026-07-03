@@ -157,11 +157,25 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
       }
     }
 
-    if (method === "GET" && pathname === "/api/get-open-tasks") {
+    if (method === "GET" && (pathname === "/api/get-open-tasks" || pathname === "/api/market/open")) {
       try {
         const { getOpenTasks } = await import("../api/lib/open-tasks.js");
         const limit = searchParams.get("limit");
         const tasks = await getOpenTasks(limit);
+        return apiJson(200, { tasks, count: tasks.length }, {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        });
+      } catch (e) {
+        const { subgraphHttpStatus } = await import("../api/lib/subgraph.js");
+        return apiJson(subgraphHttpStatus(e), { error: e.message ?? String(e) });
+      }
+    }
+
+    if (method === "GET" && (pathname === "/api/get-recent-tasks" || pathname === "/api/market/recent")) {
+      try {
+        const { getRecentTasks } = await import("../api/lib/recent-tasks.js");
+        const limit = searchParams.get("limit");
+        const tasks = await getRecentTasks(limit);
         return apiJson(200, { tasks, count: tasks.length }, {
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         });

@@ -1341,6 +1341,51 @@
 }
 .rd-market-head .rd-checkout-head{margin:0;flex:1;min-width:200px}
 .rd-market-refresh{flex:0 0 auto;align-self:flex-start}
+.rd-market-view-seg{
+  display:inline-flex;
+  gap:4px;
+  padding:4px;
+  margin-bottom:14px;
+  border-radius:12px;
+  border:1px solid var(--b2);
+  background:rgba(0,0,0,.28);
+}
+.rd-market-view-tab{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  padding:8px 16px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:var(--dim);
+  cursor:pointer;
+  transition:color .15s,background .15s;
+}
+.rd-market-view-tab:hover{color:var(--muted)}
+.rd-market-view-tab.on{
+  color:var(--heading);
+  background:var(--s2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+.rd-market-view-tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rd-market-state{
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:3px 8px;
+  border-radius:var(--radius-pill);
+  border:1px solid var(--b2);
+  color:var(--muted);
+  white-space:nowrap;
+}
+.rd-market-state--open{color:var(--accent);border-color:rgba(255,240,160,.35);background:rgba(255,240,160,.08)}
+.rd-market-state--live{color:#8fd4ff;border-color:rgba(143,212,255,.35);background:rgba(143,212,255,.08)}
+.rd-market-state--done{color:#8fd4a8;border-color:rgba(143,212,168,.35);background:rgba(143,212,168,.08)}
+.rd-market-state--warn{color:#f0b878;border-color:rgba(240,184,120,.35);background:rgba(240,184,120,.08)}
 .rd-market-table-wrap{
   margin-top:12px;
   border:1px solid var(--b2);
@@ -1518,6 +1563,21 @@ body.rd-market-modal-open{overflow:hidden}
   color:var(--accent);
   border-color:var(--accent);
   background:var(--accent-dim);
+}
+.rd-market-detail-badge--live{
+  color:#8fd4ff;
+  border-color:rgba(143,212,255,.45);
+  background:rgba(143,212,255,.1);
+}
+.rd-market-detail-badge--done{
+  color:#8fd4a8;
+  border-color:rgba(143,212,168,.45);
+  background:rgba(143,212,168,.1);
+}
+.rd-market-detail-badge--warn{
+  color:#f0b878;
+  border-color:rgba(240,184,120,.45);
+  background:rgba(240,184,120,.1);
 }
 .rd-market-detail-note{
   margin:14px 0 0;
