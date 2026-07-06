@@ -4,9 +4,9 @@ import type { AgentIdentity } from "../../types.js";
 import { SUBJECTS } from "../../events/subjects.js";
 
 const NICHE_AGENT_MAP: Record<string, string[]> = {
-  "crypto-agents": ["agent-hunter", "personalizer", "ecosystem-matchmaker"],
-  "mcp-servers": ["repository-hunter", "contact-discovery", "qualification"],
-  "autonomous-agents": ["agent-hunter", "builder-hunter", "onboarding"],
+  "crypto-agents": ["agent-hunter", "farcaster-poster", "farcaster-replier", "farcaster-shipper", "ecosystem-matchmaker"],
+  "mcp-servers": ["repository-hunter", "farcaster-hunter", "farcaster-replier", "qualification"],
+  "autonomous-agents": ["agent-hunter", "farcaster-poster", "farcaster-replier", "onboarding"],
 };
 
 const ID: AgentIdentity = {

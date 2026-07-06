@@ -2,13 +2,14 @@ import { BaseAgent } from "../base.js";
 import type { ForceContext } from "../../context.js";
 import type { AgentIdentity } from "../../types.js";
 import { SUBJECTS } from "../../events/subjects.js";
+import { tickLiteFollowUps } from "../../outreach/lite-cadence.js";
 
 const ID: AgentIdentity = {
   id: "follow-up",
   name: "Follow-up Agent",
   layer: "outreach",
   modelTier: "medium",
-  mission: "Run multi-day follow-up sequences via Temporal.",
+  mission: "Run multi-day follow-up sequences via Temporal or lite cadence.",
   publishSubjects: [SUBJECTS.OUTREACH_SENT],
   subscribeSubjects: [SUBJECTS.OUTREACH_SENT, SUBJECTS.OUTREACH_REPLIED, SUBJECTS.MISSION_ASSIGNED],
 };
@@ -28,6 +29,10 @@ export class FollowUpAgent extends BaseAgent {
   }
 
   protected async tick(): Promise<void> {
-    /* Temporal owns timing */
+    if (this.ctx.temporal) return;
+    const drafted = await tickLiteFollowUps(this.ctx);
+    if (drafted > 0) {
+      console.log(`[${this.identity.id}] lite cadence — drafted ${drafted} follow-up(s)`);
+    }
   }
 }

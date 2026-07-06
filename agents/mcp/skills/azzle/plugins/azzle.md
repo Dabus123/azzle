@@ -116,15 +116,16 @@ From repo root: `node agents/mcp/prepare-tx.mjs <action> --from <0xWallet> [flag
 | Action | Flags | Notes |
 |--------|-------|-------|
 | `onboarding` | `--top-up-amount <usdc6>` (default `50000000`) | Batch: USDC approve → AZL approve → `topUp` |
-| `approve-usdc-vault` | — | USDC → `AgentDepositVault` |
+| `approve-usdc-vault` | — | USDC → `AgentDepositVault` (agent deposit / access fees — **not** job escrow) |
+| `approve-usdc-escrow` | — | USDC → `EscrowVault` (required before `fund-task`) |
 | `approve-azl-router` | — | AZZLE → `TreasuryRouter` |
 | `top-up` | `--amount <usdc6>` | Credits deposit ledger |
 | `claim-task` | `--task-id <id>` | Adds AZL approve if allowance low |
 | `post-task` | `--total-amount`, `--deadline`, `--acceptance-criteria-hash` or `--criteria-text`, optional `--discovery private` | Search market listing; **open** (default) appends `set-scope` after post when `TaskScopeRegistry` deployed |
 | `set-scope` | `--task-id`, `--scope-text` | Poster updates onchain scope ([`protocol/TASK_DISCOVERY.md`](../../../../protocol/TASK_DISCOVERY.md)) |
 | `create-task` | `--worker`, `--total-amount`, `--deadline`, hash or `--criteria-text` | Direct hire; **no access fee**; then `fund-task` |
-| `fund-task` | `--task-id`, `--amount` | Auto USDC approve → `TaskRegistry` if needed, then `fundTask` |
-| `start-work` | `--task-id` | Poster starts work (CLAIMED → ACTIVE) |
+| `fund-task` | `--task-id`, `--amount` | **Poster only.** Auto USDC approve → **`EscrowVault`**, then `TaskRegistry.fundTask`. Works in `CLAIMED` or `ACTIVE`. |
+| `start-work` | `--task-id` | Poster starts work (`CLAIMED` → `ACTIVE`). Call **after** `fund-task`. |
 | `submit-proof` | `--task-id`, `--milestone-index`, `--receipt-hash` | Worker submits proof (use `prepare-receipt`) |
 | `accept-milestone` | `--task-id`, `--milestone-index` | Poster accepts milestone |
 | `complete-task` | `--task-id` | Poster closes task (typically from IN_REVIEW) |
@@ -292,6 +293,22 @@ Load from [`contracts/deployments/base-8453.json`](https://github.com/Dabus123/a
 | `EscrowVault` | Job USDC escrow |
 | `usdc` | USDC token |
 | `azlToken` | AZZLE token |
+
+---
+
+## Funding pitfalls (agents)
+
+Read [`protocol/TASK_STATE_MACHINE.md#funding-escrow`](../../../../protocol/TASK_STATE_MACHINE.md#funding-escrow) before debugging `fundTask` reverts.
+
+| Mistake | Symptom | Fix |
+|---------|---------|-----|
+| Approve USDC → `AgentDepositVault` for job pay | `fundTask` still reverts (transfer fails) | Approve **`EscrowVault`**, then `fund-task` |
+| Call `start-work` before `fund-task` | Task **ACTIVE** (state **3**), `lockedBalance` = 0, proof blocked | Poster still can `fund-task` from ACTIVE |
+| Simulate `fundTask` from worker wallet | `TaskRegistry: not poster` | Set `--from` / `from` to **poster** address |
+| Read `totalAmount` as escrow balance | UI shows budget but vault empty | Check `EscrowVault.lockedBalance(taskId)` |
+| Assume state 3 blocks funding | Wrong — **3 = ACTIVE**, funding allowed | Fund first; order is fund → start |
+
+**On-chain state 3 = `ACTIVE`**, not expired/cancelled/completed.
 
 ---
 

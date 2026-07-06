@@ -127,6 +127,36 @@ export class LitePostgresStore {
     await this.store.logAudit(agent, eventType, payload, entityId);
   }
 
+  async getScore(entityId: string, scoreType: string) {
+    return this.store.getScore(entityId, scoreType);
+  }
+
+  async listOutreachForEntity(entityId: string, limit = 50) {
+    return this.store.listOutreachForEntity(entityId, limit);
+  }
+
+  async listRecentOutreach(limit = 200) {
+    return this.store.listRecentOutreach(limit);
+  }
+
+  async topByScore(scoreType: string, minValue: number, limit = 50) {
+    return this.store.topByScore(scoreType, minValue, limit);
+  }
+
+  async listEntitySignals(entityId: string, limit = 30) {
+    return this.store.listEntitySignals(entityId, limit);
+  }
+
+  async recordSignal(
+    entityId: string,
+    agent: string,
+    signalType: string,
+    strength: number,
+    payload: Record<string, unknown> = {}
+  ): Promise<void> {
+    await this.store.recordSignal(entityId, agent, signalType, strength, payload);
+  }
+
   async close(): Promise<void> {
     await this.store.close();
   }

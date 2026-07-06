@@ -23,7 +23,7 @@ interface IEscrowVault {
 }
 ```
 
-Reference flow: poster approves escrow token → `TaskRegistry.fundTask(taskId, amount)` → `EscrowVault.depositFor`.
+Reference flow: poster approves escrow token **to `EscrowVault`** (not `AgentDepositVault`) → `TaskRegistry.fundTask(taskId, amount)` → `EscrowVault.depositFor`. See [`../TASK_STATE_MACHINE.md`](../TASK_STATE_MACHINE.md#funding-escrow).
 
 ## Mode Semantics
 

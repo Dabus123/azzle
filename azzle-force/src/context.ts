@@ -9,6 +9,8 @@ import type { GitHubClient } from "./tools/github.js";
 import type { AzzleSubgraph } from "./tools/azzle.js";
 import type { TemporalClient } from "./temporal/client.js";
 import type { OutreachDelivery } from "./delivery/index.js";
+import type { RedditDelivery } from "./delivery/reddit.js";
+import type { FarcasterDelivery } from "./delivery/farcaster.js";
 
 export interface ForceContext {
   config: EnvConfig;
@@ -21,5 +23,7 @@ export interface ForceContext {
   github: GitHubClient;
   azzle: AzzleSubgraph;
   delivery: OutreachDelivery;
+  reddit: RedditDelivery | null;
+  farcaster: FarcasterDelivery | null;
   temporal?: TemporalClient;
 }

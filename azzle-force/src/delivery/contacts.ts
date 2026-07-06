@@ -91,15 +91,34 @@ export function isReachableForOutreach(
   return false;
 }
 
-/** Prefer email when available — DMs need valid X OAuth. */
+/** Prefer email when available — DMs need valid X OAuth and rarely convert cold. */
 export function pickOutreachChannel(
   entity: Record<string, unknown>,
   channels: { email: boolean; xDm: boolean },
-  dmEnabled = true
+  dmEnabled = true,
+  preferEmail = true
 ): "email" | "dm" | null {
   const contacts = resolveContacts(entity);
   if (channels.email && contacts.emails.length > 0) return "email";
+  if (preferEmail) return null;
   if (dmEnabled && channels.xDm && contacts.xHandles.length > 0) return "dm";
+  return null;
+}
+
+/** Resolve channel for send — always email when available regardless of draft channel. */
+export function resolveSendChannel(
+  requestedChannel: string,
+  entity: Record<string, unknown>,
+  channels: { email: boolean; xDm: boolean },
+  dmEnabled: boolean,
+  preferEmail: boolean
+): "email" | "dm" | null {
+  const contacts = resolveContacts(entity);
+  const normalized = requestedChannel === "twitter" || requestedChannel === "x" ? "dm" : requestedChannel;
+
+  if (channels.email && contacts.emails.length > 0) return "email";
+  if (preferEmail) return null;
+  if (normalized === "dm" && dmEnabled && channels.xDm && contacts.xHandles.length > 0) return "dm";
   return null;
 }
 

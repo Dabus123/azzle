@@ -296,7 +296,7 @@ Anyone may call `checkTaskBalance(taskId)` (crank).
 2. `postTask(...)` with `settlementDigest` matching eventual terms  
 3. **Open only:** `TaskScopeRegistry.setScope(taskId, scope)` after post (site batches with `wallet_sendCalls` when supported)  
 4. Workers claim (private listings → XMTP scope first)  
-5. `fundTask` + `startWork`  
+5. **`fundTask` then `startWork`** (poster; USDC approved for **`EscrowVault`**)  
 6. Accept proofs or `openDispute`
 
 ### 7.3 Direct hire

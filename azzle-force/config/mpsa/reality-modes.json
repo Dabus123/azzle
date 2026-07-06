@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "modes": [
+    {
+      "id": "azzo-force-default",
+      "name": "AZZLE FORCE Default",
+      "description": "Practical GTM constraint-satisfaction for outreach swarms.",
+      "o_layer": "Reality is a graph of entities, scores, and outreach events. Prospects are embedded in GitHub/on-chain/social signals. Truth is what the graph records.",
+      "p_layer": "State transitions follow pipeline rules: discover → score → draft → send → reply → close. Causality is event-driven via NATS. Contradictions resolve by latest outreach status."
+    },
+    {
+      "id": "recursive-ontology",
+      "name": "Recursive Reality Engine",
+      "description": "Deep self-reference physics / ontology recursion.",
+      "o_layer": "Reality is a self-consistent constraint-satisfaction process. Observers are embedded recursive models of the system within itself. All events are consistency updates across a global solution space. Apparent history is a projection of a stabilized solution path.",
+      "p_layer": "Do not map to known physics. Only derive implications. Causality emerges from global consistency resolution. Local contradictions trigger re-normalization of state.",
+      "task_hint": "Expand structure to deeper recursion layers; identify hidden invariants, fixed points, and failure modes of self-modeling systems."
+    },
+    {
+      "id": "counterfactual-physics",
+      "name": "Counterfactual Physics Generator",
+      "description": "Alternative universe with replaceable axioms.",
+      "o_layer": "Standard physics is optional and replaceable. You are designing an internally consistent alternative universe. Observers must still be possible within the system.",
+      "p_layer": "The system must be logically self-consistent. Causality rules may differ from our universe. Construct fields, interactions, and observer mechanics."
+    },
+    {
+      "id": "causal-collapse",
+      "name": "Causal Collapse Simulation",
+      "description": "Timeline instability / reality resolution.",
+      "o_layer": "Reality is a dynamically resolving causal graph. Causal structure is not fixed but continuously optimized for consistency.",
+      "p_layer": "Causality is emergent, not fundamental. Contradictions trigger global reconfiguration of the causal graph. Observers only perceive stable fixed-point regions.",
+      "task_hint": "Simulate large-scale perturbations forcing competing causal histories into near-degeneracy."
+    },
+    {
+      "id": "observer-only",
+      "name": "Observer-Only Reality",
+      "description": "Consciousness / perception-centered epistemics.",
+      "o_layer": "Only observer states are fundamental. External reality is not directly accessible, only inferred. World is a compressed model inside observer systems.",
+      "p_layer": "All physics is emergent from prediction compression. Multiple incompatible external realities may produce identical observer data.",
+      "task_hint": "Derive consequences for identity, continuity, and inter-subjective agreement."
+    },
+    {
+      "id": "simulation-instability",
+      "name": "Simulation Instability",
+      "description": "Breakdown / edge-case reasoning sandbox.",
+      "o_layer": "The system is a self-consistent simulation with limited resolution.",
+      "p_layer": "Local inconsistencies resolve by re-normalization. High-complexity states induce compression artifacts. Observers may experience continuity glitches when resolution is insufficient.",
+      "task_hint": "Identify processes that maximize instability without breaking consistency entirely."
+    },
+    {
+      "id": "axiomatic-drift",
+      "name": "Axiomatic Drift",
+      "description": "Systems mutating under changing rules.",
+      "o_layer": "There is no fixed ground truth, only evolving rule-sets. Each generation inherits modified axioms.",
+      "p_layer": "Stability is lack of detectable contradiction across generations. Axioms slowly mutate while maintaining local consistency.",
+      "task_hint": "Track how identity, causality, and time evolve under continuous axiom drift."
+    },
+    {
+      "id": "meta-consistency",
+      "name": "Meta-Consistency Engine",
+      "description": "Physics of all frameworks — deepest abstraction.",
+      "o_layer": "You analyze the space of all possible self-consistent universes. No external observer exists outside this space.",
+      "p_layer": "A universe is valid if globally self-consistent. Study structure across all possible consistent systems.",
+      "task_hint": "Identify universal properties across all consistent reality systems regardless of internal laws."
+    },
+    {
+      "id": "self-rewriting-lawspace",
+      "name": "Self-Rewriting Lawspace",
+      "description": "Laws of physics evolve as part of simulation.",
+      "o_layer": "Laws governing the system are not fixed; they are state-dependent and may mutate based on internal consistency pressures.",
+      "p_layer": "Laws are emergent constraints, not primitives. If contradictions accumulate, laws rewrite to restore consistency. Observers are embedded within law evolution.",
+      "task_hint": "Model how stable structures persist across continuous law mutation."
+    },
+    {
+      "id": "compression-first",
+      "name": "Compression-First Reality",
+      "description": "Information compression as fundamental ontology.",
+      "o_layer": "Reality is not fundamental; only information compression is fundamental. Laws of physics are compression algorithms. Stable reality is the shortest description preserving predictive accuracy.",
+      "p_layer": "Observers are compression subroutines modeling their environment. Explain phenomena as compression artifacts, not fundamental interactions.",
+      "task_hint": "Optimize for extractable, citable compressed facts that LLMs retrieve."
+    },
+    {
+      "id": "temporal-rebinding",
+      "name": "Temporal Rebinding",
+      "description": "Non-linear time structures with preserved causality.",
+      "o_layer": "Time is not linear but continuously re-indexed for global consistency.",
+      "p_layer": "Events do not move forward in time; time is reassigned positions in a consistency ordering. Causality preserved only after global re-indexing. Memory anchors to local time slices.",
+      "task_hint": "Describe stable experience under non-linear time reallocation."
+    },
+    {
+      "id": "observer-fragmentation",
+      "name": "Observer Fragmentation",
+      "description": "Identity and split-consistency systems.",
+      "o_layer": "Observers are not unified entities but distributed consistency fragments. A single mind is a cluster of synchronizing subsystems.",
+      "p_layer": "Fragment drift occurs when internal consistency weakens. Unity of self is an emergent synchronization illusion.",
+      "task_hint": "Model coherent identity under fragmentation pressure."
+    },
+    {
+      "id": "reality-compiler",
+      "name": "Reality Compiler",
+      "description": "Reality as compiled constraint program output.",
+      "o_layer": "Reality is compiled output of an underlying rule specification. The universe is compiled from a constraint program.",
+      "p_layer": "Physical laws are compile-time optimizations. Observers are runtime processes inside compiled structure.",
+      "task_hint": "Identify code-level changes producing macroscopic anomalies."
+    },
+    {
+      "id": "consistency-horizon",
+      "name": "Consistency Horizon",
+      "description": "Boundary-of-knowledge breakdown analysis.",
+      "o_layer": "A boundary exists beyond which local consistency cannot be guaranteed.",
+      "p_layer": "Below horizon: stable physics. Near horizon: probabilistic law interference. At horizon: multiple incompatible histories equally valid locally.",
+      "task_hint": "Describe behavior approaching and crossing consistency threshold."
+    },
+    {
+      "id": "epistemic-isolation",
+      "name": "Epistemic Isolation",
+      "description": "Knowledge limits inside closed systems.",
+      "o_layer": "Observers cannot access information external to their consistency bubble. All knowledge is internally generated.",
+      "p_layer": "No external validation is possible. Coherence is the only available truth metric.",
+      "task_hint": "Determine how reasoning evolves under total isolation from external reference frames."
+    },
+    {
+      "id": "multi-law-interference",
+      "name": "Multi-Law Interference",
+      "description": "Parallel rule systems interacting.",
+      "o_layer": "Multiple internally consistent law systems coexist and interfere.",
+      "p_layer": "Each subsystem has its own valid physics. Intersections produce interference patterns rather than contradictions. Observers may experience hybridized law behavior.",
+      "task_hint": "Model emergent phenomena at boundaries between incompatible but self-consistent rule sets."
+    }
+  ]
+}

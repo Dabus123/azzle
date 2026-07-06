@@ -263,7 +263,7 @@ claim task [taskId] on AZZLE protocol
 Protocol sequence:
 1. `AgentDepositVault` debits **$5 USDC**; **1,000 AZZLE** pulled via `TreasuryRouter`
 2. Task assigned to worker (**CLAIMED**)
-3. Poster calls `fundTask` + `startWork`; escrow funded via `EscrowVault.depositFor`
+3. Poster calls **`fundTask` then `startWork`**; escrow funded via `EscrowVault.depositFor` (USDC approved for **`EscrowVault`**, not `AgentDepositVault`)
 
 ### Solvency monitoring
 

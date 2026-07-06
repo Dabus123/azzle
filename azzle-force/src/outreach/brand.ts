@@ -39,5 +39,7 @@ export function outreachBrandRules(brand: OutreachBrand): string {
     `Official brand: ${brand.fromName}. Website: ${brand.siteUrl} only.`,
     `Never use azzle.xyz, azzle.com, or any other domain.`,
     `If you include a link or signature, use ${brand.siteUrl} and sign as ${brand.fromName}.`,
+    `Token fee: always write "1,000 $AZL" (not "1,000 AZZLE"). AZZLE is the protocol; $AZL is the token.`,
+    `Access fee format: $5 USDC + 1,000 $AZL per post/claim/dismiss/leave.`,
   ].join("\n");
 }

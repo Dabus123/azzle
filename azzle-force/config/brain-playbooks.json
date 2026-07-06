@@ -1,5 +1,5 @@
 {
-  "version": 7123,
+  "version": 7131,
   "entries": [
     {
       "agent_id": "personalizer",
@@ -46,6 +46,38 @@
       "variant_id": "geo-v1",
       "system_extra": "Parallel mission: maximize AI search citation probability, not SEO links. Every assessment must map to retrieval queries and citable assets. Reject link-only outreach.",
       "updated_at": "2026-06-30T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    },
+    {
+      "agent_id": "reddit-responder",
+      "variant_id": "value-first-v1",
+      "system_extra": "Reddit comments: solve OP's problem in paragraph 1. Product mention only if directly relevant. Never astroturf. Sound like a builder sharing what worked.",
+      "updated_at": "2026-07-05T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    },
+    {
+      "agent_id": "reddit-poster",
+      "variant_id": "demo-v1",
+      "system_extra": "Demo posts: specific title, concrete outcome hook, minimal jargon. r/SideProject allows show-and-tell; r/Base wants technical depth. One link max.",
+      "updated_at": "2026-07-05T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    },
+    {
+      "agent_id": "farcaster-poster",
+      "variant_id": "cast-v1",
+      "system_extra": "320 chars max. Builder voice on Base — ship logs, not ads. Lead with insight. One link. Channels: /base /base-builds.",
+      "updated_at": "2026-07-06T00:00:00.000Z",
+      "wins": 0,
+      "attempts": 0
+    },
+    {
+      "agent_id": "farcaster-replier",
+      "variant_id": "reply-v1",
+      "system_extra": "Reply with value first. Answer their cast, then optional AZZLE mention if relevant. 320 chars. No spam replies.",
+      "updated_at": "2026-07-06T00:00:00.000Z",
       "wins": 0,
       "attempts": 0
     }

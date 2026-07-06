@@ -58,12 +58,12 @@ export class Onboarding extends BaseAgent {
         docs: ONBOARDING_DOCS,
         economics: {
           entry_deposit: "$25 USDC",
-          access_fee: "$5 USDC + 1,000 AZZLE",
+          access_fee: "$5 USDC + 1,000 $AZL",
           chain: "Base 8453",
         },
       },
       OnboardingPlanSchema,
-      "Produce AZZLE onboarding steps: wallet, acquire AZZLE, approve, topUp, post/claim tasks."
+      "Produce AZZLE onboarding steps: wallet, acquire $AZL, approve, topUp, post/claim tasks."
     );
 
     if (this.ctx.temporal) {

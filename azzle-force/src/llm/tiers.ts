@@ -12,19 +12,13 @@ export const TIER_MODELS: Record<ModelTier, string[]> = {
   medium: [
     "deepseek-v4-flash",
     "deepseek-v4-pro",
-    "claude-sonnet-4.6",
-    "gpt-5.2",
     "gemini-3-flash",
     "kimi-k2.5",
-    "claude-haiku-4.5",
+    "kimi-k2.6",
   ],
   frontier: [
     "deepseek-v4-pro",
-    "claude-opus-4.8",
-    "gpt-5.5",
-    "gemini-3.1-pro",
-    "grok-4.3",
-    "claude-sonnet-4.6",
+    "kimi-k2.7-code",
   ],
 };
 

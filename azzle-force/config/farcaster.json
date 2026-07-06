@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "channels": [
+    { "id": "base", "post": true, "reply": true },
+    { "id": "base-builds", "post": true, "reply": true },
+    { "id": "neynar", "post": false, "reply": true },
+    { "id": "farcaster", "post": true, "reply": true },
+    { "id": "builders", "post": false, "reply": true }
+  ],
+  "searchQueries": [
+    "agent marketplace",
+    "autonomous agent",
+    "USDC escrow",
+    "MCP server",
+    "onchain agents",
+    "task market"
+  ],
+  "postChannels": ["base", "base-builds", "farcaster"],
+  "rateLimits": {
+    "maxCastsPerDay": 12,
+    "maxRepliesPerDay": 24,
+    "minMinutesBetweenActions": 5
+  },
+  "castRules": [
+    "320 chars max — punchy, builder voice, not marketing spam.",
+    "Lead with insight or concrete outcome, not 'Introducing'.",
+    "Base + agents + USDC escrow when relevant — one link max.",
+    "Use channel context (/base = L2 builders, /base-builds = shipping).",
+    "When sharing Human Terminal: embed snap or miniapp URL; fees are $5 USDC + 1,000 $AZL."
+  ],
+  "replyRules": [
+    "Add real value in the reply — answer the question first.",
+    "Mention AZZLE only if directly relevant to their cast.",
+    "Keep under 320 chars. No thread hijacking."
+  ]
+}

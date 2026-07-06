@@ -22,7 +22,11 @@
       "personalizer",
       "messenger",
       "follow-up",
-      "ambassador"
+      "ambassador",
+      "farcaster-hunter",
+      "farcaster-poster",
+      "farcaster-replier",
+      "farcaster-shipper"
     ],
     "4": [
       "onboarding",
@@ -34,6 +38,27 @@
     "5": [
       "chief-expansion",
       "swarm-creator"
+    ],
+    "6": [
+      "signal-intake",
+      "prospect-scorer",
+      "aaies",
+      "outcome-tracker",
+      "distribution-router",
+      "sequencer",
+      "objection-handler",
+      "closer",
+      "strategy-optimizer",
+      "prompt-evolver"
     ]
+  },
+  "brain": {
+    "enabled": true,
+    "decayHalfLifeDays": 14,
+    "minHeatForCloser": 0.55,
+    "minEntitiesBeforeBrain": 25,
+    "evolveIntervalHours": 336,
+    "evolveAfterOutcomes": 25,
+    "minAiInclusionForOutreach": 0.35
   }
 }

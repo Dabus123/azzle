@@ -4,6 +4,17 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { loadOutreachBrand, type OutreachBrand } from "./outreach/brand.js";
 
+export interface BrainConfig {
+  enabled?: boolean;
+  decayHalfLifeDays?: number;
+  minHeatForCloser?: number;
+  minEntitiesBeforeBrain?: number;
+  evolveIntervalHours?: number;
+  evolveAfterOutcomes?: number;
+  /** Minimum ai_inclusion_potential (0-1) to allow outreach drafting. */
+  minAiInclusionForOutreach?: number;
+}
+
 export interface ForceConfig {
   azzleProbabilityThreshold: number;
   minEntitiesBeforeOutreach: number;
@@ -11,6 +22,7 @@ export interface ForceConfig {
   followUpDays: number[];
   hunterBatchSizePerHour: number;
   waves: Record<string, string[]>;
+  brain?: BrainConfig;
 }
 
 export interface EnvConfig {

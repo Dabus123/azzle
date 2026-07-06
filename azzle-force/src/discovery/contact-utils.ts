@@ -82,6 +82,7 @@ export interface FunnelStats {
     send_failed: number;
     skipped_no_contact: number;
     pending_approval: number;
+    skipped_duplicate_contact: number;
   };
 }
 
@@ -131,6 +132,7 @@ export function computeFunnelStats(
     send_failed: 0,
     skipped_no_contact: 0,
     pending_approval: 0,
+    skipped_duplicate_contact: 0,
   };
   for (const { status } of latestOutreach.values()) {
     if (status in outreachCounts) {
@@ -142,6 +144,7 @@ export function computeFunnelStats(
     "sent",
     "send_failed",
     "skipped_no_contact",
+    "skipped_duplicate_contact",
     "draft",
     "pending_approval",
   ]);
@@ -185,6 +188,7 @@ export function formatFunnelReport(stats: FunnelStats, threshold: number): strin
     `  draft:                     ${stats.outreach.draft}`,
     `  send_failed:               ${stats.outreach.send_failed}`,
     `  skipped_no_contact:        ${stats.outreach.skipped_no_contact}`,
+    `  skipped_duplicate_contact: ${stats.outreach.skipped_duplicate_contact}`,
     `  pending_approval:          ${stats.outreach.pending_approval}`,
     "",
     "=== GAPS ===",

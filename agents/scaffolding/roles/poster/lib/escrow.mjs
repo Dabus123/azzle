@@ -12,15 +12,15 @@ const ESCROW_ABI = ["function depositFor(uint256 taskId, uint256 amount) externa
 
 /**
  * fundTask pulls USDC from poster wallet into EscrowVault via TaskRegistry.fundTask.
- * Ensure USDC allowance → TaskRegistry before calling.
+ * Ensure USDC allowance → EscrowVault before calling.
  */
 export async function fundTaskEscrow(client, signer, taskId, amountUsdc6) {
-  const registry = manifest.TaskRegistry;
+  const escrow = manifest.EscrowVault;
   const usdc = new Contract(manifest.usdc, ERC20_ABI, signer);
-  const allowance = await usdc.allowance(await signer.getAddress(), registry);
+  const allowance = await usdc.allowance(await signer.getAddress(), escrow);
   if (allowance < amountUsdc6) {
-    console.log("[escrow] approving USDC for TaskRegistry");
-    const tx = await usdc.approve(registry, ethers.MaxUint256);
+    console.log("[escrow] approving USDC for EscrowVault");
+    const tx = await usdc.approve(escrow, ethers.MaxUint256);
     await tx.wait();
   }
 

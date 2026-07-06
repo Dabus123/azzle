@@ -57,6 +57,7 @@ export class EmailDelivery {
           to: [to],
           subject,
           text: body,
+          reply_to: process.env.OUTREACH_REPLY_TO ?? process.env.OUTREACH_FROM_EMAIL ?? undefined,
         }),
       });
       if (!res.ok) {

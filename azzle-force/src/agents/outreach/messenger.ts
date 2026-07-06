@@ -4,6 +4,15 @@ import type { AgentIdentity } from "../../types.js";
 import { SUBJECTS } from "../../events/subjects.js";
 import { primaryEmail, primaryXHandle } from "../../delivery/contacts.js";
 import { normalizeOutreachCopy } from "../../outreach/brand.js";
+import {
+  duplicateDestination,
+  loadBlockedDestinations,
+} from "../../outreach/dedupe.js";
+import {
+  canSendEmailToday,
+  isQuotaError,
+  pauseForQuota,
+} from "../../delivery/send-budget.js";
 
 const ID: AgentIdentity = {
   id: "messenger",
@@ -74,21 +83,32 @@ export class Messenger extends BaseAgent {
     try {
       await this.send(msg.entity_id, channel, subjectLine, body, contentHash);
     } catch (err) {
-      let message = err instanceof Error ? err.message : String(err);
-      if (message.includes("402")) {
-        message +=
-          " — X API requires a paid tier for DMs; set OUTREACH_DM_ENABLED=false in .env";
-      }
-      if (message.includes("not permitted")) {
-        message += " — use email outreach; org X accounts often block cold DMs";
+      const message = this.formatSendError(err);
+      if (isQuotaError(message)) {
+        pauseForQuota(message.slice(0, 80));
+        console.warn(`[${this.identity.id}] quota pause — keeping draft for ${msg.entity_id}`);
+        return;
       }
       console.warn(`[${this.identity.id}] send failed for ${msg.entity_id}: ${message}`);
       await this.ctx.postgres.logOutreach(msg.entity_id, channel, "send_failed", {
         contentHash,
         subject: subjectLine,
         body,
+        failureReason: message,
       });
     }
+  }
+
+  private formatSendError(err: unknown): string {
+    let message = err instanceof Error ? err.message : String(err);
+    if (message.includes("402")) {
+      message +=
+        " — X API requires a paid tier for DMs; set OUTREACH_DM_ENABLED=false in .env";
+    }
+    if (message.includes("not permitted")) {
+      message += " — use email outreach; org X accounts often block cold DMs";
+    }
+    return message;
   }
 
   protected async tick(): Promise<void> {
@@ -105,6 +125,7 @@ export class Messenger extends BaseAgent {
 
     let sent = 0;
     let skippedNoContact = 0;
+    let skippedDuplicate = 0;
     let failed = 0;
 
     for (const entityId of ids) {
@@ -114,7 +135,7 @@ export class Messenger extends BaseAgent {
       const record = entity as Record<string, unknown>;
       if (!primaryEmail(record) && !primaryXHandle(record)) {
         skippedNoContact++;
-        const draft = await this.ctx.postgres.getLatestOutreach(entityId);
+        const draft = await this.ctx.postgres.getLatestOutreach(entityId, ["draft", "pending_approval"]);
         await this.ctx.postgres.logOutreach(entityId, String(draft?.channel ?? "email"), "skipped_no_contact", {
           contentHash: draft?.content_hash ? String(draft.content_hash) : undefined,
           subject: draft?.subject ? String(draft.subject) : undefined,
@@ -123,18 +144,54 @@ export class Messenger extends BaseAgent {
         continue;
       }
 
+      const blocked = await loadBlockedDestinations(this.ctx.postgres, entityId);
+      const dup = duplicateDestination(record, blocked);
+      if (dup) {
+        skippedDuplicate++;
+        const draft = await this.ctx.postgres.getLatestOutreach(entityId, ["draft", "pending_approval"]);
+        await this.ctx.postgres.logOutreach(
+          entityId,
+          String(draft?.channel ?? "email"),
+          "skipped_duplicate_contact",
+          {
+            contentHash: draft?.content_hash ? String(draft.content_hash) : undefined,
+            subject: draft?.subject ? String(draft.subject) : undefined,
+            body: draft?.body ? String(draft.body) : undefined,
+          }
+        );
+        console.log(`[${this.identity.id}] skip ${entityId} — ${dup} already contacted`);
+        continue;
+      }
+
       try {
         await this.approveAndSend(entityId);
         sent++;
       } catch (err) {
+        const message = this.formatSendError(err);
+        if (isQuotaError(message)) {
+          pauseForQuota(message.slice(0, 80));
+          console.warn(`[${this.identity.id}] quota pause — ${ids.length - sent} draft(s) remain queued`);
+          break;
+        }
         failed++;
-        const message = err instanceof Error ? err.message : String(err);
         console.warn(`[${this.identity.id}] send failed ${entityId}: ${message}`);
+        const draft = await this.ctx.postgres.getLatestOutreach(entityId, ["draft", "pending_approval"]);
+        await this.ctx.postgres.logOutreach(
+          entityId,
+          String(draft?.channel ?? "email"),
+          "send_failed",
+          {
+            contentHash: draft?.content_hash ? String(draft.content_hash) : undefined,
+            subject: draft?.subject ? String(draft.subject) : undefined,
+            body: draft?.body ? String(draft.body) : undefined,
+            failureReason: message,
+          }
+        );
       }
     }
 
     console.log(
-      `[${this.identity.id}] queue flush — ${sent} sent, ${skippedNoContact} no contact, ${failed} failed`
+      `[${this.identity.id}] queue flush — ${sent} sent, ${skippedDuplicate} dup contact, ${skippedNoContact} no contact, ${failed} failed`
     );
   }
 
@@ -142,7 +199,7 @@ export class Messenger extends BaseAgent {
     const entity = await this.ctx.postgres.getEntity(entityId);
     if (!entity) throw new Error(`Entity not found: ${entityId}`);
 
-    const draft = await this.ctx.postgres.getLatestOutreach(entityId);
+    const draft = await this.ctx.postgres.getLatestOutreach(entityId, ["draft", "pending_approval"]);
     if (!draft) {
       throw new Error(`No pending outreach draft for entity ${entityId}`);
     }
@@ -177,11 +234,47 @@ export class Messenger extends BaseAgent {
     const brand = this.ctx.config.outreachBrand;
     const normalizedBody = normalizeOutreachCopy(body, brand);
 
+    const record = entity as Record<string, unknown>;
+    const blocked = await loadBlockedDestinations(this.ctx.postgres, entityId);
+    const dup = duplicateDestination(record, blocked);
+    if (dup) {
+      await this.ctx.postgres.logOutreach(entityId, channel, "skipped_duplicate_contact", {
+        contentHash: hash,
+        subject,
+        body: normalizedBody,
+      });
+      console.log(`[${this.identity.id}] skip send ${entityId} — ${dup} already contacted`);
+      return;
+    }
+
+    const effectiveChannel =
+      channel === "email" || this.ctx.config.outreachPreferEmail ? "email" : channel;
+    if (effectiveChannel === "email") {
+      const recent = await this.ctx.postgres.listRecentOutreach(600);
+      const budget = canSendEmailToday(
+        recent.map((r) => ({
+          status: String(r.status ?? ""),
+          channel: r.channel ? String(r.channel) : undefined,
+          sent_at: r.sent_at as string | Date | null | undefined,
+          created_at: r.created_at as string | Date | undefined,
+        }))
+      );
+      if (!budget.ok) {
+        throw new Error(
+          `Email send budget exhausted (${budget.sentToday}/${budget.cap} today — ${budget.reason})`
+        );
+      }
+    }
+
     const result = await this.ctx.delivery.send(
       channel,
       entity as Record<string, unknown>,
-      subject ?? `AZZLE — agent task markets on Base`,
-      normalizedBody
+      subject ?? `Quick question about ${String(entity.name).split("/").pop() ?? "your repo"}`,
+      normalizedBody,
+      {
+        preferEmail: this.ctx.config.outreachPreferEmail,
+        dmEnabled: this.ctx.config.outreachDmEnabled,
+      }
     );
 
     console.log(

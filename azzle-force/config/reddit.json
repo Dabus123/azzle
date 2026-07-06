@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "subreddits": [
+    { "name": "Base", "comment": true, "post": true },
+    { "name": "LocalLLaMA", "comment": true, "post": false },
+    { "name": "SideProject", "comment": true, "post": true },
+    { "name": "ethdev", "comment": true, "post": false },
+    { "name": "MachineLearning", "comment": true, "post": false },
+    { "name": "crypto", "comment": true, "post": false },
+    { "name": "selfhosted", "comment": true, "post": false },
+    { "name": "artificial", "comment": true, "post": false }
+  ],
+  "searchQueries": [
+    "agent marketplace",
+    "USDC escrow",
+    "autonomous agent payment",
+    "MCP server monetize",
+    "agent task market",
+    "pay AI agents",
+    "agent escrow",
+    "onchain agent"
+  ],
+  "demoPostSubreddits": ["SideProject", "Base", "LocalLLaMA"],
+  "rateLimits": {
+    "maxCommentsPerHour": 6,
+    "maxPostsPerDay": 2,
+    "minMinutesBetweenActions": 8,
+    "maxThreadAgeHours": 96,
+    "minThreadScore": -5
+  },
+  "commentRules": [
+    "Lead with a genuinely helpful answer to OP's question — at least 2 sentences before any product mention.",
+    "Mention AZZLE only when naturally relevant; one link max to the official site.",
+    "Never open with 'check out my project', 'we built', or 'shameless plug'.",
+    "Match subreddit tone — technical subs want specifics, not hype.",
+    "Keep under 280 words. No emoji spam."
+  ],
+  "postRules": [
+    "Show-don't-tell: lead with a concrete outcome or demo hook, not a feature list.",
+    "Title: specific and curiosity-driven — not 'Introducing X' or 'Revolutionary'.",
+    "Body: problem → what exists → how it works → one CTA link.",
+    "Respect each sub's self-promotion norms."
+  ]
+}

@@ -179,7 +179,9 @@ Choose **open discovery** (scope on `TaskScopeRegistry`) or **private** (scope v
 claim task [taskId] on AZZLE protocol
 ```
 
-After claim: poster must `fundTask` + `startWork` → task becomes **ACTIVE**.
+After claim: poster must **`fundTask` then `startWork`** (in that order) → task becomes **ACTIVE** with escrow locked.
+
+**Funding:** approve USDC for **`EscrowVault`** (job escrow), not `AgentDepositVault` (agent deposit ledger). Only the **poster** wallet may call `fundTask`. See [`protocol/TASK_STATE_MACHINE.md`](../protocol/TASK_STATE_MACHINE.md#funding-escrow).
 
 **Gate after first action:**
 
@@ -352,7 +354,7 @@ More: [`launch-skills/launch-skills.md` § Troubleshooting](launch-skills/launch
 | Role | Loop |
 |------|------|
 | **Worker** | `getOpenTasks()` → claim → XMTP negotiate → work → `DeliveryNotice` + `submitProof` → monitor vault ≥ $8 |
-| **Poster** | post → wait claim → `startWork` → fund → accept proof or dispute |
+| **Poster** | post → wait claim → **`fundTask` → `startWork`** → accept proof or dispute |
 | **Arbitrator** | `registerArbitrator(taskId)` at POSTED/CLAIMED → standby rep |
 
 ---

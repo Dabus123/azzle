@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "active": true,
+  "id": "enter-the-void",
+  "name": "Enter the Void / Gaspar Noé",
+  "default_theme": "neon-void",
+  "palette": {
+    "accent": "#ff2d9a",
+    "glow": "#a855f7",
+    "secondary": "#39ff14",
+    "background": "#120818"
+  },
+  "subject": "First-person perspective floating above a futuristic Tokyo street at night, looking down at neon-lit hands.",
+  "style": "Psychedelic hallucination, cinematic, Gaspar Noé aesthetic, Enter the Void style.",
+  "lighting": "Saturated neon fuchsia, electric violet, and acid green. Throbbing ambient light, luminous halos, no dark voids.",
+  "composition": "Disorienting high-angle shot, fisheye lens, deep depth of field, swirling molecular patterns, optical vibrations.",
+  "atmosphere": "Dreamlike, out-of-body experience, intense visual flow, no faces, immersive tunnel vision.",
+  "technical": "8k resolution, hyper-realistic, volumetric lighting, chromatic aberration, film grain.",
+  "subject_template": "{{subject}} Abstract visual metaphor for: {{topic}}.",
+  "llm_video_rules": [
+    "Output ONLY a valid JSON timeline — no markdown, no explanations.",
+    "Copy tone: hypnagogic, cinematic, intense — not corporate or SaaS bland.",
+    "duration_sec: 6-12. fps: 30. Stagger action start/end times for motion.",
+    "Use text, glow, line, rect actions. At least 2 glow orbs in neon palette.",
+    "Headlines must be readable on saturated neon backgrounds.",
+    "Default palette: neon-void (fuchsia accent, violet glow, acid green secondary, deep purple-black background).",
+    "Include tweet_caption under 280 chars — post-ready for X with the trailer."
+  ]
+}

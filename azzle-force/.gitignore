@@ -2,5 +2,6 @@ node_modules/
 dist/
 .azzle-force-lite/
 data/
+outputs/
 .env
 .env.local

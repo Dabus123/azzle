@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { AgentIdentity, ContactHints, EntityType, HunterOutput, NatsMessage } from "../types.js";
 import { HunterOutputSchema } from "../types.js";
+import { getAgentPromptExtra } from "../brain/playbook.js";
+import { composeMPSASystemPrompt, mpsaConfigExists } from "../brain/mpsa.js";
 import { heuristicHunterOutput, type HunterGithubFacts } from "../discovery/hunter-llm.js";
 import type { ForceContext } from "../context.js";
 import type { PostgresStore } from "../graph/postgres.js";
@@ -87,12 +89,28 @@ export abstract class BaseAgent {
       ? await this.ctx.qdrant.search("entities", String(userFacts.search_text), 3)
       : [];
 
-    const system = [
-      `You are ${this.identity.name} in AZZLE FORCE.`,
-      `Mission: ${this.identity.mission}`,
-      extraRules,
-      "Output valid JSON matching the requested schema. No prose.",
-    ].join("\n");
+    const playbookExtra = getAgentPromptExtra(this.identity.id);
+
+    let system: string;
+    if (mpsaConfigExists()) {
+      ({ system } = composeMPSASystemPrompt({
+        agentId: this.identity.id,
+        agentName: this.identity.name,
+        mission: this.identity.mission,
+        playbookExtra,
+        taskRules: extraRules,
+      }));
+    } else {
+      system = [
+        `You are ${this.identity.name} in AZZLE FORCE.`,
+        `Mission: ${this.identity.mission}`,
+        playbookExtra,
+        extraRules,
+        "Output valid JSON matching the requested schema. No prose.",
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
 
     const facts = {
       mission: missions[0]?.payload ?? {},

@@ -120,14 +120,14 @@ async function readAllowances(from) {
   const azl = new ethers.Contract(manifest.azlToken, ERC20_IFACE, provider);
   const vault = new ethers.Contract(manifest.AgentDepositVault, VAULT_IFACE, provider);
 
-  const [vaultUsdc, walletUsdc, azlBalance, azlAllowance, usdcAllowanceVault, usdcAllowanceRegistry] =
+  const [vaultUsdc, walletUsdc, azlBalance, azlAllowance, usdcAllowanceVault, usdcAllowanceEscrow] =
     await Promise.all([
       vault.balanceOf(from),
       usdc.balanceOf(from),
       azl.balanceOf(from),
       azl.allowance(from, manifest.TreasuryRouter),
       usdc.allowance(from, manifest.AgentDepositVault),
-      usdc.allowance(from, manifest.TaskRegistry),
+      usdc.allowance(from, manifest.EscrowVault),
     ]);
 
   return {
@@ -136,7 +136,7 @@ async function readAllowances(from) {
     azlBalance,
     azlAllowance,
     usdcAllowanceVault,
-    usdcAllowanceRegistry,
+    usdcAllowanceEscrow,
   };
 }
 
@@ -152,14 +152,14 @@ async function maybeAzlApprove(from, transactions) {
   );
 }
 
-async function maybeUsdcApproveRegistry(from, amount, transactions) {
-  const { usdcAllowanceRegistry } = await readAllowances(from);
-  if (usdcAllowanceRegistry >= BigInt(amount)) return;
+async function maybeUsdcApproveEscrow(from, amount, transactions) {
+  const { usdcAllowanceEscrow } = await readAllowances(from);
+  if (usdcAllowanceEscrow >= BigInt(amount)) return;
   transactions.push(
     tx(
-      "approve-usdc-registry",
+      "approve-usdc-escrow",
       manifest.usdc,
-      encodeApprove(manifest.usdc, manifest.TaskRegistry, MAX_UINT256)
+      encodeApprove(manifest.usdc, manifest.EscrowVault, MAX_UINT256)
     )
   );
 }
@@ -210,6 +210,7 @@ async function cmdRead(from) {
     manifest: {
       TaskRegistry: manifest.TaskRegistry,
       AgentDepositVault: manifest.AgentDepositVault,
+      EscrowVault: manifest.EscrowVault,
       TreasuryRouter: manifest.TreasuryRouter,
       usdc: manifest.usdc,
       azlToken: manifest.azlToken,
@@ -220,7 +221,7 @@ async function cmdRead(from) {
       azlBalanceWei: state.azlBalance.toString(),
       azlAllowanceRouter: state.azlAllowance.toString(),
       usdcAllowanceVault: state.usdcAllowanceVault.toString(),
-      usdcAllowanceRegistry: state.usdcAllowanceRegistry.toString(),
+      usdcAllowanceEscrow: state.usdcAllowanceEscrow.toString(),
     },
     warnings,
     readyForFeeActions:
@@ -243,6 +244,18 @@ async function cmdOnboarding(from, flags) {
     )
   );
   output(batchResponse("onboarding", transactions));
+}
+
+async function cmdApproveUsdcEscrow(from) {
+  output(
+    batchResponse("approve-usdc-escrow", [
+      tx(
+        "approve-usdc-escrow",
+        manifest.usdc,
+        encodeApprove(manifest.usdc, manifest.EscrowVault, MAX_UINT256)
+      ),
+    ])
+  );
 }
 
 async function cmdApproveUsdcVault(from) {
@@ -401,7 +414,7 @@ async function cmdFundTask(from, flags) {
   const amount = BigInt(flags.amount ?? fail("--amount required"));
   const transactions = [];
   if (flags.skip_approvals !== "true") {
-    await maybeUsdcApproveRegistry(from, amount, transactions);
+    await maybeUsdcApproveEscrow(from, amount, transactions);
   }
   transactions.push(
     tx(
@@ -472,13 +485,14 @@ function usage() {
 Actions:
   read                         Wallet + vault preflight (read-only JSON)
   onboarding                   approve USDC/AZL (if needed) + topUp
-  approve-usdc-vault           ERC20 approve USDC → AgentDepositVault
+  approve-usdc-vault           ERC20 approve USDC → AgentDepositVault (deposits / access fees)
+  approve-usdc-escrow          ERC20 approve USDC → EscrowVault (job funding)
   approve-azl-router           ERC20 approve AZZLE → TreasuryRouter
   top-up                       AgentDepositVault.topUp
   claim-task                   TaskRegistry.claimTask (+ AZL approve if needed)
   post-task                    TaskRegistry.postTask — search market (+ AZL approve if needed)
   create-task                  TaskRegistry.createTask — direct hire, skips POSTED/CLAIMED
-  fund-task                    TaskRegistry.fundTask
+  fund-task                    TaskRegistry.fundTask (+ USDC approve → EscrowVault if needed)
   start-work                   TaskRegistry.startWork
   submit-proof                 TaskRegistry.submitProof
   accept-milestone             TaskRegistry.acceptMilestone
@@ -510,7 +524,7 @@ Action-specific:
                 [--stream-rate <usdc6 per second>] [--hour-block-size <usdc6>]
                 [--replacement-allowed true] [--fee-bps 100]
   create-task   --worker + same term flags as post-task
-  fund-task     --task-id --amount <usdc6>  (auto USDC approve → TaskRegistry if needed)
+  fund-task     --task-id --amount <usdc6>  (auto USDC approve → EscrowVault if needed; poster only)
   start-work    --task-id
   submit-proof  --task-id --milestone-index --receipt-hash <bytes32>
   accept-milestone --task-id --milestone-index
@@ -571,6 +585,9 @@ async function main() {
       break;
     case "approve-usdc-vault":
       await cmdApproveUsdcVault(from);
+      break;
+    case "approve-usdc-escrow":
+      await cmdApproveUsdcEscrow(from);
       break;
     case "approve-azl-router":
       await cmdApproveAzlRouter(from);

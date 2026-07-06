@@ -51,6 +51,7 @@ interface OutreachRow {
   content_hash?: string;
   subject?: string;
   body?: string;
+  failure_reason?: string;
   sent_at?: string;
   created_at: string;
 }
@@ -59,6 +60,7 @@ export interface OutreachLogOptions {
   contentHash?: string;
   subject?: string;
   body?: string;
+  failureReason?: string;
 }
 
 interface ScoreRow {
@@ -567,6 +569,7 @@ export class LiteStore {
       content_hash: options.contentHash,
       subject: options.subject,
       body: options.body,
+      failure_reason: options.failureReason,
       sent_at: status === "sent" ? new Date().toISOString() : undefined,
       created_at: new Date().toISOString(),
     };
@@ -578,10 +581,12 @@ export class LiteStore {
     entityId: string,
     statuses?: string[]
   ): Promise<OutreachRow | null> {
-    const allowed = statuses ?? ["draft", "pending_approval"];
     const rows = Object.values(this.data.outreach_events)
-      .filter((o) => o.entity_id === entityId && allowed.includes(o.status))
+      .filter((o) => o.entity_id === entityId)
       .sort((a, b) => b.created_at.localeCompare(a.created_at));
+    if (statuses) {
+      return rows.find((o) => statuses.includes(o.status)) ?? null;
+    }
     return rows[0] ?? null;
   }
 
@@ -616,6 +621,69 @@ export class LiteStore {
       this.data.audit_events = this.data.audit_events.slice(-50);
     }
     /* audit is in-memory only during run — no disk churn */
+  }
+
+  async getScore(
+    entityId: string,
+    scoreType: string
+  ): Promise<{ value: number; reason?: string; computed_at: Date } | null> {
+    const row = this.data.scores[`${entityId}:${scoreType}`];
+    if (!row) return null;
+    return {
+      value: row.value,
+      reason: row.reason,
+      computed_at: new Date(row.computed_at),
+    };
+  }
+
+  async listOutreachForEntity(entityId: string, limit = 50) {
+    return Object.values(this.data.outreach_events)
+      .filter((o) => o.entity_id === entityId)
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+      .slice(-limit) as unknown as Array<Record<string, unknown>>;
+  }
+
+  async listRecentOutreach(limit = 200) {
+    return Object.values(this.data.outreach_events)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .slice(0, limit) as unknown as Array<Record<string, unknown>>;
+  }
+
+  async topByScore(scoreType: string, minValue: number, limit = 50) {
+    const rows = Object.values(this.data.scores)
+      .filter((s) => s.score_type === scoreType && s.value >= minValue)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, limit);
+    return rows
+      .map((s) => {
+        const e = this.data.entities[s.entity_id];
+        if (!e) return null;
+        return {
+          ...e,
+          score_value: s.value,
+          score_reason: s.reason,
+          score_computed_at: s.computed_at,
+        };
+      })
+      .filter(Boolean) as Array<Record<string, unknown>>;
+  }
+
+  async listEntitySignals(entityId: string, limit = 30) {
+    return this.data.audit_events
+      .filter((a) => a.entity_id === entityId && a.event_type === "signal")
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .slice(0, limit)
+      .map((a) => ({ payload: a.payload, created_at: new Date(a.created_at) }));
+  }
+
+  async recordSignal(
+    entityId: string,
+    agent: string,
+    signalType: string,
+    strength: number,
+    payload: Record<string, unknown> = {}
+  ): Promise<void> {
+    await this.logAudit(agent, "signal", { type: signalType, strength, ...payload }, entityId);
   }
 
   async upsertNode(

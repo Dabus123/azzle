@@ -69,6 +69,7 @@ export class PostgresStore {
       await client.query(`
         ALTER TABLE outreach_events ADD COLUMN IF NOT EXISTS subject TEXT;
         ALTER TABLE outreach_events ADD COLUMN IF NOT EXISTS body TEXT;
+        ALTER TABLE outreach_events ADD COLUMN IF NOT EXISTS failure_reason TEXT;
       `);
     } finally {
       client.release();
@@ -266,14 +267,14 @@ export class PostgresStore {
     entityId: string,
     channel: string,
     status: string,
-    opts?: string | { contentHash?: string; subject?: string; body?: string }
+    opts?: string | { contentHash?: string; subject?: string; body?: string; failureReason?: string }
   ): Promise<string> {
     const options =
       typeof opts === "string" ? { contentHash: opts } : (opts ?? {});
     const id = uuidv4();
     await this.pool.query(
-      `INSERT INTO outreach_events (id, entity_id, channel, status, content_hash, subject, body, sent_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, CASE WHEN $4 = 'sent' THEN NOW() ELSE NULL END)`,
+      `INSERT INTO outreach_events (id, entity_id, channel, status, content_hash, subject, body, failure_reason, sent_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CASE WHEN $4 = 'sent' THEN NOW() ELSE NULL END)`,
       [
         id,
         entityId,
@@ -282,6 +283,7 @@ export class PostgresStore {
         options.contentHash,
         options.subject,
         options.body,
+        options.failureReason,
       ]
     );
     return id;
@@ -291,14 +293,24 @@ export class PostgresStore {
     entityId: string,
     statuses?: string[]
   ): Promise<Record<string, unknown> | null> {
-    const allowed = statuses ?? ["draft", "pending_approval"];
+    if (statuses) {
+      const res = await this.pool.query(
+        `SELECT id, entity_id, channel, status, content_hash, subject, body, failure_reason, sent_at, created_at
+         FROM outreach_events
+         WHERE entity_id = $1 AND status = ANY($2::text[])
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [entityId, statuses]
+      );
+      return (res.rows[0] as Record<string, unknown>) ?? null;
+    }
     const res = await this.pool.query(
-      `SELECT id, entity_id, channel, status, content_hash, subject, body, sent_at, created_at
+      `SELECT id, entity_id, channel, status, content_hash, subject, body, failure_reason, sent_at, created_at
        FROM outreach_events
-       WHERE entity_id = $1 AND status = ANY($2::text[])
+       WHERE entity_id = $1
        ORDER BY created_at DESC
        LIMIT 1`,
-      [entityId, allowed]
+      [entityId]
     );
     return (res.rows[0] as Record<string, unknown>) ?? null;
   }
@@ -327,6 +339,73 @@ export class PostgresStore {
        VALUES ($1, $2, $3, $4, $5)`,
       [uuidv4(), entityId, agent, eventType, JSON.stringify(payload)]
     );
+  }
+
+  async getScore(
+    entityId: string,
+    scoreType: string
+  ): Promise<{ value: number; reason?: string; computed_at: Date } | null> {
+    const res = await this.pool.query(
+      `SELECT value, reason, computed_at FROM scores WHERE entity_id = $1 AND score_type = $2`,
+      [entityId, scoreType]
+    );
+    const row = res.rows[0];
+    if (!row) return null;
+    return {
+      value: Number(row.value),
+      reason: row.reason ? String(row.reason) : undefined,
+      computed_at: new Date(row.computed_at),
+    };
+  }
+
+  async listOutreachForEntity(entityId: string, limit = 50) {
+    const res = await this.pool.query(
+      `SELECT id, entity_id, channel, status, content_hash, subject, body, sent_at, created_at
+       FROM outreach_events WHERE entity_id = $1
+       ORDER BY created_at ASC LIMIT $2`,
+      [entityId, limit]
+    );
+    return res.rows as Array<Record<string, unknown>>;
+  }
+
+  async listRecentOutreach(limit = 200) {
+    const res = await this.pool.query(
+      `SELECT id, entity_id, channel, status, content_hash, created_at, sent_at
+       FROM outreach_events ORDER BY created_at DESC LIMIT $1`,
+      [limit]
+    );
+    return res.rows as Array<Record<string, unknown>>;
+  }
+
+  async topByScore(scoreType: string, minValue: number, limit = 50) {
+    const res = await this.pool.query(
+      `SELECT e.*, s.value AS score_value, s.reason AS score_reason, s.computed_at AS score_computed_at
+       FROM scores s JOIN entities e ON e.id = s.entity_id
+       WHERE s.score_type = $1 AND s.value >= $2
+       ORDER BY s.value DESC LIMIT $3`,
+      [scoreType, minValue, limit]
+    );
+    return res.rows as Array<Record<string, unknown>>;
+  }
+
+  async listEntitySignals(entityId: string, limit = 30) {
+    const res = await this.pool.query(
+      `SELECT payload, created_at FROM audit_events
+       WHERE entity_id = $1 AND event_type = 'signal'
+       ORDER BY created_at DESC LIMIT $2`,
+      [entityId, limit]
+    );
+    return res.rows as Array<{ payload: Record<string, unknown>; created_at: Date }>;
+  }
+
+  async recordSignal(
+    entityId: string,
+    agent: string,
+    signalType: string,
+    strength: number,
+    payload: Record<string, unknown> = {}
+  ): Promise<void> {
+    await this.logAudit(agent, "signal", { type: signalType, strength, ...payload }, entityId);
   }
 
   async close(): Promise<void> {

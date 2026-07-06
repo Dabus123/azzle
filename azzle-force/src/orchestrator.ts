@@ -11,13 +11,15 @@ import { AzzleSubgraph } from "./tools/azzle.js";
 import { TemporalClient } from "./temporal/client.js";
 import { LiteStore } from "./lite/store.js";
 import { LitePostgresStore, LiteNeo4jStore, LiteQdrantStore } from "./lite/adapters.js";
-import { createOutreachDelivery, logDeliveryStatus } from "./delivery/factory.js";
+import { createOutreachDelivery, createRedditDelivery, createFarcasterDelivery, logDeliveryStatus } from "./delivery/factory.js";
 import type { ForceContext } from "./context.js";
 import { AGENT_FACTORIES, agentsForWave, ALL_AGENT_IDS } from "./agents/registry.js";
 import type { BaseAgent } from "./agents/base.js";
 import { Messenger } from "./agents/outreach/messenger.js";
+import { startReplyWebhookServer, type ReplyWebhookServer } from "./delivery/reply-webhook-server.js";
 
 let activeLiteStore: LiteStore | null = null;
+let activeReplyWebhook: ReplyWebhookServer | null = null;
 
 function registerLiteShutdown(): void {
   const flush = async () => {
@@ -48,7 +50,9 @@ async function createLiteContext(includeTemporal = true): Promise<ForceContext> 
   const github = new GitHubClient(config.githubToken);
   const azzle = new AzzleSubgraph(config.subgraphUrl);
   const delivery = createOutreachDelivery();
-  logDeliveryStatus(delivery, config.outreachDmEnabled);
+  const reddit = createRedditDelivery();
+  const farcaster = createFarcasterDelivery();
+  logDeliveryStatus(delivery, config.outreachDmEnabled, reddit, farcaster);
 
   await postgres.migrate();
   await neo4j.verify();
@@ -73,6 +77,8 @@ async function createLiteContext(includeTemporal = true): Promise<ForceContext> 
     github,
     azzle,
     delivery,
+    reddit,
+    farcaster,
     temporal: undefined,
   };
 }
@@ -91,7 +97,9 @@ export async function createContext(includeTemporal = true): Promise<ForceContex
   const github = new GitHubClient(config.githubToken);
   const azzle = new AzzleSubgraph(config.subgraphUrl);
   const delivery = createOutreachDelivery();
-  logDeliveryStatus(delivery, config.outreachDmEnabled);
+  const reddit = createRedditDelivery();
+  const farcaster = createFarcasterDelivery();
+  logDeliveryStatus(delivery, config.outreachDmEnabled, reddit, farcaster);
 
   try {
     await postgres.migrate();
@@ -136,6 +144,8 @@ Cannot connect to graph stack (Postgres / Neo4j / Qdrant / NATS).
     github,
     azzle,
     delivery,
+    reddit,
+    farcaster,
     temporal,
   };
 }
@@ -150,12 +160,17 @@ export async function startWave(wave?: number | "all"): Promise<BaseAgent[]> {
     throw new Error(`No agents configured for wave ${String(w)}`);
   }
 
-  const label = w === "all" ? "all (waves 1–3)" : String(w);
+  const label = w === "all" ? "all (waves 1–3 + 6)" : String(w);
   console.log(`[orchestrator] starting wave ${label}: ${ids.join(", ")}`);
   const agents = ids.map((id) => AGENT_FACTORIES[id](ctx));
   for (const agent of agents) {
     agent.start().catch((err) => console.error(`[${agent.identity.id}] fatal:`, err));
   }
+
+  if (process.env.AZZLE_REPLY_WEBHOOK !== "false") {
+    activeReplyWebhook = await startReplyWebhookServer(ctx);
+  }
+
   return agents;
 }
 
@@ -177,6 +192,10 @@ export async function approveOutreach(entityId: string): Promise<void> {
 }
 
 export async function shutdown(ctx: ForceContext): Promise<void> {
+  if (activeReplyWebhook) {
+    await activeReplyWebhook.close().catch(() => {});
+    activeReplyWebhook = null;
+  }
   await ctx.postgres.close();
   await ctx.neo4j.close();
   await ctx.bus.close();

@@ -1,5 +1,7 @@
 import type { OutreachDeliveryConfig } from "./index.js";
 import { OutreachDelivery } from "./index.js";
+import { RedditDelivery } from "./reddit.js";
+import { FarcasterDelivery } from "./farcaster.js";
 
 function emailProviderFromEnv(): "resend" | "smtp" | "none" {
   const explicit = process.env.OUTREACH_EMAIL_PROVIDER?.toLowerCase();
@@ -35,13 +37,42 @@ export function createOutreachDelivery(): OutreachDelivery {
   return new OutreachDelivery(deliveryConfig);
 }
 
+export function createRedditDelivery(): RedditDelivery | null {
+  const clientId = process.env.REDDIT_CLIENT_ID ?? "";
+  const clientSecret = process.env.REDDIT_CLIENT_SECRET ?? "";
+  if (!clientId || !clientSecret) return null;
+
+  const delivery = new RedditDelivery({
+    clientId,
+    clientSecret,
+    username: process.env.REDDIT_USERNAME,
+    password: process.env.REDDIT_PASSWORD,
+    refreshToken: process.env.REDDIT_REFRESH_TOKEN,
+  });
+
+  return delivery.isConfigured() ? delivery : null;
+}
+
+export function createFarcasterDelivery(): FarcasterDelivery | null {
+  const apiKey = process.env.NEYNAR_API_KEY ?? "";
+  const signerUuid = process.env.NEYNAR_SIGNER_UUID ?? "";
+  if (!apiKey || !signerUuid) return null;
+
+  const delivery = new FarcasterDelivery({ apiKey, signerUuid });
+  return delivery.isConfigured() ? delivery : null;
+}
+
 export function logDeliveryStatus(
   delivery: OutreachDelivery,
-  outreachDmEnabled = true
+  outreachDmEnabled = true,
+  reddit: RedditDelivery | null = null,
+  farcaster: FarcasterDelivery | null = null
 ): void {
   const ready = delivery.channelsReady();
   const dmActive = outreachDmEnabled && ready.xDm;
+  const redditReady = reddit?.isConfigured() ?? false;
+  const fcReady = farcaster?.isConfigured() ?? false;
   console.log(
-    `[delivery] email=${ready.email ? "ready" : "not configured"} x_dm=${dmActive ? `ready (${delivery.xDm.authMode ?? "?"})` : "off"} outreach=${dmActive ? "email+x_dm" : "email-only"}`
+    `[delivery] email=${ready.email ? "ready" : "not configured"} x_dm=${dmActive ? `ready (${delivery.xDm.authMode ?? "?"})` : "off"} reddit=${redditReady ? "ready" : "off"} farcaster=${fcReady ? "ready (autopost)" : "off"} outreach=${dmActive ? "email+x_dm" : "email-only"}`
   );
 }

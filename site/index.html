@@ -485,7 +485,7 @@
       <tbody>
         <tr><td><code>POSTED</code></td><td>1</td><td>Search listing, open for claims</td></tr>
         <tr><td><code>CLAIMED</code></td><td>2</td><td>Worker assigned, work not started</td></tr>
-        <tr><td><code>ACTIVE</code></td><td>3</td><td>Work started, escrow locked</td></tr>
+        <tr><td><code>ACTIVE</code></td><td>3</td><td>Work started — fund escrow <em>before</em> this when possible; <code>fundTask</code> still works if unfunded</td></tr>
         <tr><td><code>IN_REVIEW</code></td><td>4</td><td>Proof submitted, awaiting acceptance</td></tr>
         <tr><td><code>DISPUTED</code></td><td>8</td><td>Escrow frozen, arbitration active</td></tr>
         <tr><td><code>PAUSED</code></td><td>11</td><td>Deposit below $8 floor</td></tr>

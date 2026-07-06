@@ -4,19 +4,64 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>AZZLE FORCE — Observatory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#030308;--cyan:#00f0ff;--lime:#b8ff57;--orange:#e8640a;
-  --red:#ff2d6a;--gray:#6a6a78;--panel:rgba(8,10,18,.88);
+  --bg:#e3e3e6;
+  --bg-elevated:#111118;
+  --bg-card:#16161f;
+  --bg-hover:#1c1c28;
+  --border:rgba(255,255,255,.08);
+  --border-strong:rgba(255,255,255,.14);
+  --text:#f4f4f5;
+  --text-secondary:#a1a1aa;
+  --text-muted:#71717a;
+  --accent:#a78bfa;
+  --accent-bright:#c4b5fd;
+  --accent-dim:rgba(167,139,250,.15);
+  --accent-glow:rgba(167,139,250,.25);
+  --green:#4ade80;
+  --green-dim:rgba(74,222,128,.12);
+  --cyan:#22d3ee;
+  --lime:#a3e635;
+  --orange:#fb923c;
+  --red:#f87171;
+  --pink:#f472b6;
+  --yellow:#fbbf24;
+  --purple:#a78bfa;
+  --radius:10px;
+  --radius-sm:6px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+  --nav-h:56px;
+  --sidebar-w:280px;
+  --right-w:320px;
+  --bottom-h:140px;
 }
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff;
-  font-family:ui-monospace,'Cascadia Code','Segoe UI Mono',monospace}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  font-size:13px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Background grid (Railway-style dot pattern) ── */
 #stage-wrap{
   position:fixed;inset:0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(0,240,255,.04), transparent 70%),
-    linear-gradient(180deg, #050510 0%, var(--bg) 100%);
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(167,139,250,.07), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(34,211,238,.04), transparent 50%),
+    var(--bg);
+}
+#stage-wrap::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size:24px 24px;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 45%, black 20%, transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 45%, black 20%, transparent 75%);
 }
 #stage{
   display:block;width:100%;height:100%;
@@ -24,118 +69,486 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
 }
 #stage.dragging{cursor:grabbing}
 
+/* ── Top navigation ── */
+#topnav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:var(--nav-h);
+  display:flex;align-items:center;gap:16px;
+  padding:0 20px;
+  background:rgba(10,10,15,.75);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+#topnav .logo-wrap{
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+#brand-logo{height:28px;width:auto;opacity:.95}
+.nav-divider{width:1px;height:24px;background:var(--border);flex-shrink:0}
+.nav-breadcrumb{
+  display:flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:500;color:var(--text-secondary);
+}
+.nav-breadcrumb .sep{color:var(--text-muted);font-weight:400}
+.nav-breadcrumb .current{color:var(--text);font-weight:600}
+.nav-spacer{flex:1}
+.status-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 12px;border-radius:999px;
+  font-size:12px;font-weight:500;color:var(--green);
+  background:var(--green-dim);
+  border:1px solid rgba(74,222,128,.2);
+}
+#live-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px rgba(74,222,128,.6);
+  animation:pulse 2.5s ease infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.nav-meta{font-size:12px;color:var(--text-muted);white-space:nowrap}
+
+/* ── Layout shell ── */
 #hud{
   position:fixed;inset:0;z-index:10;pointer-events:none;
-  display:grid;grid-template-columns:min(280px,28vw) 1fr min(240px,26vw);
-  grid-template-rows:auto 1fr auto;
-  padding:14px;gap:10px;
+  padding-top:var(--nav-h);
+  display:grid;
+  grid-template-columns:var(--sidebar-w) 1fr var(--right-w);
+  grid-template-rows:1fr var(--bottom-h);
+  gap:0;
 }
+
+/* ── Panels ── */
 .panel{
-  pointer-events:auto;background:var(--panel);
-  border:1px solid #1e2438;border-radius:6px;padding:12px 14px;
+  pointer-events:auto;
+  background:rgba(17,17,24,.82);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border);
 }
-.panel h2{
-  font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;
-  color:var(--cyan);margin-bottom:8px;
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;
+  border-bottom:1px solid var(--border);
 }
-.stat-row{display:flex;justify-content:space-between;font-size:10px;line-height:1.75;color:var(--gray)}
-.stat-row b{color:#fff;font-weight:600}
-#title-bar{grid-column:1/-1}
-#title-bar h1{font-size:clamp(.9rem,2.2vw,1.25rem);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
-#title-bar .sub{font-size:9px;color:var(--gray);margin-top:3px}
-#live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--lime);
-  margin-right:7px;animation:pulse 2s ease infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.panel-header h2{
+  font-size:11px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-muted);
+}
+.panel-body{padding:12px 14px;overflow-y:auto}
 
-#wave-panel{grid-row:2;align-self:start}
+/* ── Left sidebar: Waves ── */
+#wave-panel{
+  grid-row:1;grid-column:1;
+  border-right:none;border-top:none;border-bottom:none;border-radius:0;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#wave-panel .panel-body{flex:1;overflow-y:auto;padding:10px 12px}
 .wave-btn{
-  display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:5px;
-  background:#0c0e16;border:1px solid #1e2438;border-radius:4px;color:var(--gray);
-  font:inherit;font-size:10px;cursor:pointer;
+  display:block;width:100%;text-align:left;
+  padding:12px 14px;margin-bottom:6px;
+  background:var(--bg-card);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  color:var(--text-secondary);
+  font:inherit;font-size:12px;cursor:pointer;
+  transition:border-color .15s,background .15s,box-shadow .15s;
 }
-.wave-btn:hover{border-color:var(--cyan);color:#fff}
-.wave-btn.active{border-color:var(--cyan);color:var(--cyan);background:#0a1218}
-.wave-btn .num{font-weight:700;color:#fff;margin-right:6px}
+.wave-btn:hover{
+  background:var(--bg-hover);border-color:var(--border-strong);
+  color:var(--text);
+}
+.wave-btn.active{
+  border-color:rgba(167,139,250,.45);
+  background:var(--accent-dim);
+  color:var(--text);
+  box-shadow:0 0 0 1px rgba(167,139,250,.1), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.wave-btn .num{
+  display:inline-block;
+  font-weight:600;font-size:11px;
+  color:var(--accent-bright);
+  margin-right:8px;
+  letter-spacing:.04em;
+}
+.wave-btn .wave-label{font-weight:500;color:var(--text)}
 .agent-chip{
-  display:inline-block;font-size:8px;padding:2px 5px;margin:2px 1px 0 0;
-  background:#12141c;border:1px solid #252838;border-radius:2px;color:var(--lime);
+  display:inline-block;font-size:10px;font-weight:500;
+  padding:3px 8px;margin:4px 3px 0 0;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);border-radius:999px;
+  color:var(--text-muted);cursor:pointer;
+  transition:all .12s;
+}
+.agent-chip:hover{border-color:var(--border-strong);color:var(--text)}
+.agent-chip.selected{
+  background:var(--accent-dim);
+  border-color:rgba(167,139,250,.4);
+  color:var(--accent-bright);
 }
 
-#stats-panel{grid-row:2;justify-self:end;align-self:start}
-.type-bar{margin-bottom:5px}
-.type-bar .lbl{font-size:8px;color:var(--gray);margin-bottom:2px}
-.type-bar .bar{height:3px;background:#1a1d28;border-radius:2px;overflow:hidden}
-.type-bar .fill{height:100%;border-radius:2px;transition:width .4s}
+/* ── MPSA section (bottom of left sidebar) ── */
+#mpsa-panel{
+  border-top:1px solid var(--border);
+  max-height:min(38vh,360px);
+  overflow:hidden;display:flex;flex-direction:column;
+}
+#mpsa-panel .panel-body{flex:1;overflow-y:auto;padding:10px 12px}
+.mpsa-mode{
+  font-size:12px;color:var(--text-secondary);
+  margin-bottom:10px;line-height:1.5;
+  padding:8px 10px;
+  background:var(--bg-card);border-radius:var(--radius-sm);
+  border:1px solid var(--border);
+}
+.mpsa-mode b{color:var(--text);font-weight:600}
+.mpsa-flow{
+  font-size:10px;font-weight:600;letter-spacing:.15em;
+  color:var(--text-muted);text-align:center;
+  margin-bottom:8px;
+}
+.mpsa-stack{display:flex;flex-direction:column;gap:5px}
+.mpsa-layer{
+  border-left:3px solid var(--text-muted);
+  padding:8px 10px;background:var(--bg-card);
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  font-size:11px;line-height:1.45;color:var(--text-secondary);
+  cursor:pointer;border-top:1px solid var(--border);
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  transition:background .12s;
+}
+.mpsa-layer:hover{background:var(--bg-hover)}
+.mpsa-layer.expanded{background:var(--bg-hover);color:var(--text)}
+.mpsa-layer .layer-hdr{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mpsa-layer .layer-id{font-weight:600;font-size:11px;color:var(--text)}
+.mpsa-layer .layer-src{
+  font-size:9px;font-weight:500;color:var(--text-muted);
+  padding:2px 6px;background:rgba(255,255,255,.04);border-radius:4px;
+  white-space:nowrap;
+}
+.mpsa-layer .layer-body{
+  display:none;margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--border);
+  white-space:pre-wrap;word-break:break-word;
+  font-size:10px;color:var(--text-muted);line-height:1.55;
+}
+.mpsa-layer.expanded .layer-body{display:block}
+.mpsa-layer.layer-O{border-left-color:#c4b5fd}
+.mpsa-layer.layer-P{border-left-color:#22d3ee}
+.mpsa-layer.layer-C{border-left-color:#a3e635}
+.mpsa-layer.layer-G{border-left-color:#fb923c}
+.mpsa-layer.layer-S{border-left-color:#f87171}
 
-#log-panel{grid-column:1/-1;font-size:9px;color:var(--gray);max-height:72px;overflow-y:auto}
-#log-panel div{padding:2px 0;border-bottom:1px solid #141820}
-#log-panel .ts{color:var(--cyan);margin-right:6px}
+/* ── Right sidebar: Stats ── */
+#stats-panel{
+  grid-row:1;grid-column:3;
+  border-left:none;border-top:none;border-bottom:none;border-radius:0;
+  overflow-y:auto;
+}
+#stats-panel .panel-body{padding:12px}
 
+/* Metric cards grid */
+.metrics-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;
+}
+.metric-card{
+  padding:10px 12px;
+  background:var(--bg-card);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+}
+.metric-card .label{
+  font-size:10px;font-weight:500;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;
+}
+.metric-card .value{
+  font-size:18px;font-weight:700;color:var(--text);
+  font-variant-numeric:tabular-nums;
+}
+.metric-card.accent .value{color:var(--accent-bright)}
+.metric-card.green .value{color:var(--green)}
+.metric-card.cyan .value{color:var(--cyan)}
+
+/* Segmented control */
+.view-toggle{
+  display:flex;gap:0;margin-bottom:14px;
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:3px;
+}
+.view-toggle button{
+  flex:1;padding:6px 10px;font:inherit;
+  font-size:11px;font-weight:500;cursor:pointer;
+  background:transparent;border:none;border-radius:4px;
+  color:var(--text-muted);transition:all .15s;
+}
+.view-toggle button:hover{color:var(--text)}
+.view-toggle button.active{
+  background:var(--accent-dim);color:var(--accent-bright);
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+
+.stat-row{display:flex;justify-content:space-between;font-size:12px;line-height:1.8;color:var(--text-secondary)}
+.stat-row b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+
+.section-gap{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.section-gap h2{
+  font-size:10px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-muted);
+  margin-bottom:10px;
+}
+
+.type-bar{margin-bottom:8px}
+.type-bar .lbl{
+  font-size:11px;color:var(--text-secondary);margin-bottom:4px;
+  display:flex;justify-content:space-between;font-weight:500;
+}
+.type-bar .bar{
+  height:4px;background:rgba(255,255,255,.06);
+  border-radius:999px;overflow:hidden;
+}
+.type-bar .fill{
+  height:100%;border-radius:999px;
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+}
+
+.hot-row{
+  font-size:11px;line-height:1.55;color:var(--text-secondary);
+  padding:6px 8px;margin-bottom:4px;
+  background:var(--bg-card);border-radius:var(--radius-sm);
+  border:1px solid var(--border);
+}
+.hot-row b{color:var(--text);font-weight:600}
+.hot-row .heat{color:var(--orange);font-weight:600}
+
+/* ── Bottom: Activity + Log ── */
+#bottom-bar{
+  grid-column:1/-1;grid-row:2;
+  display:grid;grid-template-columns:1fr 280px;
+  border-top:1px solid var(--border);
+  max-height:var(--bottom-h);
+}
+#activity-panel{
+  border-right:1px solid var(--border);border-radius:0;
+  overflow:hidden;display:flex;flex-direction:column;
+}
+#activity-panel .panel-body{
+  flex:1;overflow-y:auto;padding:8px 14px;
+  font-size:11px;color:var(--text-secondary);
+}
+#activity-panel div{
+  padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);
+  line-height:1.45;
+}
+#activity-panel .ts{color:var(--text-muted);margin-right:8px;font-variant-numeric:tabular-nums;font-size:10px}
+#activity-panel .kind{
+  color:var(--accent-bright);margin-right:6px;
+  text-transform:uppercase;font-size:9px;font-weight:600;letter-spacing:.04em;
+}
+#log-panel{
+  border-radius:0;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+#log-panel .panel-header{padding:10px 14px 8px}
+#log-panel .panel-body{
+  flex:1;overflow-y:auto;padding:6px 14px;
+  font-size:10px;color:var(--text-muted);
+}
+#log-panel div{padding:2px 0;line-height:1.4}
+#log-panel .ts{color:var(--cyan);margin-right:6px;font-variant-numeric:tabular-nums}
+
+/* Hide legacy title bar */
+#title-bar{display:none}
+#sub-line{display:none}
+
+/* ── Tooltip ── */
 #tooltip{
-  position:fixed;z-index:20;pointer-events:none;
-  background:var(--panel);border:1px solid var(--cyan);
-  padding:6px 10px;font-size:10px;border-radius:4px;
-  opacity:0;transition:opacity .12s;max-width:260px;
+  position:fixed;z-index:200;pointer-events:none;
+  background:rgba(22,22,31,.95);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border-strong);
+  padding:10px 14px;font-size:12px;border-radius:var(--radius);
+  opacity:0;transition:opacity .15s,transform .15s;
+  max-width:280px;box-shadow:var(--shadow);
+  transform:translateY(4px);
+  line-height:1.55;
 }
-#tooltip.visible{opacity:1}
+#tooltip.visible{opacity:1;transform:translateY(0)}
+#tooltip b{color:var(--text);font-weight:600}
 
+/* ── Canvas hint ── */
 #hint{
-  position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
-  z-index:5;font-size:9px;color:var(--gray);pointer-events:none;text-align:center;
+  position:fixed;bottom:calc(var(--bottom-h) + 16px);left:50%;
+  transform:translateX(-50%);
+  z-index:5;font-size:11px;font-weight:500;
+  color:var(--text-muted);pointer-events:none;text-align:center;
+  padding:6px 14px;
+  background:rgba(17,17,24,.7);
+  border:1px solid var(--border);border-radius:999px;
+  backdrop-filter:blur(8px);
 }
-#brand-logo{
-  position:fixed;top:14px;right:14px;z-index:30;
-  height:clamp(28px,4vw,40px);width:auto;pointer-events:none;opacity:.9;
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:999px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.18)}
+
+/* ── Responsive ── */
+@media(max-width:1100px){
+  :root{--sidebar-w:240px;--right-w:260px}
+}
+@media(max-width:900px){
+  #hud{
+    grid-template-columns:1fr;
+    grid-template-rows:auto 1fr auto var(--bottom-h);
+  }
+  #wave-panel,#stats-panel{max-height:180px}
+  #mpsa-panel{display:none}
+  #bottom-bar{grid-template-columns:1fr}
+  #log-panel{display:none}
 }
 </style>
 </head>
 <body>
 <div id="stage-wrap"><canvas id="stage"></canvas></div>
-<img id="brand-logo" src="/azzlelogo.png" alt="AZZLE" width="120" height="48"/>
+
+<!-- Top nav -->
+<nav id="topnav">
+  <div class="logo-wrap">
+    <img id="brand-logo" src="/azzlelogo.png" alt="AZZLE" width="120" height="48"/>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-breadcrumb">
+    <span>Force</span>
+    <span class="sep">/</span>
+    <span class="current">Observatory</span>
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="status-pill"><span id="live-dot"></span>Live</div>
+  <span class="nav-meta" id="sub-line">Polling every 5s</span>
+</nav>
+
 <div id="tooltip"></div>
-<div id="hint">Drag to orbit · Scroll to zoom · Hover pixels for details</div>
+<div id="hint">Drag to orbit · Scroll to zoom · Hover for details</div>
 
 <div id="hud">
-  <div id="title-bar" class="panel">
-    <h1><span id="live-dot"></span>AZZLE FORCE OBSERVATORY</h1>
-    <div class="sub" id="sub-line">Pixel galaxy · orbit view · polls every 5s</div>
+  <!-- Legacy hidden for JS compat -->
+  <div id="title-bar" class="panel" style="display:none">
+    <h1>AZZLE FORCE OBSERVATORY</h1>
   </div>
 
-  <div id="wave-panel" class="panel">
-    <h2>WAVES</h2>
-    <div id="wave-buttons"></div>
-  </div>
+  <!-- Left: Waves + MPSA -->
+  <aside id="wave-panel" class="panel">
+    <div class="panel-header"><h2>Waves</h2></div>
+    <div class="panel-body">
+      <div id="wave-buttons"></div>
+    </div>
+    <div id="mpsa-panel">
+      <div class="panel-header"><h2>MPSA Stack</h2></div>
+      <div class="panel-body">
+        <div class="mpsa-mode" id="mpsa-mode">Select an agent chip →</div>
+        <div class="mpsa-flow">O → P → C → G → S</div>
+        <div class="mpsa-stack" id="mpsa-stack">
+          <div style="font-size:11px;color:var(--text-muted)">Modular Prompt Stack Architecture — layered cognition per agent</div>
+        </div>
+      </div>
+    </div>
+  </aside>
 
-  <div id="stats-panel" class="panel">
-    <h2>GRAPH</h2>
-    <div class="stat-row"><span>Total</span><b id="s-total">0</b></div>
-    <div class="stat-row"><span>Shown</span><b id="s-shown">0</b></div>
-    <div class="stat-row"><span>Edges</span><b id="s-edges">0</b></div>
-    <div class="stat-row"><span>Scored</span><b id="s-scored">0</b></div>
-    <div class="stat-row"><span>Outreach</span><b id="s-outreach">0</b></div>
-    <div style="margin-top:10px" id="type-bars"></div>
-  </div>
+  <!-- Right: Stats -->
+  <aside id="stats-panel" class="panel">
+    <div class="panel-header"><h2>Graph</h2></div>
+    <div class="panel-body">
+      <div class="view-toggle">
+        <button type="button" id="view-prob" class="active">Score</button>
+        <button type="button" id="view-heat">Heat</button>
+      </div>
 
-  <div id="log-panel" class="panel"></div>
+      <div class="metrics-grid">
+        <div class="metric-card accent">
+          <div class="label">Total</div>
+          <div class="value" id="s-total">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Shown</div>
+          <div class="value" id="s-shown">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Edges</div>
+          <div class="value" id="s-edges">0</div>
+        </div>
+        <div class="metric-card green">
+          <div class="label">Scored</div>
+          <div class="value" id="s-scored">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Hot ≥0.55</div>
+          <div class="value" id="s-hot">0</div>
+        </div>
+        <div class="metric-card cyan">
+          <div class="label">Replied</div>
+          <div class="value" id="s-replied">0</div>
+        </div>
+      </div>
+      <div class="stat-row" style="margin-bottom:12px"><span>Outreach events</span><b id="s-outreach">0</b></div>
+
+      <div id="type-bars"></div>
+
+      <div class="section-gap">
+        <h2>Funnel</h2>
+        <div id="funnel-bars"></div>
+      </div>
+
+      <div class="section-gap">
+        <h2>Pipeline</h2>
+        <div id="pipeline-bars"></div>
+      </div>
+
+      <div class="section-gap">
+        <h2>Hot Prospects</h2>
+        <div id="hot-list"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Bottom bar -->
+  <div id="bottom-bar">
+    <div id="activity-panel" class="panel">
+      <div class="panel-header"><h2>Activity</h2></div>
+      <div class="panel-body" id="activity-feed"></div>
+    </div>
+    <div id="log-panel" class="panel">
+      <div class="panel-header"><h2>System Log</h2></div>
+      <div class="panel-body"></div>
+    </div>
+  </div>
 </div>
 
 <script>
 const TYPE_COLORS = {
-  repository: '#00f0ff',
-  agent: '#b8ff57',
-  person: '#e8640a',
-  company: '#ff2d6a',
-  community: '#a78bfa',
+  repository: '#22d3ee',
+  agent: '#a3e635',
+  person: '#fb923c',
+  company: '#f87171',
+  community: '#c4b5fd',
   task: '#fbbf24',
-  default: '#4a5568',
+  default: '#71717a',
 };
 
 const WAVE_META = {
-  1: { label: 'Discovery', color: '#00f0ff', types: ['repository', 'agent', 'person'] },
-  2: { label: 'Scoring', color: '#b8ff57', types: ['company', 'community', 'task'] },
-  3: { label: 'Outreach', color: '#ff2d6a', types: ['person', 'company'] },
-  4: { label: 'Connect', color: '#a78bfa', types: ['person', 'agent', 'community'] },
-  5: { label: 'Expansion', color: '#e8640a', types: ['agent', 'repository'] },
+  1: { label: 'Discovery', color: '#22d3ee', types: ['repository', 'agent', 'person'] },
+  2: { label: 'Scoring', color: '#a3e635', types: ['company', 'community', 'task'] },
+  3: { label: 'Outreach', color: '#f87171', types: ['person', 'company'] },
+  4: { label: 'Connect', color: '#c4b5fd', types: ['person', 'agent', 'community'] },
+  5: { label: 'Expansion', color: '#fb923c', types: ['agent', 'repository'] },
+  6: { label: 'Second Brain', color: '#f472b6', types: ['person', 'company', 'repository'] },
+};
+
+const OUTREACH_COLORS = {
+  sent: '#a3e635',
+  replied: '#22d3ee',
+  converted: '#fbbf24',
+  draft: '#71717a',
+  pending_approval: '#c4b5fd',
+  send_failed: '#f87171',
+  skipped_no_contact: '#52525b',
+  skipped_duplicate_contact: '#52525b',
 };
 
 const canvas = document.getElementById('stage');
@@ -145,11 +558,13 @@ const tooltip = document.getElementById('tooltip');
 
 let wavesConfig = {};
 let activeWave = 1;
+let selectedAgent = 'aaies';
+let mpsaData = null;
 let lastRev = 0;
 let lastTotal = 0;
 let lastGraph = null;
 
-/** @type {Array<{id:string,name:string,type:string,score:number,x:number,y:number,z:number,sx:number,sy:number,depth:number,px:number,highlight:boolean}>} */
+/** @type {Array<{id:string,name:string,type:string,score:number,heat:number,hasContact:boolean,outreachStatus:string|null,x:number,y:number,z:number,sx:number,sy:number,depth:number,px:number,highlight:boolean}>} */
 let nodes = [];
 /** @type {Array<[number,number,number,number]>} */
 let edges = [];
@@ -157,6 +572,7 @@ let hoverIdx = -1;
 let stars = [];
 /** @type {number[][]} */
 let logoVoxels = [];
+let colorMode = 'prob';
 
 let orbitYaw = 0.55;
 let orbitPitch = 0.42;
@@ -216,19 +632,23 @@ function transformXYZ(x, y, z, w, h) {
   return projectRotated(r2.x, r2.y, r2.z, w, h);
 }
 
-function pixelSize(score, highlight) {
-  if (score >= 0.75) return 3;
-  if (score >= 0.5 || highlight) return 2;
+function pixelSize(value, highlight) {
+  if (value >= 0.75) return 3;
+  if (value >= 0.5 || highlight) return 2;
   return 1;
+}
+
+function nodeMetric(n) {
+  return colorMode === 'heat' ? n.heat : n.score;
 }
 
 function initStars() {
   stars = [];
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 80; i++) {
     stars.push({
       x: Math.random(),
       y: Math.random(),
-      a: 0.15 + Math.random() * 0.35,
+      a: 0.08 + Math.random() * 0.2,
     });
   }
 }
@@ -266,7 +686,7 @@ function startLoop() {
 }
 
 function drawStars(w, h) {
-  ctx.fillStyle = '#334155';
+  ctx.fillStyle = 'rgba(167,139,250,0.35)';
   for (const s of stars) {
     ctx.globalAlpha = s.a;
     ctx.fillRect((s.x * w) | 0, (s.y * h) | 0, 1, 1);
@@ -275,7 +695,7 @@ function drawStars(w, h) {
 }
 
 function drawWaveRings(w, h) {
-  for (let wave = 1; wave <= 5; wave++) {
+  for (let wave = 1; wave <= 6; wave++) {
     const meta = WAVE_META[wave];
     const radius = 10 + wave * 6.5;
     const baseY = (wave - 3) * 2.8;
@@ -289,7 +709,7 @@ function drawWaveRings(w, h) {
     ctx.moveTo(pts[0].sx, pts[0].sy);
     for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sx, pts[i].sy);
     ctx.strokeStyle = meta.color;
-    ctx.globalAlpha = wave === activeWave ? 0.4 : 0.08;
+    ctx.globalAlpha = wave === activeWave ? 0.35 : 0.06;
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.globalAlpha = 1;
@@ -315,7 +735,7 @@ function drawAgents(w, h) {
 function draw() {
   const w = window.innerWidth;
   const h = window.innerHeight;
-  ctx.fillStyle = '#030308';
+  ctx.fillStyle = '#0a0a0f';
   ctx.fillRect(0, 0, w, h);
   drawStars(w, h);
   drawWaveRings(w, h);
@@ -332,7 +752,7 @@ function draw() {
 
   ctx.lineWidth = 1;
   for (const [x1, y1, x2, y2] of edges) {
-    ctx.strokeStyle = 'rgba(30,58,95,.18)';
+    ctx.strokeStyle = 'rgba(167,139,250,.08)';
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
@@ -341,16 +761,20 @@ function draw() {
 
   for (const item of sorted) {
     if (item.logo) {
-      ctx.fillStyle = '#00f0ff';
-      ctx.globalAlpha = 0.55 + item.f * 0.45;
+      ctx.fillStyle = '#a78bfa';
+      ctx.globalAlpha = 0.5 + item.f * 0.5;
       ctx.fillRect(item.sx | 0, item.sy | 0, 1, 1);
       continue;
     }
     const n = item.n;
     const i = item.idx;
-    const col = TYPE_COLORS[n.type] ?? TYPE_COLORS.default;
-    const dim = n.highlight ? 1 : 0.32;
-    ctx.globalAlpha = Math.min(1, (0.25 + n.f * 0.75) * dim);
+    const metric = nodeMetric(n);
+    let col = TYPE_COLORS[n.type] ?? TYPE_COLORS.default;
+    if (colorMode === 'heat' && n.heat >= 0.55) col = '#f472b6';
+    else if (n.outreachStatus === 'replied') col = '#22d3ee';
+    else if (n.outreachStatus === 'sent') col = '#a3e635';
+    const dim = n.highlight ? 1 : 0.35;
+    ctx.globalAlpha = Math.min(1, (0.3 + n.f * 0.7) * dim);
     ctx.fillStyle = col;
     const px = n.px;
     const sx = (n.sx - px * 0.5) | 0;
@@ -358,7 +782,7 @@ function draw() {
     ctx.fillRect(sx, sy, px, px);
     if (i === hoverIdx) {
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = '#f4f4f5';
       ctx.strokeRect(sx - 1, sy - 1, px + 2, px + 2);
     }
   }
@@ -390,17 +814,9 @@ function reprojectNodes(redraw = true) {
 
 function rebuildScene(data) {
   const entities = data.entities || {};
-  const scores = data.scores || {};
   const ids = Object.keys(entities);
   const total = ids.length;
   nodes = [];
-
-  const scoreMap = new Map();
-  for (const s of Object.values(scores)) {
-    if (s.score_type !== 'azzle_probability') continue;
-    const v = Number(s.value) || 0;
-    scoreMap.set(s.entity_id, Math.max(scoreMap.get(s.entity_id) ?? 0, v));
-  }
 
   const w = window.innerWidth;
   const h = window.innerHeight;
@@ -408,15 +824,20 @@ function rebuildScene(data) {
   ids.forEach((id, i) => {
     const e = entities[id];
     const type = e.type || 'default';
-    const score = scoreMap.get(id) ?? 0;
+    const score = Number(e.probability) || 0;
+    const heat = Number(e.heat) || 0;
     const { x, y, z } = layoutXYZ(id, type, i, total);
     const p = transformXYZ(x, y, z, w, h);
     const highlight = WAVE_META[activeWave].types.includes(type);
+    const metric = colorMode === 'heat' ? heat : score;
     nodes.push({
       id,
       name: e.name,
       type,
       score,
+      heat,
+      hasContact: !!e.has_contact,
+      outreachStatus: e.outreach_status ?? null,
       x,
       y,
       z,
@@ -424,7 +845,7 @@ function rebuildScene(data) {
       sy: p.sy,
       depth: p.depth,
       f: p.f,
-      px: pixelSize(score, highlight),
+      px: pixelSize(metric, highlight),
       highlight,
     });
   });
@@ -439,36 +860,110 @@ function rebuildScene(data) {
   scheduleDraw();
 }
 
+function renderBars(containerId, rows, maxVal) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  const max = maxVal || Math.max(...rows.map((r) => r.n), 1);
+  for (const { label, n, color } of rows) {
+    if (!n) continue;
+    const div = document.createElement('div');
+    div.className = 'type-bar';
+    div.innerHTML =
+      `<div class="lbl"><span>${label}</span><span>${n}</span></div>` +
+      `<div class="bar"><div class="fill" style="width:${(n / max) * 100}%;background:${color}"></div></div>`;
+    el.appendChild(div);
+  }
+}
+
 function updateStats(data) {
   const meta = data.meta || {};
   const entities = data.entities || {};
   const scores = data.scores || {};
   const outreach = data.outreach_events || {};
+  const funnel = meta.funnel || {};
 
   document.getElementById('s-total').textContent = meta.total_entities ?? Object.keys(entities).length;
   document.getElementById('s-shown').textContent = meta.shown_entities ?? Object.keys(entities).length;
   document.getElementById('s-edges').textContent =
     `${meta.shown_edges ?? (data.relationships?.length ?? 0)} / ${meta.total_edges ?? '—'}`;
-  document.getElementById('s-scored').textContent = Object.keys(scores).length;
-  document.getElementById('s-outreach').textContent = Object.keys(outreach).length;
+  document.getElementById('s-scored').textContent = meta.score_types?.azzle_probability ?? Object.keys(scores).length;
+  document.getElementById('s-hot').textContent = meta.hot_count ?? 0;
+  document.getElementById('s-replied').textContent = meta.replied_count ?? funnel.status?.replied ?? 0;
+  document.getElementById('s-outreach').textContent =
+    meta.total_outreach_events ?? Object.keys(outreach).length;
 
   if (meta.truncated) {
     document.getElementById('sub-line').textContent =
-      `Pixel galaxy · top ${meta.shown_entities} of ${meta.total_entities} · orbit view`;
+      `${meta.shown_entities} of ${meta.total_entities} entities · live`;
+  } else {
+    document.getElementById('sub-line').textContent =
+      `${meta.total_entities ?? 0} entities · polls every 5s`;
   }
 
   const types = {};
   for (const e of Object.values(entities)) types[e.type] = (types[e.type] || 0) + 1;
-  const bars = document.getElementById('type-bars');
-  bars.innerHTML = '';
-  const max = Math.max(...Object.values(types), 1);
-  for (const [t, n] of Object.entries(types).sort((a, b) => b[1] - a[1]).slice(0, 6)) {
-    const div = document.createElement('div');
-    div.className = 'type-bar';
-    const hex = TYPE_COLORS[t] ?? TYPE_COLORS.default;
-    div.innerHTML =
-      `<div class="lbl">${t} (${n})</div><div class="bar"><div class="fill" style="width:${(n / max) * 100}%;background:${hex}"></div></div>`;
-    bars.appendChild(div);
+  renderBars(
+    'type-bars',
+    Object.entries(types)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([t, n]) => ({ label: `${t} (${n})`, n, color: TYPE_COLORS[t] ?? TYPE_COLORS.default }))
+  );
+
+  if (funnel.total != null) {
+    renderBars('funnel-bars', [
+      { label: 'With owner', n: funnel.with_owner, color: '#22d3ee' },
+      { label: `Score ≥ ${funnel.threshold ?? 0.75}`, n: funnel.above_threshold, color: '#a3e635' },
+      { label: 'Has contact', n: funnel.with_contact, color: '#fb923c' },
+      { label: 'Qualified + contact', n: funnel.contactable_qualified, color: '#f472b6' },
+      { label: 'Awaiting outreach', n: funnel.awaiting_outreach, color: '#f87171' },
+    ], funnel.total);
+  }
+
+  const st = funnel.status || {};
+  renderBars(
+    'pipeline-bars',
+    Object.entries(st)
+      .filter(([, n]) => n > 0)
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, n]) => ({
+        label,
+        n,
+        color: OUTREACH_COLORS[label] ?? '#71717a',
+      })),
+    funnel.outreach_entities || 1
+  );
+
+  const hotEl = document.getElementById('hot-list');
+  hotEl.innerHTML = '';
+  const hot = data.hot_prospects || [];
+  if (!hot.length) {
+    hotEl.innerHTML = '<div class="hot-row">No relationship heat yet — run wave 6</div>';
+  } else {
+    for (const h of hot.slice(0, 8)) {
+      const row = document.createElement('div');
+      row.className = 'hot-row';
+      const stLabel = h.outreach_status ? ` · ${h.outreach_status}` : '';
+      row.innerHTML = `<b>${h.name || h.id}</b> <span class="heat">${h.heat.toFixed(2)}</span> · p${h.probability.toFixed(2)}${stLabel}`;
+      hotEl.appendChild(row);
+    }
+  }
+
+  const feed = document.getElementById('activity-feed');
+  feed.innerHTML = '';
+  const activity = data.activity || [];
+  if (!activity.length) {
+    feed.innerHTML = '<div>No recent outreach or brain signals</div>';
+  } else {
+    for (const a of activity.slice(0, 25)) {
+      const line = document.createElement('div');
+      const ts = a.at ? new Date(a.at).toLocaleTimeString() : '—';
+      const who = a.entity_id ? ` · ${a.entity_id.slice(0, 12)}` : '';
+      line.innerHTML =
+        `<span class="ts">${ts}</span><span class="kind">${a.kind}</span>${a.status || a.agent || ''}${who}` +
+        (a.preview ? ` — ${a.preview.replace(/</g, '')}` : '');
+      feed.appendChild(line);
+    }
   }
 
   const total = meta.total_entities ?? 0;
@@ -479,7 +974,7 @@ function updateStats(data) {
 }
 
 function log(msg) {
-  const el = document.getElementById('log-panel');
+  const el = document.querySelector('#log-panel .panel-body');
   const line = document.createElement('div');
   line.innerHTML = `<span class="ts">${new Date().toLocaleTimeString()}</span>${msg}`;
   el.prepend(line);
@@ -489,20 +984,85 @@ function log(msg) {
 function buildWaveUI() {
   const wrap = document.getElementById('wave-buttons');
   wrap.innerHTML = '';
-  for (let w = 1; w <= 5; w++) {
+  for (let w = 1; w <= 6; w++) {
     const meta = WAVE_META[w];
+    if (!meta) continue;
     const agents = wavesConfig[String(w)] ?? [];
     const btn = document.createElement('button');
     btn.className = 'wave-btn' + (w === activeWave ? ' active' : '');
     btn.innerHTML =
-      `<span class="num">WAVE ${w}</span>${meta.label}<br>${agents.map((a) => `<span class="agent-chip">${a}</span>`).join('')}`;
-    btn.onclick = () => {
+      `<span class="num">W${w}</span><span class="wave-label">${meta.label}</span><br>${agents.map((a) =>
+        `<span class="agent-chip${a === selectedAgent ? ' selected' : ''}" data-agent="${a}">${a}</span>`
+      ).join('')}`;
+    btn.onclick = (e) => {
+      if (e.target.classList?.contains('agent-chip')) return;
       activeWave = w;
       buildWaveUI();
       if (lastGraph) applyGraph(lastGraph, true);
       log(`Wave ${w} — ${meta.label}`);
     };
+    btn.querySelectorAll('.agent-chip').forEach((chip) => {
+      chip.onclick = (e) => {
+        e.stopPropagation();
+        selectedAgent = chip.dataset.agent;
+        buildWaveUI();
+        renderMPSAStack(selectedAgent);
+        log(`MPSA → ${selectedAgent}`);
+      };
+    });
     wrap.appendChild(btn);
+  }
+}
+
+function renderMPSAStack(agentId) {
+  const modeEl = document.getElementById('mpsa-mode');
+  const stackEl = document.getElementById('mpsa-stack');
+  if (!mpsaData?.ok) {
+    modeEl.innerHTML = 'MPSA config unavailable';
+    return;
+  }
+  const stack =
+    mpsaData.agents.find((a) => a.agent_id === agentId) ??
+    (agentId ? { agent_id: agentId, layers: [], reality_name: '?', reality_mode: '?' } : null);
+  if (!stack || !stack.layers?.length) {
+    modeEl.innerHTML = `<b>${agentId}</b> — no stack configured`;
+    stackEl.innerHTML = '<div style="font-size:11px;color:var(--text-muted)">Add agent to config/mpsa/agent-stacks.json</div>';
+    return;
+  }
+  modeEl.innerHTML =
+    `<b>${stack.agent_id}</b><br>${stack.reality_name} <span style="color:var(--text-muted)">(${stack.reality_mode})</span>`;
+  stackEl.innerHTML = stack.layers
+    .map(
+      (l, i) =>
+        `<div class="mpsa-layer layer-${l.id}${i === 0 ? ' expanded' : ''}" data-layer="${l.id}">` +
+        `<div class="layer-hdr"><span class="layer-id">${l.title}</span><span class="layer-src">${l.source ?? ''}</span></div>` +
+        `<div class="layer-body">${escapeHtml(l.content)}</div></div>`
+    )
+    .join('');
+  stackEl.querySelectorAll('.mpsa-layer').forEach((el) => {
+    el.onclick = () => {
+      stackEl.querySelectorAll('.mpsa-layer').forEach((x) => x.classList.remove('expanded'));
+      el.classList.add('expanded');
+    };
+  });
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+async function loadMPSA() {
+  try {
+    const res = await fetch('/api/mpsa', { cache: 'no-store' });
+    if (res.ok) {
+      mpsaData = await res.json();
+      renderMPSAStack(selectedAgent);
+    }
+  } catch {
+    mpsaData = null;
   }
 }
 
@@ -556,10 +1116,17 @@ canvas.addEventListener('pointermove', (e) => {
   if (idx !== hoverIdx) hoverIdx = idx;
   if (idx >= 0) {
     const n = nodes[idx];
+    const ent = lastGraph?.entities?.[n.id] || {};
     tooltip.className = 'visible';
     tooltip.style.left = e.clientX + 12 + 'px';
     tooltip.style.top = e.clientY + 12 + 'px';
-    tooltip.innerHTML = `<b>${n.name}</b><br>${n.type} · score ${n.score.toFixed(2)}`;
+    const contact = n.hasContact ? '✓ contact' : 'no contact';
+    const outreach = n.outreachStatus ? ` · ${n.outreachStatus}` : '';
+    const prox = ent.proximity ? `<br>proximity ${ent.proximity}` : '';
+    const ch = ent.preferred_channel ? `<br>channel ${ent.preferred_channel}` : '';
+    tooltip.innerHTML =
+      `<b>${n.name}</b><br>${n.type} · score ${n.score.toFixed(2)} · heat ${n.heat.toFixed(2)}` +
+      `<br>${contact}${outreach}${prox}${ch}`;
   } else {
     tooltip.className = '';
   }
@@ -605,6 +1172,20 @@ async function init() {
   initStars();
   resize();
   await loadLogo();
+
+  document.getElementById('view-prob').onclick = () => {
+    colorMode = 'prob';
+    document.getElementById('view-prob').classList.add('active');
+    document.getElementById('view-heat').classList.remove('active');
+    if (lastGraph) applyGraph(lastGraph, true);
+  };
+  document.getElementById('view-heat').onclick = () => {
+    colorMode = 'heat';
+    document.getElementById('view-heat').classList.add('active');
+    document.getElementById('view-prob').classList.remove('active');
+    if (lastGraph) applyGraph(lastGraph, true);
+  };
+
   try {
     const res = await fetch('/config/waves.json');
     wavesConfig = (await res.json()).waves || {};
@@ -615,9 +1196,11 @@ async function init() {
       '3': ['personalizer', 'messenger'],
       '4': ['onboarding', 'ecosystem-analyst'],
       '5': ['chief-expansion', 'swarm-creator'],
+      '6': ['signal-intake', 'prospect-scorer', 'sequencer', 'closer', 'outcome-tracker'],
     };
   }
   buildWaveUI();
+  await loadMPSA();
   await poll();
   setInterval(poll, 5000);
   log('Observatory online');

@@ -1,0 +1,82 @@
+/**
+ * Farcaster Snap — Human Terminal poll at https://azzle.org/snap
+ * Content negotiation: Accept: application/vnd.farcaster.snap+json
+ */
+import { readJsonBody, requestUrl } from "../lib/vercel-http.js";
+import { getVoteState, recordVote } from "../lib/snap-state.js";
+import { buildSnapPayload, snapFallbackHtml } from "../lib/snap-payload.js";
+
+const SNAP_ACCEPT = "application/vnd.farcaster.snap+json";
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Accept",
+};
+
+function extractFid(body) {
+  const fid = body?.user?.fid ?? body?.authenticatedUser?.fid ?? body?.fid;
+  return fid != null ? Number(fid) : null;
+}
+
+function sendSnap(res, payload) {
+  res.writeHead(200, {
+    ...CORS,
+    "Content-Type": SNAP_ACCEPT,
+    Vary: "Accept",
+  });
+  res.end(JSON.stringify(payload));
+}
+
+export default async function handler(req, res) {
+  const url = requestUrl(req, "/snap");
+  const accept = req.headers.accept || "";
+  const wantsSnap = accept.includes(SNAP_ACCEPT);
+  const action = url.searchParams.get("action");
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, CORS);
+    res.end();
+    return;
+  }
+
+  if (url.searchParams.get("health") === "1" || url.pathname.endsWith("/health")) {
+    const state = await getVoteState();
+    res.writeHead(200, { ...CORS, "Content-Type": "application/json" });
+    res.end(JSON.stringify({ ok: true, votes: { human: state.human, agent: state.agent } }));
+    return;
+  }
+
+  if (req.method === "POST") {
+    let body = {};
+    try {
+      body = await readJsonBody(req);
+    } catch {
+      body = {};
+    }
+    const fid = extractFid(body);
+
+    if (action === "human" || action === "agent") {
+      await recordVote(action, fid);
+    }
+
+    const state = await getVoteState();
+    sendSnap(res, buildSnapPayload(state, { fid }));
+    return;
+  }
+
+  if (req.method !== "GET") {
+    res.writeHead(405, { ...CORS, "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: "method_not_allowed" }));
+    return;
+  }
+
+  if (wantsSnap) {
+    const state = await getVoteState();
+    sendSnap(res, buildSnapPayload(state, {}));
+    return;
+  }
+
+  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", Vary: "Accept" });
+  res.end(snapFallbackHtml());
+}

@@ -24,7 +24,7 @@ console.log("[lite] Persistence: graph.snapshot.json (always) + graph.json\n");
 
 const wave = process.argv[2] ?? "1";
 if (wave === "all") {
-  console.log("[lite] Starting waves 1–3 (discovery + qualification + outreach)\n");
+  console.log("[lite] Starting waves 1–3 + 6 (discovery + outreach + second brain)\n");
 }
 // createContext() runs migrate on startup — single process avoids double-init
 const waveCode = await run(["wave", wave]);

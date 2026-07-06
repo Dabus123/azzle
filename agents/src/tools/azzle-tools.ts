@@ -223,13 +223,13 @@ const TASK_STATE_GUIDE: Record<string, { meaning: string; poster: string[]; work
   },
   CLAIMED: {
     meaning: "Worker assigned; work not started.",
-    poster: ["fund-task if escrow empty", "start-work", "dismiss-worker ($5 + 1k AZZLE)"],
+    poster: ["fund-task (USDC approve → EscrowVault)", "start-work after fund", "dismiss-worker ($5 + 1k AZZLE)"],
     worker: ["Wait for startWork", "leave-task ($5 + 1k AZZLE)"],
   },
   ACTIVE: {
-    meaning: "Escrow funded; work in progress.",
-    poster: ["Wait for proof", "open-dispute if needed"],
-    worker: ["prepare-receipt → submit-proof"],
+    meaning: "Work started (on-chain state index 3). Escrow may still be empty if startWork ran before fund.",
+    poster: ["fund-task if escrow empty (still allowed)", "Wait for proof", "open-dispute if needed"],
+    worker: ["submit-proof only when EscrowVault.lockedBalance > 0"],
   },
   IN_REVIEW: {
     meaning: "Proof submitted; acceptance window open.",

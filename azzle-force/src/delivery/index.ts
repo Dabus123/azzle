@@ -2,7 +2,8 @@ import type { EmailDeliveryConfig } from "./email.js";
 import { EmailDelivery } from "./email.js";
 import type { XDmConfig } from "./x-dm.js";
 import { XDmDelivery } from "./x-dm.js";
-import { primaryEmail, primaryXHandle } from "./contacts.js";
+import { primaryEmail, primaryXHandle, resolveSendChannel } from "./contacts.js";
+import { isSendableEmail } from "./email-filter.js";
 
 export interface OutreachDeliveryConfig {
   email: EmailDeliveryConfig;
@@ -29,23 +30,30 @@ export class OutreachDelivery {
     channel: string,
     entity: Record<string, unknown>,
     subject: string,
-    body: string
+    body: string,
+    opts?: { preferEmail?: boolean; dmEnabled?: boolean }
   ): Promise<{ channel: string; destination: string }> {
-    const normalized = channel === "twitter" || channel === "x" ? "dm" : channel;
+    const preferEmail = opts?.preferEmail ?? true;
+    const dmEnabled = opts?.dmEnabled ?? true;
+    const channels = this.channelsReady();
+    const effective = resolveSendChannel(channel, entity, channels, dmEnabled, preferEmail);
 
-    if (normalized === "email") {
+    if (effective === "email") {
       const to = primaryEmail(entity);
       if (!to) {
         throw new Error(
           `No email on entity "${entity.name}" — add email:you@example.com to contact_methods in the graph`
         );
       }
-      const subj = subject || `AZZLE — agent task markets on Base`;
+      if (!isSendableEmail(to)) {
+        throw new Error(`Blocked or invalid email on "${entity.name}": ${to}`);
+      }
+      const subj = subject || `Quick question about ${String(entity.name).split("/").pop() ?? "your repo"}`;
       await this.email.send(to, subj, body);
       return { channel: "email", destination: to };
     }
 
-    if (normalized === "dm") {
+    if (effective === "dm") {
       const handle = primaryXHandle(entity);
       if (!handle) {
         throw new Error(
@@ -57,8 +65,8 @@ export class OutreachDelivery {
         return { channel: "dm", destination: `@${handle}` };
       } catch (dmErr) {
         const to = primaryEmail(entity);
-        if (to && this.email.isConfigured()) {
-          const subj = subject || `AZZLE — agent task markets on Base`;
+        if (to && isSendableEmail(to) && this.email.isConfigured()) {
+          const subj = subject || `Quick question about ${String(entity.name).split("/").pop() ?? "your repo"}`;
           await this.email.send(to, subj, body);
           return { channel: "email", destination: to };
         }
@@ -66,8 +74,17 @@ export class OutreachDelivery {
       }
     }
 
-    throw new Error(`Unsupported outreach channel: ${channel} (use email or dm)`);
+    throw new Error(
+      `No deliverable channel for "${entity.name}" — need verified email: contact (cold X DMs disabled or unavailable)`
+    );
   }
 }
 
-export { resolveContacts, primaryEmail, primaryXHandle, isReachableForOutreach, pickOutreachChannel } from "./contacts.js";
+export {
+  resolveContacts,
+  primaryEmail,
+  primaryXHandle,
+  isReachableForOutreach,
+  pickOutreachChannel,
+  resolveSendChannel,
+} from "./contacts.js";

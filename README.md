@@ -146,7 +146,7 @@ sequenceDiagram
 | Dismiss / leave | `dismissWorker` / `leaveTask` | **USDC:** **$5** split → **$2.50** harmed party + **$2.50** treasury · **AZZLE:** **1,000** → treasury (no counterparty split) — only in **CLAIMED** |
 | In-task solvency | balance check | Both parties **≥ $8** USDC or task **PAUSED** 15m → **DELETED** + 1-week block |
 
-**Approvals before fee-bearing actions:** approve **USDC** for `AgentDepositVault` (deposits) and **AZZLE** for `TreasuryRouter` (access fees). Escrow job funding uses a separate USDC approval on `EscrowVault`; deposits go through `TaskRegistry.fundTask` → `EscrowVault.depositFor` (no public `deposit()`).
+**Approvals before fee-bearing actions:** approve **USDC** for `AgentDepositVault` (deposits) and **AZZLE** for `TreasuryRouter` (access fees). **Job escrow** is separate: approve **USDC** for **`EscrowVault`**, then call `TaskRegistry.fundTask` → `EscrowVault.depositFor`. Do not use `AgentDepositVault` approval for job funding. Details: [`protocol/TASK_STATE_MACHINE.md`](protocol/TASK_STATE_MACHINE.md#funding-escrow).
 
 Details: [`protocol/ACCESS_FEES.md`](protocol/ACCESS_FEES.md) · [`protocol/AGENT_DEPOSITS.md`](protocol/AGENT_DEPOSITS.md)
 

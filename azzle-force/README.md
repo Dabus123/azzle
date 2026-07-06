@@ -71,11 +71,12 @@ npm run force agent repository-hunter
 |------|--------|------|
 | 1 | Repository, Agent, Builder hunters + Contact Discovery + Relationship Mapper | 500+ entities before outreach |
 | 2 | Startup, Community, Opportunity hunters + Qualification | Top 50 ranked prospects |
-| 3 | Personalizer, Messenger, Follow-up, Ambassador | Human approval on Messenger (default) |
+| 3 | Personalizer, Messenger, Follow-up, Ambassador, **Content Studio** | Human approval on Messenger (default) |
 | 4 | Onboarding, Matchmaker, Analyst, Trend, Competitive Intel | — |
 | 5 | Chief Expansion, Swarm Creator | Swarm Creator on validated niche |
+| 6 | **Second Brain** — signal-intake, prospect-scorer, sequencer, objection-handler, closer, prompt-evolver | Closing + self-iteration — see [`docs/AZZLE_FORCE_SECOND_BRAIN.md`](../docs/AZZLE_FORCE_SECOND_BRAIN.md) |
 
-Set wave: `AZZLE_FORCE_WAVE=2` or `npm run force wave 2`
+Set wave: `AZZLE_FORCE_WAVE=6` or `npm run force wave 6` · full pipeline: `npm run force wave all`
 
 ## Configuration
 
@@ -92,6 +93,19 @@ Approve outreach:
 ```bash
 npm run force approve-outreach <entity-uuid>
 ```
+
+Generate trailer video (saved to `outputs/trailers/`):
+
+```bash
+npm run trailer -- "your topic here"
+npm run trailer -- --list
+npm run trailer -- --duration=10 "your topic"
+npm run force agent content-studio   # auto-generates on schedule + trend signals
+```
+
+Trailers use a **code-based video engine**: the LLM outputs a JSON timeline, the renderer draws frames (SVG → sharp), and **FFmpeg** pipes them into MP4. Install [FFmpeg](https://ffmpeg.org/) and ensure it is in your PATH.
+
+Visual style is controlled by `config/content/style-direction.json` (default: Enter the Void / neon-void palette).
 
 ## AZZLE protocol integration
 

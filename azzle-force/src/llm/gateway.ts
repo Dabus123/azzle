@@ -53,10 +53,18 @@ export class LlmGateway {
     tier: ModelTier,
     system: string,
     userFacts: Record<string, unknown>,
-    schema: z.ZodType<T>
+    schema: z.ZodType<T>,
+    opts?: {
+      defaults?: Record<string, unknown>;
+      normalize?: (data: unknown) => unknown;
+      schemaExample?: Record<string, unknown>;
+    }
   ): Promise<T> {
+    const defaults = opts?.defaults ?? this.fallbackFromFacts(userFacts);
+    const normalize = opts?.normalize ?? ((d: unknown) => d);
+
     if (!this.config.apiKey) {
-      return parseWithSchema(schema, this.fallbackFromFacts(userFacts), this.fallbackFromFacts(userFacts));
+      return parseWithSchema(schema, normalize(defaults), defaults);
     }
 
     const models = modelsForTier(tier);
@@ -66,9 +74,9 @@ export class LlmGateway {
       for (let attempt = 0; attempt <= MAX_429_RETRIES; attempt++) {
         await llmGate.acquire();
         try {
-          const raw = await this.callModel(model, system, userFacts);
-          const parsed = parseJsonFromLlm(raw);
-          return parseWithSchema(schema, parsed, this.fallbackFromFacts(userFacts));
+          const raw = await this.callModel(model, system, userFacts, opts?.schemaExample);
+          const parsed = normalize(parseJsonFromLlm(raw));
+          return parseWithSchema(schema, parsed, defaults);
         } catch (err) {
           lastError = err instanceof Error ? err : new Error(String(err));
           const msg = lastError.message;
@@ -88,7 +96,10 @@ export class LlmGateway {
           const parseError =
             msg.includes("Unexpected token") ||
             msg.includes("Invalid JSON") ||
-            msg.includes("JSON");
+            msg.includes("JSON") ||
+            msg.includes("too_small") ||
+            msg.includes("invalid_type") ||
+            msg.includes("Required");
           if (!isLast && (unsupported || parseError || is429)) {
             if (is429) console.warn(`[llm] ${model} rate limited — trying next model…`);
             else console.warn(`[llm] ${model} failed (${msg.slice(0, 80)}…), trying next…`);
@@ -102,15 +113,16 @@ export class LlmGateway {
     }
 
     console.warn(
-      `[llm] all models failed (${(lastError?.message ?? "unknown").slice(0, 120)}), using heuristic`
+      `[llm] all models failed (${(lastError?.message ?? "unknown").slice(0, 120)}), using defaults`
     );
-    return parseWithSchema(schema, this.fallbackFromFacts(userFacts), this.fallbackFromFacts(userFacts));
+    return parseWithSchema(schema, normalize(defaults), defaults);
   }
 
   private async callModel(
     model: string,
     system: string,
-    userFacts: Record<string, unknown>
+    userFacts: Record<string, unknown>,
+    schemaExample?: Record<string, unknown>
   ): Promise<string> {
     const body = {
       model,
@@ -118,11 +130,18 @@ export class LlmGateway {
         { role: "system", content: system },
         {
           role: "user",
-          content: `Return raw JSON only — no markdown code fences.\n\nFacts:\n${JSON.stringify(userFacts, null, 2)}`,
+          content: [
+            "Return raw JSON only — no markdown code fences.",
+            schemaExample
+              ? `\nRequired top-level keys and shape (replace example values with content for this topic):\n${JSON.stringify(schemaExample, null, 2)}`
+              : "",
+            `\nFacts:\n${JSON.stringify(userFacts, null, 2)}`,
+          ].join(""),
         },
       ],
       response_format: { type: "json_object" },
       temperature: 0.2,
+      max_tokens: 4096,
     };
 
     const res = await fetch(`${this.config.baseUrl}/chat/completions`, {
@@ -197,6 +216,8 @@ function parseJsonFromLlm(text: string): unknown {
   try {
     return JSON.parse(s);
   } catch {
+    const repaired = repairTruncatedJson(s);
+    if (repaired) return JSON.parse(repaired);
     const start = s.indexOf("{");
     const end = s.lastIndexOf("}");
     if (start >= 0 && end > start) {
@@ -208,6 +229,28 @@ function parseJsonFromLlm(text: string): unknown {
       return JSON.parse(s.slice(aStart, aEnd + 1));
     }
     throw new Error(`Invalid JSON from model: ${s.slice(0, 120)}`);
+  }
+}
+
+/** Close truncated arrays/objects when models hit token limits mid-JSON. */
+function repairTruncatedJson(s: string): string | null {
+  const start = s.indexOf("{");
+  if (start < 0) return null;
+  let fragment = s.slice(start).trim();
+  fragment = fragment.replace(/,\s*$/, "");
+  fragment = fragment.replace(/,\s*([}\]])/g, "$1");
+  const opens = (fragment.match(/[\[{]/g) ?? []).length;
+  const closes = (fragment.match(/[\]}]/g) ?? []).length;
+  let repaired = fragment;
+  for (let i = 0; i < opens - closes; i++) {
+    const lastOpen = Math.max(repaired.lastIndexOf("["), repaired.lastIndexOf("{"));
+    repaired += lastOpen === repaired.lastIndexOf("[") ? "]" : "}";
+  }
+  try {
+    JSON.parse(repaired);
+    return repaired;
+  } catch {
+    return null;
   }
 }
 
@@ -225,6 +268,9 @@ function parseWithSchema<T>(
       : defaults;
   const filled = schema.safeParse(merged);
   if (filled.success) return filled.data;
+
+  const minimal = schema.safeParse(defaults);
+  if (minimal.success) return minimal.data;
 
   throw new Error(filled.error.message);
 }
