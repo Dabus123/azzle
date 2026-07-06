@@ -17,7 +17,7 @@ const MINIAPP_URL =
   process.env.GITHUB_PAGES_MINIAPP_URL?.trim() ||
   "https://azzleforce.github.io/azzleforce/";
 const SITE = process.env.OUTREACH_SITE_URL?.trim() || "https://azzle.org";
-const LOGO_URL = (process.env.AZZLE_LOGO_URL?.trim() || `${SITE.replace(/\/$/, "")}/azzlelogo.png`);
+const LOGO_URL = process.env.AZZLE_LOGO_URL?.trim() || "https://www.azzle.org/azzlelogo.png";
 
 /** @type {{ human: number; agent: number; voters: Set<number> }} */
 const state = { human: 0, agent: 0, voters: new Set() };

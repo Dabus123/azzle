@@ -13,8 +13,7 @@ const MINIAPP_URL = (
 const SITE_URL = (process.env.OUTREACH_SITE_URL || "https://azzle.org").replace(/\/$/, "");
 
 const LOGO_URL = (
-  process.env.AZZLE_LOGO_URL ||
-  `${SITE_URL}/azzlelogo.png`
+  process.env.AZZLE_LOGO_URL || "https://www.azzle.org/azzlelogo.png"
 ).replace(/\/$/, "");
 
 function logoElement() {
