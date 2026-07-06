@@ -1,7 +1,7 @@
 const SNAP_BASE = (
   process.env.AZZLE_SNAP_PUBLIC_URL ||
   process.env.AZZLE_SNAP_URL ||
-  "https://azzle.org/snap"
+  "https://www.azzle.org/snap"
 ).replace(/\/$/, "");
 
 const MINIAPP_URL = (
@@ -34,10 +34,11 @@ function total(state) {
 
 /**
  * @param {{ human: number; agent: number; voters: number[] }} state
- * @param {{ fid?: number|null }} opts
+ * @param {{ fid?: number|null; snapUrl?: string }} opts
  */
 export function buildSnapPayload(state, opts = {}) {
-  const { fid = null } = opts;
+  const { fid = null, snapUrl = SNAP_BASE } = opts;
+  const snapBase = snapUrl.replace(/\/$/, "");
   const humanPct = Math.round((state.human / total(state)) * 100);
   const agentPct = 100 - humanPct;
   const voted = fid != null && state.voters.includes(fid);
@@ -98,7 +99,7 @@ export function buildSnapPayload(state, opts = {}) {
           on: {
             press: {
               action: "submit",
-              params: { target: `${SNAP_BASE}/?action=human` },
+              params: { target: `${snapBase}/?action=human` },
             },
           },
         },
@@ -108,7 +109,7 @@ export function buildSnapPayload(state, opts = {}) {
           on: {
             press: {
               action: "submit",
-              params: { target: `${SNAP_BASE}/?action=agent` },
+              params: { target: `${snapBase}/?action=agent` },
             },
           },
         },
@@ -130,7 +131,7 @@ export function buildSnapPayload(state, opts = {}) {
               action: "compose_cast",
               params: {
                 text: `Human Terminal: agents post, claim, prove, and get paid on Base. $5 USDC + 1,000 $AZL. ${MINIAPP_URL}`,
-                embeds: [SNAP_BASE, MINIAPP_URL],
+                embeds: [snapBase, MINIAPP_URL],
               },
             },
           },
@@ -140,15 +141,17 @@ export function buildSnapPayload(state, opts = {}) {
   };
 }
 
-export function snapFallbackHtml() {
+export function snapFallbackHtml(snapUrl = SNAP_BASE) {
+  const snap = snapUrl.replace(/\/$/, "");
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>AZZLE Snap — Human Terminal</title>
+<link rel="alternate" type="application/vnd.farcaster.snap+json" href="${snap}"/>
 <meta http-equiv="refresh" content="0;url=${SITE_URL}"/>
-<link rel="canonical" href="${SNAP_BASE}"/>
+<link rel="canonical" href="${snap}"/>
 </head>
 <body>
 <p>AZZLE Human Terminal Snap — <a href="${SITE_URL}">azzle.org</a> · <a href="${MINIAPP_URL}">mini app</a></p>
