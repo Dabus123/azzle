@@ -120,6 +120,115 @@
 
   const track = bg.querySelector(".px-track");
   const ball = bg.querySelector(".px-ball");
+
+  // ---------------------------------------------------------------
+  // Dot-grid glow canvas — dots brighten near pointer + scroll pulses
+  // ---------------------------------------------------------------
+  const dotCanvas = document.getElementById("px-dot-canvas");
+  const GRID = 24;
+  let dotCtx = null;
+  let dotW = 0;
+  let dotH = 0;
+  let dotDpr = 1;
+  let scrollGlowCenters = [];
+  let dotFrameSkip = 0;
+
+  function seedScrollGlows() {
+    scrollGlowCenters = Array.from({ length: 5 }, (_, i) => ({
+      x: (i + 1) / 6,
+      y: Math.random(),
+      phase: Math.random() * Math.PI * 2,
+      radius: 140 + Math.random() * 90,
+    }));
+  }
+
+  function resizeDotCanvas() {
+    if (!dotCanvas) return;
+    dotDpr = Math.min(window.devicePixelRatio || 1, 2);
+    dotW = window.innerWidth;
+    dotH = window.innerHeight;
+    dotCanvas.width = Math.round(dotW * dotDpr);
+    dotCanvas.height = Math.round(dotH * dotDpr);
+    dotCanvas.style.width = `${dotW}px`;
+    dotCanvas.style.height = `${dotH}px`;
+    dotCtx = dotCanvas.getContext("2d");
+    if (dotCtx) dotCtx.setTransform(dotDpr, 0, 0, dotDpr, 0, 0);
+  }
+
+  function renderDotGlow() {
+    if (!dotCtx || !dotCanvas) return;
+
+    dotCtx.clearRect(0, 0, dotW, dotH);
+
+    const mx = pointerActive ? (pointerX * 0.5 + 0.5) * dotW : dotW * 0.5;
+    const my = pointerActive ? (pointerY * 0.5 + 0.5) * dotH : dotH * 0.42;
+    const pointerRadius = pointerActive ? 220 : 0;
+    const scrollNorm = scrollProgress();
+    const velBoost = clamp(smoothVelocity * 0.08, 0, 1.4);
+    const parallaxY = scrollY * 0.06;
+    const startCol = Math.floor(-GRID / 2);
+    const endCol = Math.ceil((dotW + GRID) / GRID);
+    const startRow = Math.floor((-parallaxY - GRID) / GRID);
+    const endRow = Math.ceil((dotH - parallaxY + GRID) / GRID);
+
+    for (let row = startRow; row <= endRow; row += 1) {
+      for (let col = startCol; col <= endCol; col += 1) {
+        const x = col * GRID;
+        const y = row * GRID + parallaxY;
+
+        let glow = 0.05;
+
+        if (pointerRadius > 0) {
+          const dx = x - mx;
+          const dy = y - my;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          glow += Math.max(0, 1 - dist / pointerRadius) * 0.62;
+        } else {
+          const idlePulse = 0.5 + 0.5 * Math.sin((x + y) * 0.04 + scrollNorm * 5);
+          glow += idlePulse * 0.04;
+        }
+
+        for (const center of scrollGlowCenters) {
+          const cx = center.x * dotW;
+          const cy = ((center.y + scrollNorm * 0.85 + Math.sin(center.phase + scrollNorm * 6) * 0.06) % 1) * dotH;
+          const dx = x - cx;
+          const dy = y - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const pulse = 0.5 + 0.5 * Math.sin(center.phase + scrollNorm * 8);
+          glow += Math.max(0, 1 - dist / center.radius) * (0.18 + velBoost * 0.22) * pulse;
+        }
+
+        const scrollWave = Math.sin((y + scrollY * 0.18) * 0.012 + scrollNorm * 4) * 0.5 + 0.5;
+        glow += scrollWave * velBoost * 0.12;
+
+        if (glow < 0.06) continue;
+
+        const alpha = clamp(glow, 0, 0.92);
+        const radius = 0.9 + alpha * 2.4;
+
+        if (alpha > 0.28) {
+          dotCtx.beginPath();
+          dotCtx.arc(x, y, radius * 3.2, 0, Math.PI * 2);
+          const halo = dotCtx.createRadialGradient(x, y, 0, x, y, radius * 3.2);
+          halo.addColorStop(0, `rgba(255,220,70,${(alpha * 0.22).toFixed(3)})`);
+          halo.addColorStop(0.45, `rgba(255,200,60,${(alpha * 0.08).toFixed(3)})`);
+          halo.addColorStop(1, "rgba(255,200,60,0)");
+          dotCtx.fillStyle = halo;
+          dotCtx.fill();
+        }
+
+        dotCtx.beginPath();
+        dotCtx.arc(x, y, radius, 0, Math.PI * 2);
+        dotCtx.fillStyle = `rgba(255,235,150,${alpha.toFixed(3)})`;
+        dotCtx.fill();
+      }
+    }
+  }
+
+  seedScrollGlows();
+  resizeDotCanvas();
+  window.addEventListener("resize", resizeDotCanvas, { passive: true });
+
   const ballRig = {
     track,
     ball,
@@ -380,6 +489,12 @@
     render(dt);
     updateBallRig(dt);
     renderFilter(dt);
+
+    dotFrameSkip += dt;
+    if (dotFrameSkip >= 24) {
+      dotFrameSkip = 0;
+      renderDotGlow();
+    }
 
     rafId = requestAnimationFrame(frame);
   }
