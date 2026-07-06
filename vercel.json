@@ -53,13 +53,15 @@
   ],
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/",
       "has": [{ "type": "host", "value": "azzle.org" }],
-      "missing": [
-        { "type": "path", "value": "/snap" },
-        { "type": "path", "value": "/snap/" }
-      ],
-      "destination": "https://www.azzle.org/:path*",
+      "destination": "https://www.azzle.org/",
+      "permanent": true
+    },
+    {
+      "source": "/:path((?!snap$)(?!snap/).*)",
+      "has": [{ "type": "host", "value": "azzle.org" }],
+      "destination": "https://www.azzle.org/:path",
       "permanent": true
     }
   ],

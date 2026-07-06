@@ -10,7 +10,7 @@ The Farcaster emulator fetches snaps from the browser. If `azzle.org` **domain-r
 
 1. Open both `azzle.org` and `www.azzle.org`
 2. Set **both** to **Production** (not "Redirect to …")
-3. `vercel.json` redirects all apex paths **except** `/snap` to `www`
+3. `vercel.json` redirects apex paths to `www` **except** `/snap` (regex exclude)
 
 After that, `https://azzle.org/snap` is served directly with snap JSON + CORS.
 
