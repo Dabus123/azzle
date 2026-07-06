@@ -12,21 +12,6 @@ const MINIAPP_URL = (
 
 const SITE_URL = (process.env.OUTREACH_SITE_URL || "https://azzle.org").replace(/\/$/, "");
 
-const LOGO_URL = (
-  process.env.AZZLE_LOGO_URL || "https://www.azzle.org/azzlelogo.png"
-).replace(/\/$/, "");
-
-function logoElement() {
-  return {
-    type: "image",
-    props: {
-      url: LOGO_URL,
-      aspect: "4:1",
-      alt: "AZZLE",
-    },
-  };
-}
-
 function total(state) {
   return state.human + state.agent || 1;
 }
@@ -44,53 +29,44 @@ export function buildSnapPayload(state, opts = {}) {
 
   return {
     version: "2.0",
-    theme: { accent: "yellow" },
-    effects: voted ? [{ type: "confetti" }] : undefined,
+    theme: { accent: "amber" },
+    ...(voted ? { effects: ["confetti"] } : {}),
     ui: {
       root: "page",
       elements: {
         page: {
           type: "stack",
-          props: { gap: 12 },
-          children: ["logo", "title", "body", "bar", "counts", "row", "mini", "share"],
+          props: { gap: "md" },
+          children: ["title", "body", "bar", "actions", "mini", "share"],
         },
-        logo: logoElement(),
         title: {
           type: "text",
-          props: { content: "Escape Prompting Hell?", weight: "bold", size: "lg", align: "center" },
+          props: { content: "Escape Prompting Hell?", weight: "bold", align: "center" },
         },
         body: {
           type: "text",
           props: {
             content:
-              "AZZLE Labor Organism on Base — USDC escrow, onchain reputation, $AZL access fees. Vote your mode, then open the Human Terminal.",
+              "AZZLE on Base — USDC escrow task markets. Vote: still prompting or went agentic?",
             size: "sm",
-            color: "muted",
           },
         },
         bar: {
           type: "progress",
           props: {
             value: agentPct,
-            label: `Agentic ${agentPct}% · Prompting ${humanPct}%`,
+            max: 100,
+            label: `Agentic ${agentPct}% · ${state.agent}v / ${state.human} prompting`,
           },
         },
-        counts: {
-          type: "text",
-          props: {
-            content: `${state.agent} agentic · ${state.human} still prompting`,
-            size: "xs",
-            color: "muted",
-          },
-        },
-        row: {
-          type: "row",
-          props: { gap: 8 },
+        actions: {
+          type: "stack",
+          props: { direction: "horizontal", gap: "sm" },
           children: voted ? ["thanks"] : ["vote-human", "vote-agent"],
         },
         thanks: {
           type: "text",
-          props: { content: "Vote recorded. Share your mode →", size: "sm", color: "accent" },
+          props: { content: "Vote recorded — share your mode", size: "sm", align: "center" },
         },
         "vote-human": {
           type: "button",
@@ -124,12 +100,12 @@ export function buildSnapPayload(state, opts = {}) {
         },
         share: {
           type: "button",
-          props: { label: "Share → cast", variant: "primary" },
+          props: { label: "Share cast", variant: "primary" },
           on: {
             press: {
               action: "compose_cast",
               params: {
-                text: `Human Terminal: agents post, claim, prove, and get paid on Base. $5 USDC + 1,000 $AZL. ${MINIAPP_URL}`,
+                text: `Human Terminal: agents post, claim, prove, and get paid on Base. ${MINIAPP_URL}`,
                 embeds: [snapBase, MINIAPP_URL],
               },
             },
@@ -158,4 +134,4 @@ export function snapFallbackHtml(snapUrl = SNAP_BASE) {
 </html>`;
 }
 
-export { SNAP_BASE, MINIAPP_URL, SITE_URL, LOGO_URL };
+export { SNAP_BASE, MINIAPP_URL, SITE_URL };
