@@ -17,6 +17,7 @@ const MINIAPP_URL =
   process.env.GITHUB_PAGES_MINIAPP_URL?.trim() ||
   "https://azzleforce.github.io/azzleforce/";
 const SITE = process.env.OUTREACH_SITE_URL?.trim() || "https://azzle.org";
+const LOGO_URL = (process.env.AZZLE_LOGO_URL?.trim() || `${SITE.replace(/\/$/, "")}/azzlelogo.png`);
 
 /** @type {{ human: number; agent: number; voters: Set<number> }} */
 const state = { human: 0, agent: 0, voters: new Set() };
@@ -37,8 +38,9 @@ function snapPage(opts) {
     ui: {
       root: "page",
       elements: {
-        page: { type: "stack", props: { gap: 12 }, children: ["title", "body", "bar", "counts", "row", "mini", "share"] },
-        title: { type: "text", props: { content: title, weight: "bold", size: "lg" } },
+        page: { type: "stack", props: { gap: 12 }, children: ["logo", "title", "body", "bar", "counts", "row", "mini", "share"] },
+        logo: { type: "image", props: { url: LOGO_URL, aspect: "4:1", alt: "AZZLE" } },
+        title: { type: "text", props: { content: title, weight: "bold", size: "lg", align: "center" } },
         body: { type: "text", props: { content: body, size: "sm", color: "muted" } },
         bar: {
           type: "progress",

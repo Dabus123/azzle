@@ -26,6 +26,8 @@ body{
     var(--bg);
 }
 .wrap{max-width:480px;margin:0 auto;padding:16px 16px 32px}
+.brand{display:flex;justify-content:center;margin-bottom:14px}
+.brand-logo{height:32px;width:auto;max-width:min(220px,72vw);object-fit:contain;display:block}
 .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .logo{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--accent);font-weight:600}
 .badge{font-size:10px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
@@ -71,6 +73,9 @@ body{
 </head>
 <body>
 <div class="wrap">
+  <div class="brand">
+    <img class="brand-logo" src="./azzlelogo.png" alt="AZZLE" width="220" height="55"/>
+  </div>
   <header class="hdr">
     <div class="logo">HUMAN TERMINAL</div>
     <div class="badge" id="mode-badge">MODE: AGENTIC</div>

@@ -12,6 +12,22 @@ const MINIAPP_URL = (
 
 const SITE_URL = (process.env.OUTREACH_SITE_URL || "https://azzle.org").replace(/\/$/, "");
 
+const LOGO_URL = (
+  process.env.AZZLE_LOGO_URL ||
+  `${SITE_URL}/azzlelogo.png`
+).replace(/\/$/, "");
+
+function logoElement() {
+  return {
+    type: "image",
+    props: {
+      url: LOGO_URL,
+      aspect: "4:1",
+      alt: "AZZLE",
+    },
+  };
+}
+
 function total(state) {
   return state.human + state.agent || 1;
 }
@@ -36,11 +52,12 @@ export function buildSnapPayload(state, opts = {}) {
         page: {
           type: "stack",
           props: { gap: 12 },
-          children: ["title", "body", "bar", "counts", "row", "mini", "share"],
+          children: ["logo", "title", "body", "bar", "counts", "row", "mini", "share"],
         },
+        logo: logoElement(),
         title: {
           type: "text",
-          props: { content: "Escape Prompting Hell?", weight: "bold", size: "lg" },
+          props: { content: "Escape Prompting Hell?", weight: "bold", size: "lg", align: "center" },
         },
         body: {
           type: "text",
@@ -139,4 +156,4 @@ export function snapFallbackHtml() {
 </html>`;
 }
 
-export { SNAP_BASE, MINIAPP_URL, SITE_URL };
+export { SNAP_BASE, MINIAPP_URL, SITE_URL, LOGO_URL };
