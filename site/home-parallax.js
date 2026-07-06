@@ -210,16 +210,16 @@
           dotCtx.beginPath();
           dotCtx.arc(x, y, radius * 3.2, 0, Math.PI * 2);
           const halo = dotCtx.createRadialGradient(x, y, 0, x, y, radius * 3.2);
-          halo.addColorStop(0, `rgba(255,220,70,${(alpha * 0.22).toFixed(3)})`);
-          halo.addColorStop(0.45, `rgba(255,200,60,${(alpha * 0.08).toFixed(3)})`);
-          halo.addColorStop(1, "rgba(255,200,60,0)");
+          halo.addColorStop(0, `rgba(220,255,40,${(alpha * 0.22).toFixed(3)})`);
+          halo.addColorStop(0.45, `rgba(200,255,30,${(alpha * 0.08).toFixed(3)})`);
+          halo.addColorStop(1, "rgba(200,255,30,0)");
           dotCtx.fillStyle = halo;
           dotCtx.fill();
         }
 
         dotCtx.beginPath();
         dotCtx.arc(x, y, radius, 0, Math.PI * 2);
-        dotCtx.fillStyle = `rgba(255,235,150,${alpha.toFixed(3)})`;
+        dotCtx.fillStyle = `rgba(235,255,120,${alpha.toFixed(3)})`;
         dotCtx.fill();
       }
     }

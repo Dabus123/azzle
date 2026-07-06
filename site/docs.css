@@ -17,7 +17,7 @@ body.page-docs{
   text-decoration:none;
   white-space:nowrap;
   transition:filter .15s,box-shadow .15s;
-  box-shadow:0 0 0 1px rgba(255,220,70,.25);
+  box-shadow:0 0 0 1px rgba(220,255,40,.25);
 }
 .docs-topnav-cta:hover{filter:brightness(1.06);box-shadow:var(--edge-2-fill)}
 
@@ -110,8 +110,8 @@ body.page-docs{
 .docs-sidebar-link[aria-current="page"]{
   color:var(--heading);
   background:var(--accent-dim);
-  border-color:rgba(255,220,70,.22);
-  box-shadow:0 0 0 1px rgba(255,220,70,.12);
+  border-color:rgba(220,255,40,.22);
+  box-shadow:0 0 0 1px rgba(220,255,40,.12);
 }
 .docs-sidebar-link.on::before,
 .docs-sidebar-link[aria-current="page"]::before{
@@ -133,7 +133,7 @@ body.page-docs{
 .docs-sidebar-link--meta[aria-current="page"]{
   color:var(--heading);
   background:var(--s2);
-  border-color:rgba(255,220,70,.28);
+  border-color:rgba(220,255,40,.28);
 }
 .docs-sidebar-foot{
   margin-top:auto;
@@ -392,7 +392,7 @@ a.docs-sidebar-market:hover{
   padding:2px 8px;
   border-radius:4px;
   background:var(--s2);
-  border:1px solid rgba(255,220,70,.3);
+  border:1px solid rgba(220,255,40,.3);
   color:var(--heading);
   margin-left:8px;
   vertical-align:middle;
@@ -401,8 +401,8 @@ a.docs-sidebar-market:hover{
 /* Docs pages — keep active nav pill readable */
 .page-docs .azzle-nav-app a.azzle-nav-on{
   color:var(--heading);
-  background:rgba(255,220,70,.14);
-  box-shadow:inset 0 0 0 1px rgba(255,220,70,.28);
+  background:rgba(220,255,40,.14);
+  box-shadow:inset 0 0 0 1px rgba(220,255,40,.28);
 }
 
 /* Legacy wrap alias */

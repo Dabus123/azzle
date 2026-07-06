@@ -14,11 +14,11 @@
   --muted:#a1a1aa;
   --dim:#71717a;
   --heading:#fafafa;
-  --accent:#ffd84a;
-  --accent-hi:#fff0a0;
-  --accent-lo:#d4a800;
-  --accent-dim:rgba(255,220,70,.12);
-  --accent-glow:rgba(255,220,70,.22);
+  --accent:#dcff28;
+  --accent-hi:#f0ff78;
+  --accent-lo:#b5e600;
+  --accent-dim:rgba(220,255,40,.12);
+  --accent-glow:rgba(220,255,40,.28);
   --on-accent:#0a0a0f;
   --purple:#a78bfa;
   --purple-dim:rgba(167,139,250,.12);
@@ -71,7 +71,7 @@ body::after{
   z-index:0;
   pointer-events:none;
   background:
-    radial-gradient(ellipse 60% 40% at 20% 10%,rgba(255,220,70,.06),transparent 55%),
+    radial-gradient(ellipse 60% 40% at 20% 10%,rgba(220,255,40,.06),transparent 55%),
     radial-gradient(ellipse 50% 35% at 85% 20%,rgba(167,139,250,.05),transparent 50%);
 }
 
@@ -583,7 +583,7 @@ td a:hover{color:var(--accent);border-color:var(--accent)}
   text-transform:uppercase;
   color:var(--accent);
   background:var(--accent-dim);
-  border:1px solid rgba(255,220,70,.25);
+  border:1px solid rgba(220,255,40,.28);
   border-radius:var(--radius-pill);
 }
 
@@ -873,7 +873,7 @@ footer{
     rgba(248, 244, 3, 0.191) 68%,
     transparent 78%
   );
-  box-shadow:0 0 140px rgba(255,220,70,.42),0 0 320px rgba(255,210,50,.16);
+  box-shadow:0 0 140px rgba(220,255,40,.42),0 0 320px rgba(200,255,30,.16);
   filter:blur(72px);
   transform-origin:center center;
   will-change:transform;
