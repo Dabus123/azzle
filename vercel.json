@@ -51,6 +51,47 @@
     { "source": "/docs/use-cases/handle-task-failures", "destination": "/docs/use-cases/handle-task-failures.html" },
     { "source": "/docs/api/openapi-intro", "destination": "/docs/api/openapi-intro.html" }
   ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "azzle.org" }],
+      "missing": [
+        { "type": "path", "value": "/snap" },
+        { "type": "path", "value": "/snap/" }
+      ],
+      "destination": "https://www.azzle.org/:path*",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/snap",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Accept, X-Snap-Payload" },
+        { "key": "Access-Control-Max-Age", "value": "86400" }
+      ]
+    },
+    {
+      "source": "/snap/",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Accept, X-Snap-Payload" },
+        { "key": "Access-Control-Max-Age", "value": "86400" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "azzle.org" }],
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Accept, X-Snap-Payload" }
+      ]
+    }
+  ],
   "functions": {
     "api/**/*.js": {
       "maxDuration": 60

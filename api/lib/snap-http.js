@@ -7,14 +7,13 @@ export const SNAP_CORS = {
   "Access-Control-Max-Age": "86400",
 };
 
-/** Canonical snap URL — apex azzle.org 308s to www (breaks browser CORS). */
-export const DEFAULT_SNAP_URL = "https://www.azzle.org/snap";
+/** Default snap URL (use request host when served on apex or www). */
+export const DEFAULT_SNAP_URL = "https://azzle.org/snap";
 
 export function resolveSnapBase(req) {
   const fromEnv = process.env.AZZLE_SNAP_PUBLIC_URL || process.env.AZZLE_SNAP_URL;
   if (fromEnv?.trim()) return fromEnv.trim().replace(/\/$/, "");
-  const host = req?.headers?.host || "www.azzle.org";
-  if (host === "azzle.org") return DEFAULT_SNAP_URL;
+  const host = req?.headers?.host || "azzle.org";
   return `https://${host}/snap`;
 }
 

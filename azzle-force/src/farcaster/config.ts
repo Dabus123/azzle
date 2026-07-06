@@ -42,8 +42,8 @@ export function farcasterAutopostEnabled(): boolean {
   return Boolean(process.env.NEYNAR_API_KEY && process.env.NEYNAR_SIGNER_UUID);
 }
 
-/** Production Snap on www.azzle.org (apex redirects break browser CORS). */
-export const DEFAULT_SNAP_PUBLIC_URL = "https://www.azzle.org/snap";
+/** Production Snap at azzle.org/snap (Vercel). Override with AZZLE_SNAP_PUBLIC_URL. */
+export const DEFAULT_SNAP_PUBLIC_URL = "https://azzle.org/snap";
 
 export function resolveSnapPublicUrl(): string {
   return (

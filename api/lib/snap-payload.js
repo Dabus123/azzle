@@ -1,7 +1,7 @@
 const SNAP_BASE = (
   process.env.AZZLE_SNAP_PUBLIC_URL ||
   process.env.AZZLE_SNAP_URL ||
-  "https://www.azzle.org/snap"
+  "https://azzle.org/snap"
 ).replace(/\/$/, "");
 
 const MINIAPP_URL = (
