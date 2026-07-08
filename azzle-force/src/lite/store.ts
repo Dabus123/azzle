@@ -649,6 +649,30 @@ export class LiteStore {
       .slice(0, limit) as unknown as Array<Record<string, unknown>>;
   }
 
+  async clearFarcasterOutreach(): Promise<number> {
+    let cleared = 0;
+    for (const [id, row] of Object.entries(this.data.outreach_events)) {
+      if (row.channel?.startsWith("farcaster_")) {
+        delete this.data.outreach_events[id];
+        cleared++;
+      }
+    }
+    if (cleared > 0) this.scheduleSave();
+    return cleared;
+  }
+
+  async clearFarcasterReplyOutreach(): Promise<number> {
+    let cleared = 0;
+    for (const [id, row] of Object.entries(this.data.outreach_events)) {
+      if (row.channel === "farcaster_reply") {
+        delete this.data.outreach_events[id];
+        cleared++;
+      }
+    }
+    if (cleared > 0) this.scheduleSave();
+    return cleared;
+  }
+
   async topByScore(scoreType: string, minValue: number, limit = 50) {
     const rows = Object.values(this.data.scores)
       .filter((s) => s.score_type === scoreType && s.value >= minValue)

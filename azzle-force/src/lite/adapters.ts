@@ -139,6 +139,14 @@ export class LitePostgresStore {
     return this.store.listRecentOutreach(limit);
   }
 
+  async clearFarcasterOutreach(): Promise<number> {
+    return this.store.clearFarcasterOutreach();
+  }
+
+  async clearFarcasterReplyOutreach(): Promise<number> {
+    return this.store.clearFarcasterReplyOutreach();
+  }
+
   async topByScore(scoreType: string, minValue: number, limit = 50) {
     return this.store.topByScore(scoreType, minValue, limit);
   }

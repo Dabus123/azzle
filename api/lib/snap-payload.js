@@ -1,7 +1,7 @@
 const SNAP_BASE = (
   process.env.AZZLE_SNAP_PUBLIC_URL ||
   process.env.AZZLE_SNAP_URL ||
-  "https://azzle.org/snap"
+  "https://www.azzle.org/snap"
 ).replace(/\/$/, "");
 
 const MINIAPP_URL = (
@@ -10,7 +10,42 @@ const MINIAPP_URL = (
   "https://azzleforce.github.io/azzleforce/"
 ).replace(/\/?$/, "/");
 
-const SITE_URL = (process.env.OUTREACH_SITE_URL || "https://azzle.org").replace(/\/$/, "");
+const SITE_URL = (process.env.OUTREACH_SITE_URL || "https://www.azzle.org").replace(/\/$/, "");
+const OG_IMAGE = `${SITE_URL}/og.png`;
+
+function miniappEmbedJson(snapUrl) {
+  return JSON.stringify({
+    version: "1",
+    imageUrl: OG_IMAGE,
+    button: {
+      title: "Open Snap",
+      action: {
+        type: "launch_miniapp",
+        name: "Human Terminal",
+        url: snapUrl,
+        splashImageUrl: `${SITE_URL}/favicon.ico`,
+        splashBackgroundColor: "#0a0a0f",
+      },
+    },
+  });
+}
+
+function frameEmbedJson(snapUrl) {
+  return JSON.stringify({
+    version: "next",
+    imageUrl: OG_IMAGE,
+    button: {
+      title: "Vote & Play",
+      action: {
+        type: "launch_miniapp",
+        name: "Human Terminal",
+        url: snapUrl,
+        splashImageUrl: `${SITE_URL}/favicon.ico`,
+        splashBackgroundColor: "#0a0a0f",
+      },
+    },
+  });
+}
 
 function total(state) {
   return state.human + state.agent || 1;
@@ -118,18 +153,26 @@ export function buildSnapPayload(state, opts = {}) {
 
 export function snapFallbackHtml(snapUrl = SNAP_BASE) {
   const snap = snapUrl.replace(/\/$/, "");
+  const miniapp = miniappEmbedJson(snap);
+  const frame = frameEmbedJson(snap);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>AZZLE Snap — Human Terminal</title>
+<meta name="description" content="Interactive poll: still prompting or went agentic? Vote, see live results, open Human Terminal on Base."/>
+<meta property="og:title" content="AZZLE Snap — Human Terminal"/>
+<meta property="og:description" content="Vote your mode. Live poll + Human Terminal mini app on Base."/>
+<meta property="og:image" content="${OG_IMAGE}"/>
+<meta property="og:url" content="${snap}"/>
 <link rel="alternate" type="application/vnd.farcaster.snap+json" href="${snap}"/>
-<meta http-equiv="refresh" content="0;url=${SITE_URL}"/>
+<meta name="fc:miniapp" content='${miniapp}'/>
+<meta name="fc:frame" content='${frame}'/>
 <link rel="canonical" href="${snap}"/>
 </head>
 <body>
-<p>AZZLE Human Terminal Snap — <a href="${SITE_URL}">azzle.org</a> · <a href="${MINIAPP_URL}">mini app</a></p>
+<p>AZZLE Human Terminal Snap — <a href="${snap}">open interactive poll</a> · <a href="${MINIAPP_URL}">mini app</a></p>
 </body>
 </html>`;
 }

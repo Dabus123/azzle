@@ -8,11 +8,7 @@
       "azzleforce/azzleforce.github.io"
     ],
     "castChannels": ["base", "base-builds", "farcaster"],
-    "castTemplates": [
-      "Still prompting? The Human Terminal is open → vote + launch the mini app",
-      "Agents post, claim, prove, get paid — no human in the loop. Try the Human Terminal snap",
-      "Escape Prompting Hell: USDC escrow task markets on Base. Human Terminal is live"
-    ],
+    "castTemplates": [],
     "shipCooldownHours": 168,
     "postCooldownHours": 24
   }

@@ -7,9 +7,9 @@ import { canFarcasterAction } from "../../farcaster/rate-limit.js";
 import { draftFarcasterCast, finalizeCastText } from "../../farcaster/draft.js";
 import {
   deployHumanTerminal,
-  loadMiniappCastTemplates,
   resolveMiniappDeployConfig,
 } from "../../farcaster/github-pages.js";
+import { pickUseCaseAngle, recentFarcasterCastBodies } from "../../farcaster/use-cases.js";
 import { GraphWriter } from "../../graph/writer.js";
 
 const ID: AgentIdentity = {
@@ -144,7 +144,7 @@ export class FarcasterShipper extends BaseAgent {
     if (now - this.lastPostAt < POST_COOLDOWN_MS) return;
 
     const cfg = loadFarcasterConfig();
-    const recent = await this.ctx.postgres.listRecentOutreach(300);
+    const recent = await this.ctx.postgres.listRecentOutreach(1500);
     const budget = canFarcasterAction(
       recent.map((r) => ({
         channel: String(r.channel ?? ""),
@@ -162,30 +162,33 @@ export class FarcasterShipper extends BaseAgent {
     );
     if (channels.length === 0) return;
 
-    const templates = loadMiniappCastTemplates();
-    const topic = templates[this.templateIndex % templates.length] ?? templates[0]!;
-    this.templateIndex++;
+    const recentBodies = recentFarcasterCastBodies(recent);
+    const channelId = channels[this.templateIndex % channels.length]!;
+    const angle = pickUseCaseAngle(cfg, this.templateIndex++, recentBodies, channelId);
 
     const brand = this.ctx.config.outreachBrand;
     const embedUrl = this.snapUrl || this.miniappUrl;
 
     const draft = await draftFarcasterCast(this.ctx, {
-      topic,
+      post_style: "use_case_explainer",
+      channel_id: channelId,
+      use_case_id: angle.id,
+      use_case_hook: angle.hook,
+      use_case_scenario: angle.scenario,
       miniapp_url: this.miniappUrl,
       snap_url: this.snapUrl || null,
       embed_url: embedUrl,
       site_url: brand.siteUrl,
-      azzle_facts: "Human Terminal miniapp + viral snap — $5 USDC + 1,000 $AZL per task on Base",
+      recent_casts: recentBodies.slice(0, 8),
     });
 
     const text = finalizeCastText(
-      draft,
-      brand.siteUrl,
-      `${topic} ${embedUrl}`
+      { ...draft, include_link: false },
+      "",
+      `${angle.hook}: ${angle.scenario}`
     );
     if (text.length < 20) return;
 
-    const channelId = channels[this.templateIndex % channels.length]!;
     const contentHash = GraphWriter.hashContent(text + embedUrl);
     const entityId = await this.ensureShipEntity();
 
@@ -198,7 +201,7 @@ export class FarcasterShipper extends BaseAgent {
       await this.ctx.postgres.logOutreach(entityId, "farcaster_cast", "sent", {
         contentHash,
         body: text,
-        subject: `ship:${channelId}`,
+        subject: `ship:${channelId}:${angle.id}`,
       });
       await this.ctx.bus.publish(
         SUBJECTS.OUTREACH_SENT,
@@ -213,7 +216,7 @@ export class FarcasterShipper extends BaseAgent {
         entityId
       );
       this.lastPostAt = now;
-      console.log(`[${this.identity.id}] launch cast → /${channelId} embed=${embedUrl}`);
+      console.log(`[${this.identity.id}] launch cast → /${channelId} [${angle.id}] embed=${embedUrl}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.warn(`[${this.identity.id}] launch cast failed: ${message}`);

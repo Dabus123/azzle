@@ -37,6 +37,7 @@ import { RedditPoster } from "./reddit/reddit-poster.js";
 import { FarcasterHunter } from "./farcaster/farcaster-hunter.js";
 import { FarcasterPoster } from "./farcaster/farcaster-poster.js";
 import { FarcasterReplier } from "./farcaster/farcaster-replier.js";
+import { FarcasterLiker } from "./farcaster/farcaster-liker.js";
 import { FarcasterShipper } from "./farcaster/farcaster-shipper.js";
 
 export const AGENT_FACTORIES: Record<string, (ctx: ForceContext) => BaseAgent> = {
@@ -78,6 +79,7 @@ export const AGENT_FACTORIES: Record<string, (ctx: ForceContext) => BaseAgent> =
   "farcaster-hunter": (ctx) => new FarcasterHunter(ctx),
   "farcaster-poster": (ctx) => new FarcasterPoster(ctx),
   "farcaster-replier": (ctx) => new FarcasterReplier(ctx),
+  "farcaster-liker": (ctx) => new FarcasterLiker(ctx),
   "farcaster-shipper": (ctx) => new FarcasterShipper(ctx),
 };
 

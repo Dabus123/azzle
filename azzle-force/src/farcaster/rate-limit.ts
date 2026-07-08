@@ -8,7 +8,14 @@ export interface FarcasterOutreachRow {
 }
 
 const MS_MIN = 60_000;
-const MS_DAY = 86_400_000;
+
+export const FARCASTER_ACTION_CHANNELS = {
+  cast: "farcaster_cast",
+  reply: "farcaster_reply",
+  like: "farcaster_like",
+} as const;
+
+export type FarcasterAction = keyof typeof FARCASTER_ACTION_CHANNELS;
 
 export function utcDayKey(d = new Date()): string {
   return d.toISOString().slice(0, 10);
@@ -16,15 +23,12 @@ export function utcDayKey(d = new Date()): string {
 
 export function canFarcasterAction(
   rows: FarcasterOutreachRow[],
-  action: "cast" | "reply",
+  action: FarcasterAction,
   limits: FarcasterRateLimits,
   now = Date.now()
 ): { ok: boolean; reason?: string } {
-  const fcRows = rows.filter(
-    (r) =>
-      r.status === "sent" &&
-      (r.channel === "farcaster_cast" || r.channel === "farcaster_reply")
-  );
+  const channel = FARCASTER_ACTION_CHANNELS[action];
+  const fcRows = rows.filter((r) => r.status === "sent" && r.channel === channel);
 
   if (fcRows.length > 0) {
     const last = fcRows.reduce((a, b) => {
@@ -48,14 +52,14 @@ export function canFarcasterAction(
     return utcDayKey(t) === day;
   });
 
-  const castsToday = today.filter((r) => r.channel === "farcaster_cast").length;
-  const repliesToday = today.filter((r) => r.channel === "farcaster_reply").length;
-
-  if (action === "cast" && castsToday >= limits.maxCastsPerDay) {
+  if (action === "cast" && today.length >= limits.maxCastsPerDay) {
     return { ok: false, reason: `cast_daily_cap_${limits.maxCastsPerDay}` };
   }
-  if (action === "reply" && repliesToday >= limits.maxRepliesPerDay) {
+  if (action === "reply" && today.length >= limits.maxRepliesPerDay) {
     return { ok: false, reason: `reply_daily_cap_${limits.maxRepliesPerDay}` };
+  }
+  if (action === "like" && today.length >= limits.maxLikesPerDay) {
+    return { ok: false, reason: `like_daily_cap_${limits.maxLikesPerDay}` };
   }
 
   return { ok: true };

@@ -220,6 +220,84 @@ async function main(): Promise<void> {
       break;
     }
 
+    case "farcaster-delete-replies": {
+      const dryRun = args.includes("--dry-run");
+      const ctx = await createContext(false);
+      if (!ctx.farcaster?.isConfigured()) {
+        console.error("Set NEYNAR_API_KEY + NEYNAR_SIGNER_UUID");
+        process.exit(1);
+      }
+
+      const status = await ctx.farcaster.getSignerStatus();
+      if (!status.fid) {
+        console.error(`Signer not ready (status=${status.status})`);
+        process.exit(1);
+      }
+
+      console.log(`Fetching all casts for fid ${status.fid}…`);
+      const casts = await ctx.farcaster.fetchAllUserCasts(status.fid, true);
+      const replies = casts.filter((c) => c.parentHash);
+      console.log(`Found ${replies.length} reply cast(s) (${casts.length} total casts).`);
+
+      if (dryRun) {
+        for (const r of replies) {
+          console.log(`  • ${r.hash.slice(0, 14)}… ${r.text.slice(0, 60).replace(/\n/g, " ")}`);
+        }
+        await shutdown(ctx);
+        break;
+      }
+
+      let deleted = 0;
+      let failed = 0;
+      for (const reply of replies) {
+        try {
+          await ctx.farcaster.deleteCast(reply.hash);
+          deleted++;
+          console.log(`  deleted ${reply.hash.slice(0, 14)}…`);
+          await new Promise((r) => setTimeout(r, 250));
+        } catch (err) {
+          failed++;
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn(`  failed ${reply.hash.slice(0, 14)}… — ${msg.slice(0, 120)}`);
+        }
+      }
+
+      const config = loadEnvConfig();
+      let cleared = 0;
+      if (config.liteMode) {
+        const lite = new LiteStore(config.liteDataPath);
+        cleared = await lite.clearFarcasterReplyOutreach();
+        await lite.close();
+      } else {
+        const postgres = new PostgresStore(config.postgresUrl);
+        cleared = await postgres.clearFarcasterReplyOutreach();
+        await postgres.close();
+      }
+
+      console.log(`\nDone: ${deleted} deleted, ${failed} failed, ${cleared} outreach row(s) cleared.`);
+      await shutdown(ctx);
+      break;
+    }
+
+    case "farcaster-reset-limits": {
+      const config = loadEnvConfig();
+      let cleared: number;
+      if (config.liteMode) {
+        const lite = new LiteStore(config.liteDataPath);
+        cleared = await lite.clearFarcasterOutreach();
+        await lite.close();
+      } else {
+        const postgres = new PostgresStore(config.postgresUrl);
+        cleared = await postgres.clearFarcasterOutreach();
+        await postgres.close();
+      }
+      console.log(
+        `Cleared ${cleared} farcaster outreach row(s) — daily caps and per-action cooldowns reset.`
+      );
+      console.log("Restart lite:all / wave agents to pick up new limits from config/farcaster.json.");
+      break;
+    }
+
     case "farcaster-probe": {
       const ctx = await createContext(false);
       const { farcasterAutopostEnabled } = await import("./farcaster/config.js");
@@ -332,6 +410,8 @@ Commands:
   webhook              Resend inbound reply webhook (also auto-starts with wave)
   diagnose-failures    Top send_failed reasons from recent outreach
   farcaster-probe      Test Neynar signer + /base channel feed
+  farcaster-delete-replies  Delete all @azzleai reply casts (+ clear local outreach log)
+  farcaster-reset-limits  Clear farcaster cast/reply/like counters (daily caps + cooldown)
   ship-human-terminal  Deploy Human Terminal miniapp to GitHub Pages + post cast
   snap-server          (npm run) Viral Snap poll server on :4026
   reddit-probe         Test Reddit OAuth + public thread search

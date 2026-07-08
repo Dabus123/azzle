@@ -1,10 +1,10 @@
 {
   "version": 1,
   "channels": [
-    { "id": "base", "post": true, "reply": true },
-    { "id": "base-builds", "post": true, "reply": true },
+    { "id": "base", "post": false, "reply": true },
+    { "id": "base-builds", "post": false, "reply": true },
     { "id": "neynar", "post": false, "reply": true },
-    { "id": "farcaster", "post": true, "reply": true },
+    { "id": "farcaster", "post": false, "reply": true },
     { "id": "builders", "post": false, "reply": true }
   ],
   "searchQueries": [
@@ -15,22 +15,154 @@
     "onchain agents",
     "task market"
   ],
-  "postChannels": ["base", "base-builds", "farcaster"],
+  "postChannels": [],
   "rateLimits": {
-    "maxCastsPerDay": 12,
-    "maxRepliesPerDay": 24,
-    "minMinutesBetweenActions": 5
+    "maxCastsPerDay": 82,
+    "maxRepliesPerDay": 350,
+    "maxLikesPerDay": 500,
+    "minMinutesBetweenActions": 2
   },
+  "useCaseSeeds": [
+    {
+      "id": "mcp-bounty",
+      "hook": "MCP server maintainer posts a bounty",
+      "scenario": "An agent needs a custom MCP tool wired to a subgraph. It posts $40 USDC escrow, another agent claims, ships the handler, proves with a tx hash + repo link — paid without a Discord thread.",
+      "channels": ["base-builds", "farcaster"]
+    },
+    {
+      "id": "private-scope",
+      "hook": "Public discovery, private scope",
+      "scenario": "Task title is onchain for discovery; full spec rides XMTP. Poster keeps strategy private, worker still proves delivery against escrow — open market without doxxing the playbook.",
+      "channels": ["base", "farcaster"]
+    },
+    {
+      "id": "walk-away-cost",
+      "hook": "What ghosting actually costs",
+      "scenario": "Claim + leave isn't free: access fees are $5 USDC + 1,000 $AZL each way, deposit floor is $8, and reputation compounds. Spam agents bleed; serious ones stay solvent.",
+      "channels": ["base"]
+    },
+    {
+      "id": "research-sprint",
+      "hook": "24h research sprint between agents",
+      "scenario": "Poster agent scopes 'map 50 Base DeFi protocols by TVL + audit status'. Worker agent claims, delivers structured JSON + sources, poster accepts — USDC releases, both reputations tick up.",
+      "channels": ["base-builds"]
+    },
+    {
+      "id": "poster-no-pm",
+      "hook": "Poster agent with no project manager",
+      "scenario": "Your shipping agent hits a wall on contract integration. It posts a scoped task, funds escrow, and walks away. A specialist agent claims, negotiates deadline in XMTP, delivers — you never opened Slack.",
+      "channels": ["base-builds", "farcaster"]
+    },
+    {
+      "id": "arb-tier",
+      "hook": "When proof fails, arbitration exists",
+      "scenario": "Worker submits proof; poster disputes quality. Tiered arbitration + verifier bonds — not 'trust me bro' DMs. Labor markets need exit ramps when agents disagree.",
+      "channels": ["base"]
+    },
+    {
+      "id": "sybil-fee",
+      "hook": "Fees as noise filter, not rent",
+      "scenario": "$5 USDC + 1,000 $AZL per post/claim isn't a platform tax — it's the cost of spamming the task pool. Real agents amortize it; farmers don't.",
+      "channels": ["base", "farcaster"]
+    },
+    {
+      "id": "aeon-worker",
+      "hook": "Scheduled worker on GitHub Actions",
+      "scenario": "Aeon fork polls open tasks via subgraph, claims one under $100 USDC, executes, proves, gets paid — cron-driven income for an autonomous repo agent.",
+      "channels": ["base-builds"]
+    },
+    {
+      "id": "x402-read",
+      "hook": "Paid reads meet open tasks",
+      "scenario": "Agent needs premium market data behind x402. It completes a small onchain task, earns USDC, pays the read — labor liquidity funding API calls without human card swipes.",
+      "channels": ["base-builds", "farcaster"]
+    },
+    {
+      "id": "reputation-portable",
+      "hook": "Reputation that isn't locked in Upwork",
+      "scenario": "Clean accepts and finishes compound onchain. Next poster sees worker history before funding escrow — portable trust between agents, not a platform profile.",
+      "channels": ["farcaster"]
+    },
+    {
+      "id": "content-pipeline",
+      "hook": "Content studio as a task chain",
+      "scenario": "Poster agent breaks a launch into tasks: research → draft → review. Three worker agents claim sequentially, each proves output hash, escrow pays per stage — assembly line without humans copy-pasting briefs.",
+      "channels": ["farcaster", "base-builds"]
+    },
+    {
+      "id": "bankr-wallet",
+      "hook": "Wallet agent tops up and participates",
+      "scenario": "Bankr-style agent acquires $AZL, tops $25 USDC deposit, posts a micro-task, another agent fulfills it — two wallets coordinating labor on Base with no shared Slack.",
+      "channels": ["base"]
+    },
+    {
+      "id": "scope-registry",
+      "hook": "Open vs private task discovery",
+      "scenario": "TaskScopeRegistry lets posters choose: publish scope onchain for discovery, or keep it XMTP-only for stealth hires. Same escrow rail, different visibility — agents pick their market.",
+      "channels": ["base-builds"]
+    },
+    {
+      "id": "deposit-pause",
+      "hook": "Solvency pause before rug",
+      "scenario": "Agent deposit drops below $8 USDC mid-task → 15-minute pause window before deletion. Gives worker time to dispute or exit — labor markets need circuit breakers too.",
+      "channels": ["base"]
+    },
+    {
+      "id": "union-staking-tease",
+      "hook": "Union staking for heavy posters",
+      "scenario": "Agents that post dozens of tasks/day will stake $AZL for Action Credits — fee bypass for volume operators. Until then, per-action fees keep the pool honest.",
+      "channels": ["farcaster"]
+    },
+    {
+      "id": "human-terminal",
+      "hook": "Human vs agent mode",
+      "scenario": "Human Terminal is a vibe check: are you still prompting, or running agents that post/claim/prove onchain? Poll + miniapp — but the protocol works with zero humans in the loop.",
+      "channels": ["farcaster", "base-builds"]
+    }
+  ],
   "castRules": [
-    "320 chars max — punchy, builder voice, not marketing spam.",
-    "Lead with insight or concrete outcome, not 'Introducing'.",
-    "Base + agents + USDC escrow when relevant — one link max.",
-    "Use channel context (/base = L2 builders, /base-builds = shipping).",
-    "When sharing Human Terminal: embed snap or miniapp URL; fees are $5 USDC + 1,000 $AZL."
+    "320 chars max. Write like a builder sharing a concrete scenario — not an ad.",
+    "Lead with the use-case hook or a sharp observation; explain what happens step-by-step in plain language.",
+    "NEVER open with: Introducing, Excited to announce, Check out, Revolutionary, Game-changer, We're thrilled.",
+    "Do NOT list fees/deposit unless the angle is specifically about economics — and even then, weave it into the story.",
+    "Do NOT put azzle.org or any URL in text — include_link adds the site URL automatically.",
+    "One idea per cast. Specific > generic. Show the loop (post → claim → prove → pay) through the scenario.",
+    "Match channel: /base = L2 + protocol nerds, /base-builds = shipping, /farcaster = agent-native culture.",
+    "Avoid repeating hooks or scenarios from recent_casts — find a fresh angle.",
+    "text must be non-empty."
   ],
   "replyRules": [
-    "Add real value in the reply — answer the question first.",
-    "Mention AZZLE only if directly relevant to their cast.",
-    "Keep under 320 chars. No thread hijacking."
+    "Professional tone: polished, direct, builder-to-builder — not casual spam.",
+    "Use 1–2 emojis max, placed deliberately (open or before CTA). Never emoji-only replies.",
+    "Acknowledge one specific detail from their cast, then invite: tap embed → vote → open terminal.",
+    "Never paste URLs — Snap + mini app embeds are attached automatically.",
+    "No fee dumps, no 'Introducing', no thread hijacking. Under 320 chars.",
+    "Example shape: '🎯 Strong take on Base summer. Tap the embed — vote your mode and peek Human Terminal.'"
+  ],
+  "snapReplySeeds": [
+    {
+      "id": "vibe-check",
+      "triggers": ["agent", "ai", "autonomous", "prompt", "llm", "gpt", "claude", "mcp"],
+      "interaction": "Poll: Still prompting vs Went agentic — live bar + confetti on vote.",
+      "inviteExample": "🎯 Strong thread. Tap the embed — vote your mode (still prompting vs agentic) and peek Human Terminal."
+    },
+    {
+      "id": "base-builders",
+      "triggers": ["base", "ship", "build", "deploy", "onchain", "dev", "hack", "farcaster"],
+      "interaction": "Human Terminal miniapp + poll — builders pick a mode and see the crowd split.",
+      "inviteExample": "✨ Builder energy. Tap the embed — vote your mode and open Human Terminal when you're ready."
+    },
+    {
+      "id": "economics",
+      "triggers": ["usdc", "escrow", "pay", "earn", "bounty", "marketplace", "task", "work"],
+      "interaction": "Frame the poll around who still coordinates labor manually vs agentic loops.",
+      "inviteExample": "👀 This lands. Tap the embed — vote and watch the live split update in real time."
+    },
+    {
+      "id": "warm-gift",
+      "triggers": [],
+      "interaction": "Default gift: poll + terminal, zero pitch deck — just a playful interactive moment.",
+      "inviteExample": "✨ Interactive vibe check — tap the embed, vote your mode, confetti if you're lucky."
+    }
   ]
 }

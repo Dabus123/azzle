@@ -8,7 +8,7 @@ export const SNAP_CORS = {
 };
 
 /** Default snap URL (use request host when served on apex or www). */
-export const DEFAULT_SNAP_URL = "https://azzle.org/snap";
+export const DEFAULT_SNAP_URL = "https://www.azzle.org/snap";
 
 export function resolveSnapBase(req) {
   const fromEnv = process.env.AZZLE_SNAP_PUBLIC_URL || process.env.AZZLE_SNAP_URL;

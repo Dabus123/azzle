@@ -41,9 +41,17 @@ export class FarcasterDelivery {
     return Boolean(this.config.apiKey && this.config.signerUuid);
   }
 
+  async publishLike(targetHash: string): Promise<void> {
+    await this.neynarPost("/reaction", {
+      signer_uuid: this.config.signerUuid,
+      reaction_type: "like",
+      target: targetHash,
+    });
+  }
+
   async publishCast(
     text: string,
-    opts?: { channelId?: string; parentHash?: string; embedUrl?: string }
+    opts?: { channelId?: string; parentHash?: string; embedUrl?: string; embedUrls?: string[] }
   ): Promise<PublishCastResult> {
     const body: Record<string, unknown> = {
       signer_uuid: this.config.signerUuid,
@@ -51,8 +59,16 @@ export class FarcasterDelivery {
     };
     if (opts?.channelId) body.channel_id = opts.channelId;
     if (opts?.parentHash) body.parent = opts.parentHash;
-    if (opts?.embedUrl) {
-      body.embeds = [{ url: opts.embedUrl }];
+
+    const urls = [
+      ...(opts?.embedUrls ?? []),
+      ...(opts?.embedUrl ? [opts.embedUrl] : []),
+    ]
+      .map((u) => u.trim())
+      .filter(Boolean);
+    const unique = [...new Set(urls)].slice(0, 2);
+    if (unique.length > 0) {
+      body.embeds = unique.map((url) => ({ url }));
     }
 
     const json = await this.neynarPost("/cast", body);
@@ -94,6 +110,66 @@ export class FarcasterDelivery {
       fid: signer.fid != null ? Number(signer.fid) : undefined,
       username: signer.fid != null ? undefined : undefined,
     };
+  }
+
+  async fetchUserCasts(
+    fid: number,
+    opts?: { limit?: number; cursor?: string; includeReplies?: boolean }
+  ): Promise<{ casts: FarcasterCast[]; nextCursor: string | null }> {
+    const params = new URLSearchParams({
+      fid: String(fid),
+      limit: String(opts?.limit ?? 100),
+      include_replies: String(opts?.includeReplies ?? true),
+    });
+    if (opts?.cursor) params.set("cursor", opts.cursor);
+
+    const json = await this.neynarGet(`/feed/user/casts?${params}`);
+    const result = json as Record<string, unknown>;
+    const next = result.next as Record<string, unknown> | undefined;
+    const casts = (result.casts ?? []) as Record<string, unknown>[];
+    return {
+      casts: casts.map(parseCast).filter(Boolean) as FarcasterCast[],
+      nextCursor: next?.cursor != null ? String(next.cursor) : null,
+    };
+  }
+
+  async fetchAllUserCasts(fid: number, includeReplies = true): Promise<FarcasterCast[]> {
+    const all: FarcasterCast[] = [];
+    let cursor: string | undefined;
+    for (;;) {
+      const page = await this.fetchUserCasts(fid, {
+        limit: 100,
+        cursor,
+        includeReplies,
+      });
+      all.push(...page.casts);
+      if (!page.nextCursor) break;
+      cursor = page.nextCursor;
+    }
+    return all;
+  }
+
+  async deleteCast(targetHash: string): Promise<void> {
+    await this.neynarDelete("/cast/", {
+      signer_uuid: this.config.signerUuid,
+      target_hash: targetHash,
+    });
+  }
+
+  private async neynarDelete(path: string, body: Record<string, unknown>): Promise<void> {
+    const res = await fetch(`${this.base}${path}`, {
+      method: "DELETE",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "x-api-key": this.config.apiKey,
+      },
+      body: JSON.stringify(body),
+    });
+    const json = (await res.json()) as Record<string, unknown>;
+    if (!res.ok) {
+      throw new Error(`Neynar DELETE ${path} ${res.status}: ${JSON.stringify(json).slice(0, 300)}`);
+    }
   }
 
   private async neynarGet(path: string): Promise<Record<string, unknown>> {

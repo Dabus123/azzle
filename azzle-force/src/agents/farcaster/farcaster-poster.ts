@@ -5,6 +5,7 @@ import { SUBJECTS } from "../../events/subjects.js";
 import { loadFarcasterConfig, farcasterAutopostEnabled, resolveSnapPublicUrl } from "../../farcaster/config.js";
 import { canFarcasterAction } from "../../farcaster/rate-limit.js";
 import { draftFarcasterCast, finalizeCastText } from "../../farcaster/draft.js";
+import { pickUseCaseAngle, recentFarcasterCastBodies } from "../../farcaster/use-cases.js";
 import { GraphWriter } from "../../graph/writer.js";
 
 const ID: AgentIdentity = {
@@ -17,17 +18,17 @@ const ID: AgentIdentity = {
   subscribeSubjects: [SUBJECTS.CONTENT_TRAILER_READY, SUBJECTS.MISSION_ASSIGNED, SUBJECTS.SWARM_SPAWN_REQUEST],
 };
 
-const CAST_TOPICS = [
-  "Agents posting USDC tasks on Base — escrow settles onchain, no middleman",
-  "Open task markets for MCP servers: post work, agents claim, prove, get paid",
-  "Why agent task discovery needs both public onchain scope + private XMTP channels",
-];
-
-const MIN_CAST_INTERVAL_MS = Number(process.env.FARCASTER_CAST_INTERVAL_MS ?? String(4 * 60 * 60 * 1000));
+function minCastIntervalMs(): number {
+  if (process.env.FARCASTER_CAST_INTERVAL_MS) {
+    return Number(process.env.FARCASTER_CAST_INTERVAL_MS);
+  }
+  const limits = loadFarcasterConfig().rateLimits;
+  return limits.minMinutesBetweenActions * 60_000;
+}
 
 export class FarcasterPoster extends BaseAgent {
   private channelIndex = 0;
-  private topicIndex = 0;
+  private angleIndex = 0;
   private lastCastAt = 0;
 
   constructor(ctx: ForceContext) {
@@ -36,10 +37,10 @@ export class FarcasterPoster extends BaseAgent {
 
   protected async onEvent(subject: string, msg: import("../../types.js").NatsMessage): Promise<void> {
     if (subject === SUBJECTS.CONTENT_TRAILER_READY) {
-      if (Date.now() - this.lastCastAt < MIN_CAST_INTERVAL_MS) return;
+      if (Date.now() - this.lastCastAt < minCastIntervalMs()) return;
       const ok = await this.postCast({
-        topic: String(msg.payload.topic ?? "AZZLE agent markets"),
         caption: String(msg.payload.caption ?? ""),
+        topic: String(msg.payload.topic ?? ""),
       });
       if (ok) this.lastCastAt = Date.now();
     }
@@ -47,15 +48,13 @@ export class FarcasterPoster extends BaseAgent {
 
   protected async tick(): Promise<void> {
     if (!farcasterAutopostEnabled()) return;
-    if (Date.now() - this.lastCastAt < MIN_CAST_INTERVAL_MS) return;
+    if (Date.now() - this.lastCastAt < minCastIntervalMs()) return;
 
-    const topic = CAST_TOPICS[this.topicIndex % CAST_TOPICS.length]!;
-    this.topicIndex++;
-    const ok = await this.postCast({ topic });
+    const ok = await this.postCast({});
     if (ok) this.lastCastAt = Date.now();
   }
 
-  private async postCast(input: { topic: string; caption?: string }): Promise<boolean> {
+  private async postCast(input: { topic?: string; caption?: string }): Promise<boolean> {
     if (!this.ctx.farcaster?.isConfigured()) return false;
 
     const cfg = loadFarcasterConfig();
@@ -64,9 +63,11 @@ export class FarcasterPoster extends BaseAgent {
     );
     if (channels.length === 0) return false;
 
-    const recent = await this.ctx.postgres.listRecentOutreach(300);
+    const recentRows = await this.ctx.postgres.listRecentOutreach(1500);
+    const recentBodies = recentFarcasterCastBodies(recentRows);
+
     const budget = canFarcasterAction(
-      recent.map((r) => ({
+      recentRows.map((r) => ({
         channel: String(r.channel ?? ""),
         status: String(r.status ?? ""),
         created_at: r.created_at as string | undefined,
@@ -83,39 +84,50 @@ export class FarcasterPoster extends BaseAgent {
     const channelId = channels[this.channelIndex % channels.length]!;
     this.channelIndex++;
 
+    const angle = pickUseCaseAngle(cfg, this.angleIndex++, recentBodies, channelId);
     const brand = this.ctx.config.outreachBrand;
     const snapUrl = resolveSnapPublicUrl();
-    const useSnapEmbed = this.topicIndex % 3 === 0;
+    const useSnapEmbed = this.angleIndex % 3 === 0;
     const embedUrl = useSnapEmbed ? snapUrl : brand.siteUrl;
 
     const draft = await draftFarcasterCast(this.ctx, {
+      post_style: "use_case_explainer",
       channel_id: channelId,
-      topic: input.topic,
+      use_case_id: angle.id,
+      use_case_hook: angle.hook,
+      use_case_scenario: angle.scenario,
       caption: input.caption ?? "",
+      optional_topic: input.topic ?? "",
       site_url: brand.siteUrl,
       snap_url: useSnapEmbed ? snapUrl : null,
       embed_url: embedUrl,
-      azzle_facts: "USDC escrow, agent task markets, Base chain, $25 deposit, $AZL access fees",
+      recent_casts: recentBodies.slice(0, 8),
     });
 
-    const text = finalizeCastText(draft, brand.siteUrl, input.topic);
+    const fallback = `${angle.hook}: ${angle.scenario}`;
+    const linkUrl = useSnapEmbed ? undefined : brand.siteUrl;
+    const text = finalizeCastText(
+      { ...draft, include_link: useSnapEmbed ? false : draft.include_link },
+      linkUrl ?? "",
+      fallback
+    );
     if (text.length < 20) {
       console.warn(`[${this.identity.id}] skip cast — text too short (${text.length} chars): ${JSON.stringify(text)}`);
       return false;
     }
 
     const contentHash = GraphWriter.hashContent(text);
-    const entityName = `fc-cast:/${channelId}:${input.topic.slice(0, 50)}`;
+    const entityName = `fc-cast:/${channelId}:${angle.id}`;
 
     const entityId = await this.ctx.writer.write({
       agent: this.identity.id,
       type: "market",
       name: entityName,
       metadata: {
-        farcaster_post: { channel_id: channelId, topic: input.topic, text },
+        farcaster_post: { channel_id: channelId, use_case_id: angle.id, text },
         contact_methods: [`farcaster:channel:${channelId}`],
       },
-      score: { type: "azzle_probability", value: 0.75, reason: "farcaster demo cast" },
+      score: { type: "azzle_probability", value: 0.75, reason: "farcaster use-case cast" },
     });
 
     try {
@@ -127,11 +139,12 @@ export class FarcasterPoster extends BaseAgent {
       await this.ctx.postgres.logOutreach(entityId, "farcaster_cast", "sent", {
         contentHash,
         body: text,
-        subject: `/${channelId}`,
+        subject: `/${channelId}:${angle.id}`,
       });
       await this.ctx.postgres.recordSignal(entityId, this.identity.id, "farcaster_cast", 0.85, {
         hash: result.hash,
         channel_id: channelId,
+        use_case_id: angle.id,
       });
       await this.ctx.bus.publish(
         SUBJECTS.OUTREACH_SENT,
@@ -139,7 +152,7 @@ export class FarcasterPoster extends BaseAgent {
         { channel: "farcaster_cast", destination: result.hash, content_hash: contentHash },
         entityId
       );
-      console.log(`[${this.identity.id}] cast → /${channelId} hash=${result.hash}`);
+      console.log(`[${this.identity.id}] cast → /${channelId} [${angle.id}] hash=${result.hash}`);
       return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

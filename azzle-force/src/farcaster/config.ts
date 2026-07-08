@@ -11,6 +11,7 @@ export interface FarcasterChannelConfig {
 export interface FarcasterRateLimits {
   maxCastsPerDay: number;
   maxRepliesPerDay: number;
+  maxLikesPerDay: number;
   minMinutesBetweenActions: number;
 }
 
@@ -20,8 +21,20 @@ export interface FarcasterConfig {
   searchQueries: string[];
   postChannels: string[];
   rateLimits: FarcasterRateLimits;
+  useCaseSeeds?: Array<{
+    id: string;
+    hook: string;
+    scenario: string;
+    channels?: string[];
+  }>;
   castRules: string[];
   replyRules: string[];
+  snapReplySeeds?: Array<{
+    id: string;
+    triggers?: string[];
+    interaction: string;
+    inviteExample: string;
+  }>;
 }
 
 const __dir = dirname(fileURLToPath(import.meta.url));
@@ -43,7 +56,7 @@ export function farcasterAutopostEnabled(): boolean {
 }
 
 /** Production Snap at azzle.org/snap (Vercel). Override with AZZLE_SNAP_PUBLIC_URL. */
-export const DEFAULT_SNAP_PUBLIC_URL = "https://azzle.org/snap";
+export const DEFAULT_SNAP_PUBLIC_URL = "https://www.azzle.org/snap";
 
 export function resolveSnapPublicUrl(): string {
   return (
@@ -51,4 +64,12 @@ export function resolveSnapPublicUrl(): string {
     process.env.AZZLE_SNAP_URL?.replace(/\/$/, "") ||
     DEFAULT_SNAP_PUBLIC_URL
   );
+}
+
+export function resolveMiniappPublicUrl(): string {
+  const base =
+    process.env.AZZLE_MINIAPP_URL?.replace(/\/?$/, "") ||
+    process.env.GITHUB_PAGES_MINIAPP_URL?.replace(/\/?$/, "") ||
+    "https://azzleforce.github.io/azzleforce";
+  return `${base}/`;
 }

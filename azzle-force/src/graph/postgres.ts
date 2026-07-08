@@ -377,6 +377,20 @@ export class PostgresStore {
     return res.rows as Array<Record<string, unknown>>;
   }
 
+  async clearFarcasterOutreach(): Promise<number> {
+    const res = await this.pool.query(
+      `DELETE FROM outreach_events WHERE channel LIKE 'farcaster_%' RETURNING id`
+    );
+    return res.rowCount ?? 0;
+  }
+
+  async clearFarcasterReplyOutreach(): Promise<number> {
+    const res = await this.pool.query(
+      `DELETE FROM outreach_events WHERE channel = 'farcaster_reply' RETURNING id`
+    );
+    return res.rowCount ?? 0;
+  }
+
   async topByScore(scoreType: string, minValue: number, limit = 50) {
     const res = await this.pool.query(
       `SELECT e.*, s.value AS score_value, s.reason AS score_reason, s.computed_at AS score_computed_at
