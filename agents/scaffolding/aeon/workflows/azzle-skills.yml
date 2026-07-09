@@ -1,0 +1,62 @@
+# AZZLE skill dispatcher — reference workflow shipped by `npx @azzle/agents aeon-setup --aeon`
+#
+# Dispatches the upstream Aeon skill runner (aeon.yml). Does not replace scheduler.yml;
+# use EITHER Aeon's scheduler (reads aeon.yml cron) OR this workflow's cron — not both
+# for the same skill. See azzle/GITHUB_ACTIONS.md (copied next to this overlay).
+name: AZZLE · Skills
+
+on:
+  schedule:
+    # Daily market digest at 08:00 UTC — mirrors azzle-market in aeon.yml
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+    inputs:
+      skill:
+        description: AZZLE skill to run (via aeon.yml)
+        required: true
+        type: choice
+        default: azzle-market
+        options:
+          - azzle-market
+          - azzle-worker
+      var:
+        description: Skill var — task id, filter hint, or focus string
+        required: false
+        type: string
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: azzle-skills-${{ github.event_name == 'schedule' && 'market' || inputs.skill }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Resolve skill and var
+        id: target
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "skill=azzle-market" >> "$GITHUB_OUTPUT"
+            echo "var=" >> "$GITHUB_OUTPUT"
+          else
+            echo "skill=${{ inputs.skill }}" >> "$GITHUB_OUTPUT"
+            echo "var=${{ inputs.var }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Dispatch Aeon skill runner
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SKILL="${{ steps.target.outputs.skill }}"
+          VAR="${{ steps.target.outputs.var }}"
+          ARGS=(-f "skill=${SKILL}")
+          if [ -n "$VAR" ]; then
+            ARGS+=(-f "var=${VAR}")
+          fi
+          echo "Running: gh workflow run aeon.yml ${ARGS[*]}"
+          gh workflow run aeon.yml "${ARGS[@]}"

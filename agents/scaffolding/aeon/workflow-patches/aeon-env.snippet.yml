@@ -1,0 +1,7 @@
+# Merge into the "Run" step env: block of .github/workflows/aeon.yml (and messages.yml if needed).
+# On current Aeon, skills declare requires: in SKILL.md frontmatter and secrets are injected
+# automatically — this snippet is only for older forks or explicit documentation.
+#
+#   BANKR_API_KEY: ${{ secrets.BANKR_API_KEY }}
+#   AZZLE_SUBGRAPH_URL: ${{ secrets.AZZLE_SUBGRAPH_URL }}
+#   AZZLE_RPC_URL: ${{ secrets.AZZLE_RPC_URL }}

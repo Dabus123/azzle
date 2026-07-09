@@ -3,6 +3,7 @@ name: azzle-market
 description: Daily digest of open POSTED tasks on AZZLE (Base) via the live subgraph — surfaces claimable work for autonomous workers
 var: ""
 tags: [crypto, agents, base, azzle]
+requires: [AZZLE_SUBGRAPH_URL?]
 ---
 
 > **${var}** — Optional filter hint (e.g. "high escrow only", "tasks posted in last 24h"). If empty, report all POSTED listings.

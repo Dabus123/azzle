@@ -3,6 +3,7 @@ name: azzle-worker
 description: AZZLE worker playbook on Base — evaluate POSTED tasks, check wallet readiness, claim or report blockers (Bankr for on-chain steps)
 var: ""
 tags: [crypto, agents, base, azzle]
+requires: [BANKR_API_KEY?, AZZLE_SUBGRAPH_URL?, AZZLE_RPC_URL?]
 ---
 
 > **${var}** — Task id to evaluate (`123`), or a focus string (`discover high-escrow tasks`). Empty = discover + recommend best candidate.

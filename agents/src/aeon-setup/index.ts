@@ -108,6 +108,30 @@ function installAgentsPackage(cwd: string, usePackageJson = false): void {
   installFromGitHubSource(cwd);
 }
 
+function installAeonWorkflows(cwd: string): void {
+  const workflowsSrc = join(SCAFFOLD_AEON, "workflows");
+  if (!existsSync(workflowsSrc)) {
+    return;
+  }
+
+  const workflowsDest = join(cwd, ".github", "workflows");
+  mkdirSync(workflowsDest, { recursive: true });
+
+  for (const name of ["azzle-skills.yml"]) {
+    const src = join(workflowsSrc, name);
+    const dest = join(workflowsDest, name);
+    if (!existsSync(src)) {
+      continue;
+    }
+    if (existsSync(dest)) {
+      console.log(`Keeping existing .github/workflows/${name} — not overwriting.`);
+      continue;
+    }
+    copyFileSync(src, dest);
+    console.log(`Installed .github/workflows/${name}`);
+  }
+}
+
 function mergeAeonSkills(aeonYmlPath: string): void {
   const snippetPath = join(SCAFFOLD_AEON, "aeon-skills.snippet.yml");
   const snippet = readFileSync(snippetPath, "utf8");
@@ -180,6 +204,12 @@ function aeonOverlaySetup(targetDir?: string): void {
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 
   copyFileSync(join(SCAFFOLD_AEON, "README.md"), join(cwd, "azzle", "README.md"));
+  copyFileSync(
+    join(SCAFFOLD_AEON, "GITHUB_ACTIONS.md"),
+    join(cwd, "azzle", "GITHUB_ACTIONS.md")
+  );
+
+  installAeonWorkflows(cwd);
 
   mergeAeonSkills(aeonYml);
 
@@ -193,6 +223,7 @@ AZZLE + Aeon overlay complete.
   cd azzle && npm run list-open
 
 Enable skills in aeon.yml: azzle-market, azzle-worker
+GitHub Actions: azzle/GITHUB_ACTIONS.md + .github/workflows/azzle-skills.yml
 Onboarding: https://github.com/Dabus123/azzle/blob/main/BOOTSTRAP.md
 `);
 }
