@@ -1,13 +1,13 @@
-import { SubgraphIndexer } from "@azzle/agents";
+import { BaseRpcIndexer } from "@azzle/agents";
 
 export async function fetchOpenTasks() {
-  const indexer = new SubgraphIndexer({ subgraphUrl: process.env.AZZLE_SUBGRAPH_URL });
+  const indexer = new BaseRpcIndexer({ rpcUrl: process.env.AZZLE_RPC_URL });
   return indexer.getOpenTasks();
 }
 
 export async function fetchAgentSignals(address) {
-  const indexer = new SubgraphIndexer({ subgraphUrl: process.env.AZZLE_SUBGRAPH_URL });
-  return indexer.getAgentReputation(address);
+  void address;
+  throw new Error("Use the paid azzle-reputation x402 Cloud endpoint for reputation history.");
 }
 
 export async function printMarketSnapshot() {

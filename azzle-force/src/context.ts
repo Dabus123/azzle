@@ -6,7 +6,7 @@ import type { GraphWriter } from "./graph/writer.js";
 import type { EventBus } from "./events/bus.js";
 import type { LlmGateway } from "./llm/gateway.js";
 import type { GitHubClient } from "./tools/github.js";
-import type { AzzleSubgraph } from "./tools/azzle.js";
+import type { AzzleBaseRpc } from "./tools/azzle.js";
 import type { TemporalClient } from "./temporal/client.js";
 import type { OutreachDelivery } from "./delivery/index.js";
 import type { RedditDelivery } from "./delivery/reddit.js";
@@ -21,7 +21,7 @@ export interface ForceContext {
   bus: EventBus;
   llm: LlmGateway;
   github: GitHubClient;
-  azzle: AzzleSubgraph;
+  azzle: AzzleBaseRpc;
   delivery: OutreachDelivery;
   reddit: RedditDelivery | null;
   farcaster: FarcasterDelivery | null;

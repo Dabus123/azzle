@@ -10,6 +10,8 @@ export {
 export type { PreflightAddresses, PreflightReport } from "./preflight.js";
 export { buildSettlementDigest } from "./settlement.js";
 export { buildExecutionReceipt, hashReceipt } from "./receipt.js";
+export { BaseRpcIndexer } from "./base-rpc-indexer.js";
+export type { BaseRpcIndexerConfig, BaseRpcTask, BaseRpcAgent } from "./base-rpc-indexer.js";
 export { NegotiationBus } from "./xmtp-local-bus.js";
 export {
   XmtpNegotiationTransport,
@@ -30,7 +32,6 @@ export type {
   AgentRole,
   OnChainCorrelationEvent,
 } from "./xmtp/index.js";
-export { SubgraphIndexer, DEFAULT_SUBGRAPH_URL } from "./subgraph-indexer.js";
 export {
   build402Response,
   buildPaymentReceipt,
@@ -56,12 +57,6 @@ export {
   formatOpenTasksForAgent,
 } from "../tools/azzle-tools.js";
 export type { AzzleToolDefinition } from "../tools/azzle-tools.js";
-export { SubgraphIndexer as ChainEventSubgraphIndexer } from "./xmtp/chain-event-indexer.js";
-export type {
-  SubgraphIndexerConfig,
-  SubgraphTask,
-  SubgraphAgent,
-} from "./subgraph-indexer.js";
 export type { TaskTerms, ExecutionReceipt, AzzleClientConfig, EscrowMode } from "./types.js";
 export {
   BASE_MAINNET_MANIFEST,

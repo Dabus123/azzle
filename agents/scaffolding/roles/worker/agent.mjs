@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import {
   AzzleClient,
-  SubgraphIndexer,
+  BaseRpcIndexer,
   buildExecutionReceipt,
   checkWorkerPreflight,
   ensureAzlAllowance,
@@ -47,7 +47,7 @@ async function runPreflight() {
 }
 
 async function listOpen() {
-  const indexer = new SubgraphIndexer({ subgraphUrl: process.env.AZZLE_SUBGRAPH_URL });
+  const indexer = new BaseRpcIndexer({ rpcUrl });
   const tasks = await indexer.getOpenTasks();
   console.log(JSON.stringify({ count: tasks.length, tasks }, null, 2));
 }
@@ -85,7 +85,7 @@ async function claimFlow(taskIdArg) {
   const proofTx = await client.submitProof(taskId, 0, receipt.receiptHash);
   await proofTx.wait();
 
-  console.log("[worker] awaiting poster acceptMilestone — monitor via subgraph or XMTP DeliveryNotice ack");
+  console.log("[worker] awaiting poster acceptMilestone — monitor via Base RPC or XMTP DeliveryNotice ack");
   return receipt;
 }
 
@@ -125,7 +125,7 @@ async function main() {
   console.log("");
   console.log("Commands:");
   console.log("  npm run preflight   # USDC ≥ $25, vault, AZL approval checks");
-  console.log("  npm run list-open   # POSTED tasks from subgraph");
+  console.log("  npm run list-open   # POSTED tasks from Base RPC");
   console.log("  npm run claim -- <taskId>");
   console.log("");
   console.log("Flow: claimTask → buildExecutionReceipt → submitProof → poster acceptMilestone");

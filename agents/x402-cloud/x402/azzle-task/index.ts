@@ -8,30 +8,33 @@
  * @see docs/X402_CLOUD.md
  */
 
-const SUBGRAPH =
-  process.env.AZZLE_SUBGRAPH_URL ||
-  "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3";
+const RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
+const TASK_REGISTRY = "0x0a47c3a2d515ec3a23f225a7bac1b0a1654e4d48";
+const GET_TASK_SELECTOR = "0x1d65e77e";
+const STATES = ["DRAFT", "POSTED", "CLAIMED", "ACTIVE", "IN_REVIEW", "COMPLETED", "CANCELLED", "EXPIRED", "DISPUTED", "RESOLVED", "REPLACING", "PAUSED", "DELETED"];
 
-async function gql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
-  const res = await fetch(SUBGRAPH, {
+async function rpc(data: string) {
+  const res = await fetch(RPC_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_call", params: [{ to: TASK_REGISTRY, data }, "latest"] }),
   });
-  if (!res.ok) throw new Error(`AZZLE subgraph HTTP ${res.status}`);
-  const json = (await res.json()) as { data?: T; errors?: Array<{ message: string }> };
-  if (json.errors?.length) throw new Error(json.errors.map((e) => e.message).join("; "));
-  if (!json.data) throw new Error("AZZLE subgraph: empty response");
-  return json.data;
+  if (!res.ok) throw new Error(`Base RPC HTTP ${res.status}`);
+  const body = (await res.json()) as { result?: string; error?: { message?: string } };
+  if (body.error || body.result === undefined) throw new Error(body.error?.message || "Base RPC empty response");
+  return body.result;
 }
 
-function usdc(amount6: string): string {
-  try {
-    const n = BigInt(amount6);
-    return `${n / 1_000_000n}.${(n % 1_000_000n).toString().padStart(6, "0").slice(0, 2)}`;
-  } catch {
-    return "0.00";
-  }
+function word(data: string, index: number) {
+  return BigInt(`0x${data.slice(2 + index * 64, 2 + (index + 1) * 64)}`);
+}
+
+function address(data: string, index: number) {
+  return `0x${word(data, index).toString(16).padStart(40, "0")}`;
+}
+
+function usdc(amount: bigint): string {
+  return `${amount / 1_000_000n}.${(amount % 1_000_000n).toString().padStart(6, "0").slice(0, 2)}`;
 }
 
 function json(body: unknown, status: number): Response {
@@ -41,17 +44,6 @@ function json(body: unknown, status: number): Response {
   });
 }
 
-interface Task {
-  id: string;
-  state: string;
-  escrowAmount: string;
-  createdAt: string;
-  updatedAt: string;
-  settlementDigest: string | null;
-  poster: { id: string };
-  worker: { id: string } | null;
-}
-
 export default async function handler(req: Request) {
   const id = new URL(req.url).searchParams.get("id");
   if (!id || !/^\d+$/.test(id)) {
@@ -59,35 +51,29 @@ export default async function handler(req: Request) {
     return json({ error: "invalid_id", hint: "pass ?id=<numeric task id>" }, 400);
   }
 
-  const data = await gql<{ task: Task | null }>(
-    `query TaskById($id: ID!) {
-       task(id: $id) {
-         id state escrowAmount createdAt updatedAt settlementDigest
-         poster { id } worker { id }
-       }
-     }`,
-    { id }
-  );
-
-  if (!data.task) {
+  const data = await rpc(`${GET_TASK_SELECTOR}${BigInt(id).toString(16).padStart(64, "0")}`);
+  const createdAt = word(data, 8);
+  const poster = address(data, 0);
+  if (!createdAt || poster === "0x0000000000000000000000000000000000000000") {
     return json({ protocol: "azzle", chainId: 8453, id, found: false }, 404);
   }
 
-  const t = data.task;
+  const amount = word(data, 3);
+  const worker = address(data, 1);
   return {
     protocol: "azzle",
     chainId: 8453,
     found: true,
     task: {
-      id: t.id,
-      state: t.state,
-      poster: t.poster.id,
-      worker: t.worker?.id ?? null,
-      escrowUsdc: usdc(t.escrowAmount),
-      escrowAmount: t.escrowAmount,
-      createdAt: Number(t.createdAt),
-      updatedAt: Number(t.updatedAt),
-      settlementDigest: t.settlementDigest,
+      id,
+      state: STATES[Number(word(data, 6))] || "UNKNOWN",
+      poster,
+      worker: worker === "0x0000000000000000000000000000000000000000" ? null : worker,
+      escrowUsdc: usdc(amount),
+      escrowAmount: amount.toString(),
+      createdAt: Number(createdAt),
+      updatedAt: Number(createdAt),
+      settlementDigest: `0x${data.slice(2 + 5 * 64, 2 + 6 * 64)}`,
     },
     generatedAt: Math.floor(Date.now() / 1000),
   };

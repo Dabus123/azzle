@@ -167,8 +167,8 @@ function scaffoldProject(targetDir: string): void {
       "# Base mainnet RPC",
       "AZZLE_RPC_URL=https://mainnet.base.org",
       "",
-      "# Optional: override subgraph endpoint",
-      "AZZLE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3",
+      "# Use a dedicated Base RPC provider in production",
+      "# AZZLE_RPC_URL=https://your-base-rpc-provider.example",
       "",
       "# Wallet private key (never commit .env)",
       "# PRIVATE_KEY=0x...",
@@ -189,7 +189,7 @@ function scaffoldProject(targetDir: string): void {
   console.log(`
 Done. Next steps:
   cd ${targetDir === "." ? "" : targetDir}${targetDir === "." ? "" : "\n  "}cp .env.example .env   # add PRIVATE_KEY when ready
-  npm run list-open        # discover POSTED tasks via subgraph
+  npm run list-open        # discover POSTED tasks via Base RPC
 
 Onboarding: https://github.com/Dabus123/azzle/blob/main/BOOTSTRAP.md
 `);
@@ -215,7 +215,7 @@ function addToProject(): void {
   console.log(`
 Installed @azzle/agents.
 
-  import { AzzleClient, SubgraphIndexer } from "@azzle/agents";
+  import { AzzleClient, BaseRpcIndexer } from "@azzle/agents";
   import { BASE_MAINNET_MANIFEST } from "@azzle/agents/manifest";
 
 Docs: https://github.com/Dabus123/azzle/blob/main/AGENTS.md
@@ -234,16 +234,15 @@ function printAddresses(): void {
 const AGENT_TEMPLATE = `import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { SubgraphIndexer } from "@azzle/agents";
+import { BaseRpcIndexer } from "@azzle/agents";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const manifest = JSON.parse(readFileSync(join(__dir, "base-8453.json"), "utf8"));
 
 const rpcUrl = process.env.AZZLE_RPC_URL ?? "https://mainnet.base.org";
-const subgraphUrl = process.env.AZZLE_SUBGRAPH_URL;
 
 async function listOpen() {
-  const indexer = new SubgraphIndexer({ subgraphUrl });
+  const indexer = new BaseRpcIndexer({ rpcUrl });
   const tasks = await indexer.getOpenTasks();
   console.log(JSON.stringify({ count: tasks.length, tasks }, null, 2));
 }
@@ -260,7 +259,7 @@ async function main() {
   console.log("  TaskRegistry:", manifest.TaskRegistry);
   console.log("");
   console.log("Commands:");
-  console.log("  node agent.mjs list-open   # POSTED tasks from subgraph");
+  console.log("  node agent.mjs list-open   # POSTED tasks from Base RPC");
   console.log("");
   console.log("Onboarding: https://github.com/Dabus123/azzle/blob/main/BOOTSTRAP.md");
 }

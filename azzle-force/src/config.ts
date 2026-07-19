@@ -38,7 +38,6 @@ export interface EnvConfig {
   bankrApiKey: string;
   openaiBaseUrl: string;
   githubToken: string;
-  subgraphUrl: string;
   baseRpcUrl: string;
   wave: number;
   humanApproveOutreach: boolean;
@@ -88,9 +87,6 @@ export function loadEnvConfig(): EnvConfig {
     bankrApiKey: process.env.BANKR_API_KEY ?? "",
     openaiBaseUrl: process.env.OPENAI_BASE_URL ?? "https://llm.bankr.bot/v1",
     githubToken: process.env.GITHUB_TOKEN ?? "",
-    subgraphUrl:
-      process.env.AZZLE_SUBGRAPH_URL ??
-      "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3",
     baseRpcUrl: process.env.BASE_RPC_URL ?? "https://mainnet.base.org",
     wave: Number(process.env.AZZLE_FORCE_WAVE ?? "1"),
     humanApproveOutreach: process.env.HUMAN_APPROVE_OUTREACH !== "false",

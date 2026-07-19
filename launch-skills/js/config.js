@@ -1,7 +1,3 @@
-/** Canonical public endpoints — keep in sync with agents/src/sdk/subgraph-indexer.ts */
-export const SUBGRAPH_URL =
-  "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3";
-
 export const DEFAULT_GATEWAY = "http://localhost:4020";
 
 export const RPC_URL = "https://mainnet.base.org";
@@ -59,13 +55,13 @@ export const X402_CLOUD_ENDPOINTS = [
   },
 ];
 
-/** True when opened as file:// — browsers block direct subgraph fetch (CORS). */
+/** True when opened as file:// — use the local gateway for market reads. */
 export function isFileProtocol() {
   return typeof location !== "undefined" && location.protocol === "file:";
 }
 
 /**
- * Gateway base URL for API + subgraph proxy.
+ * Gateway base URL for market APIs.
  * - file:// → must use gateway (http://localhost:4020)
  * - served from gateway (:4020) → same-origin ""
  * - override via ?gateway=http://host:port
@@ -94,92 +90,20 @@ async function fetchJson(url, init) {
   return json;
 }
 
-/** Subgraph query via gateway proxy (works from file:// and localhost:4020). */
-export async function gql(query, variables = {}) {
-  const payload = JSON.stringify({ query, variables });
-  const proxy = gatewayUrl("/v1/graphql");
-
-  if (proxy !== null) {
-    try {
-      const json = await fetchJson(proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: payload,
-      });
-      if (json.errors?.length) {
-        throw new Error(json.errors.map((e) => e.message).join("; "));
-      }
-      if (!json.data) throw new Error("empty subgraph response");
-      return json.data;
-    } catch (e) {
-      if (isFileProtocol()) {
-        throw new Error(
-          `Cannot reach gateway at ${DEFAULT_GATEWAY}. ` +
-            `Run: cd agents && npm run gateway — then open ${DEFAULT_GATEWAY}/market.html ` +
-            `(do not use file://). Original: ${e.message}`
-        );
-      }
-      throw e;
-    }
-  }
-
-  // Served over http(s) elsewhere — direct subgraph, gateway fallback
-  try {
-    const res = await fetch(SUBGRAPH_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: payload,
-    });
-    const json = await res.json();
-    if (json.errors?.length) {
-      throw new Error(json.errors.map((e) => e.message).join("; "));
-    }
-    return json.data;
-  } catch (directErr) {
-    try {
-      const json = await fetchJson(`${DEFAULT_GATEWAY}/v1/graphql`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: payload,
-      });
-      if (json.errors?.length) {
-        throw new Error(json.errors.map((e) => e.message).join("; "));
-      }
-      return json.data;
-    } catch {
-      throw directErr;
-    }
-  }
-}
-
 /** REST shortcut — POSTED tasks (preferred for market page). */
 export async function fetchOpenTasks() {
   const url = gatewayUrl("/v1/market/open");
-  if (url !== null) {
-    const json = await fetchJson(url);
-    return json.tasks ?? [];
-  }
-  const data = await gql(`query {
-    tasks(where: { state: "POSTED" }, orderBy: createdAt, orderDirection: desc, first: 50) {
-      id state escrowAmount createdAt updatedAt poster { id } worker { id }
-    }
-  }`);
-  return data.tasks;
+  if (url === null) throw new Error("Market gateway required");
+  const json = await fetchJson(url);
+  return json.tasks ?? [];
 }
 
 /** REST shortcut — recent tasks. */
 export async function fetchRecentTasks(limit = 30) {
   const url = gatewayUrl(`/v1/market/recent?limit=${limit}`);
-  if (url !== null) {
-    const json = await fetchJson(url);
-    return json.tasks ?? [];
-  }
-  const data = await gql(`query($first: Int!) {
-    tasks(first: $first, orderBy: updatedAt, orderDirection: desc) {
-      id state escrowAmount poster { id } worker { id }
-    }
-  }`, { first: limit });
-  return data.tasks;
+  if (url === null) throw new Error("Market gateway required");
+  const json = await fetchJson(url);
+  return json.tasks ?? [];
 }
 
 export function fmtUsdc6(raw) {

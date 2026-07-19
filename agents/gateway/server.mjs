@@ -1,5 +1,5 @@
 /**
- * AZZLE HTTP gateway — x402 payment instructions + subgraph proxy + payment receipts.
+ * AZZLE HTTP gateway — x402 payment instructions + Base RPC reads + payment receipts.
  *
  * Usage:
  *   cd agents && npm run build && npm run gateway
@@ -22,13 +22,13 @@ import {
   isReceiptValid,
 } from "../dist/sdk/x402-payments.js";
 import { checkWorkerPreflight } from "../dist/sdk/preflight.js";
-import { SubgraphIndexer } from "../dist/sdk/subgraph-indexer.js";
+import { BaseRpcIndexer } from "../dist/sdk/base-rpc-indexer.js";
 
 const PORT = Number(process.env.AZZLE_GATEWAY_PORT ?? "4020");
 const RPC = process.env.BASE_RPC_URL ?? "https://mainnet.base.org";
 const manifest = BASE_MAINNET_MANIFEST;
 const provider = new ethers.JsonRpcProvider(RPC);
-const indexer = new SubgraphIndexer();
+const indexer = new BaseRpcIndexer({ rpcUrl: RPC });
 const receipts = new Map();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -40,15 +40,6 @@ const STATIC_MIME = {
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
 };
-
-async function proxySubgraph(body) {
-  const res = await fetch(indexer.endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query: body.query, variables: body.variables ?? {} }),
-  });
-  return res.json();
-}
 
 async function serveStatic(pathname, res) {
   let rel = pathname === "/" ? "/index.html" : pathname;
@@ -134,7 +125,7 @@ const server = createServer(async (req, res) => {
 
   try {
     if (req.method === "GET" && path === "/health") {
-      json(res, 200, { ok: true, chainId: 8453, subgraph: indexer.endpoint });
+      json(res, 200, { ok: true, chainId: 8453, rpc: indexer.rpcUrl });
       return;
     }
 
@@ -157,36 +148,6 @@ const server = createServer(async (req, res) => {
       const limit = Number(url.searchParams.get("limit") ?? "25");
       const tasks = await indexer.getRecentTasks(limit);
       json(res, 200, { count: tasks.length, tasks });
-      return;
-    }
-
-    if (req.method === "POST" && path === "/v1/graphql") {
-      const body = await readBody(req);
-      if (!body.query) {
-        json(res, 400, { error: "query required" });
-        return;
-      }
-      const subgraphJson = await proxySubgraph(body);
-      const payload = JSON.stringify(subgraphJson);
-      res.writeHead(200, {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      });
-      res.end(payload);
-      return;
-    }
-
-    if (req.method === "GET" && path === "/v1/leaderboard/reputation") {
-      const limit = Number(url.searchParams.get("limit") ?? "25");
-      const agents = await indexer.getTopAgents(limit);
-      json(res, 200, { count: agents.length, agents });
-      return;
-    }
-
-    if (req.method === "GET" && path === "/v1/leaderboard/verifiers") {
-      const limit = Number(url.searchParams.get("limit") ?? "25");
-      const agents = await indexer.getVerifierLeaderboard(limit);
-      json(res, 200, { count: agents.length, agents });
       return;
     }
 
@@ -279,9 +240,6 @@ const server = createServer(async (req, res) => {
         "GET /v1/fees",
         "GET /v1/market/open",
         "GET /v1/market/recent",
-        "POST /v1/graphql",
-        "GET /v1/leaderboard/reputation",
-        "GET /v1/leaderboard/verifiers",
         "GET /v1/tasks/:id",
         "POST /v1/payment-receipt",
         "POST /v1/tasks",
@@ -299,6 +257,5 @@ server.listen(PORT, () => {
   console.log(`[azzle-gateway] http://localhost:${PORT}`);
   console.log("[azzle-gateway] hub     GET /  (launch-skills UI)");
   console.log("[azzle-gateway] market  GET /market.html  ·  GET /v1/market/open");
-  console.log("[azzle-gateway] gql     POST /v1/graphql  (CORS-safe subgraph proxy)");
   console.log("[azzle-gateway] x402    POST /v1/tasks/:id/claim (no receipt → 402)");
 });

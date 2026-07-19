@@ -22,7 +22,7 @@ servers:
 
 tags:
   - name: market
-    description: Open task discovery (subgraph-backed, onchain fallback)
+    description: Open task discovery from canonical Base contract state
   - name: config
     description: Site and contract configuration
   - name: posting
@@ -59,8 +59,8 @@ paths:
                     createdAt: 1719859200
                     updatedAt: 1719859200
                     poster: null
-        "429":
-          description: Subgraph rate limited (may retry)
+        "502":
+          description: Base RPC unavailable (may retry)
           content:
             application/json:
               schema:

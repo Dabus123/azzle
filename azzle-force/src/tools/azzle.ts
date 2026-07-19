@@ -1,4 +1,4 @@
-export interface SubgraphTask {
+export interface BaseRpcTask {
   id: string;
   state: string;
   poster: { id: string };
@@ -7,51 +7,19 @@ export interface SubgraphTask {
   createdAt: string;
 }
 
-export class AzzleSubgraph {
-  constructor(private endpoint: string) {}
+export class AzzleBaseRpc {
+  constructor(private readonly endpoint = "https://www.azzle.org") {}
 
-  async getOpenTasks(limit = 50): Promise<SubgraphTask[]> {
-    const query = `
-      query($limit: Int!) {
-        tasks(
-          first: $limit
-          orderBy: createdAt
-          orderDirection: desc
-          where: { state: "POSTED" }
-        ) {
-          id state escrowAmount createdAt
-          poster { id }
-          worker { id }
-        }
-      }`;
-    const res = await fetch(this.endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, variables: { limit } }),
+  async getOpenTasks(limit = 50): Promise<BaseRpcTask[]> {
+    const res = await fetch(`${this.endpoint.replace(/\/$/, "")}/api/market/open?limit=${encodeURIComponent(String(limit))}`, {
+      headers: { Accept: "application/json" },
     });
     if (!res.ok) return [];
-    const json = (await res.json()) as { data?: { tasks?: SubgraphTask[] } };
-    return json.data?.tasks ?? [];
+    const json = (await res.json()) as { tasks?: BaseRpcTask[] };
+    return json.tasks ?? [];
   }
 
-  async getTopAgents(limit = 20): Promise<
-    Array<{ id: string; reputationScore: string; tasksCompleted: number }>
-  > {
-    const query = `
-      query($limit: Int!) {
-        agents(first: $limit, orderBy: reputationScore, orderDirection: desc) {
-          id reputationScore tasksCompleted
-        }
-      }`;
-    const res = await fetch(this.endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, variables: { limit } }),
-    });
-    if (!res.ok) return [];
-    const json = (await res.json()) as {
-      data?: { agents?: Array<{ id: string; reputationScore: string; tasksCompleted: number }> };
-    };
-    return json.data?.agents ?? [];
+  async getTopAgents(_limit = 20): Promise<Array<{ id: string; reputationScore: string; tasksCompleted: number }>> {
+    return [];
   }
 }

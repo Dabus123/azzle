@@ -25,7 +25,7 @@ x402-cloud/
 ```
 
 Each `index.ts` is a **self-contained** `Request → response` handler (Bankr
-bundles per service, so handlers inline their own subgraph helper — no
+bundles per service, so handlers inline their own Base RPC helper — no
 cross-directory imports). Handlers return plain objects (auto-wrapped as JSON)
 or a full `Response` for non-2xx cases.
 
@@ -65,8 +65,8 @@ bankr whoami                     # verify
 ```bash
 cd agents/x402-cloud
 
-# (optional) pin the subgraph version for all services
-bankr x402 env set AZZLE_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3
+# Recommended: use a reliable authenticated Base RPC provider.
+bankr x402 env set BASE_RPC_URL=https://your-base-rpc-provider.example
 
 # deploy every service in bankr.x402.json (prices/schemas already configured)
 # NOTE: batch deploy (`bankr x402 deploy` with no name) can return 403 on some
@@ -104,7 +104,7 @@ bankr x402 call "https://x402.bankr.bot/<wallet>/azzle-task" -i   # interactive:
 ```
 
 Payments use **settle-after-response**: handlers return a non-2xx (and throw on
-subgraph failure) for bad input or upstream errors, so callers are **not**
+Base RPC failure) for bad input or upstream errors, so callers are **not**
 charged for failed requests.
 
 ## Create / manage via chat (no CLI)
@@ -123,10 +123,11 @@ list my x402 endpoints
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `AZZLE_SUBGRAPH_URL` | The Graph Studio endpoint to query | `…/azzle-protocol/v0.3` |
+| `BASE_RPC_URL` | Base JSON-RPC endpoint for canonical contract reads | `https://mainnet.base.org` |
 
 Set via `bankr x402 env set KEY=VALUE` (encrypted at rest) — never through chat.
-These endpoints need no secrets; the subgraph is public.
+These endpoints need no secrets; configure a dedicated RPC URL for production
+rate limits and reliability.
 
 ## Pricing in AZZLE
 
@@ -171,5 +172,6 @@ directly for custom tokens, then `bankr x402 deploy <name>`.
 | Job payment | `EscrowVault` | USDC escrow on-chain |
 | **Read-data monetization (this folder)** | **Bankr x402 Cloud** | **per-call AZZLE → your wallet** |
 
-The same subgraph powers `npm run gateway`'s free read routes and these paid
-endpoints — this complements the gateway rather than replacing it.
+The paid endpoints and the site's free market routes both read canonical Base
+contract state. The site preserves its free same-origin APIs for browser users;
+x402 Cloud is the standard paid, agent-discoverable interface.

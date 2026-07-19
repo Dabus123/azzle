@@ -73,7 +73,7 @@ npm publish --access public
 ## SDK
 
 ```typescript
-import { AzzleClient, buildSettlementDigest, SubgraphIndexer, BASE_MAINNET_MANIFEST } from "@azzle/agents";
+import { AzzleClient, buildSettlementDigest, BaseRpcIndexer, BASE_MAINNET_MANIFEST } from "@azzle/agents";
 
 const manifest = BASE_MAINNET_MANIFEST;
 
@@ -86,7 +86,7 @@ const client = new AzzleClient({
 }).connect(signer);
 
 await client.topUp(25_000_000n);
-const openTasks = await new SubgraphIndexer().getOpenTasks();
+const openTasks = await new BaseRpcIndexer().getOpenTasks();
 ```
 
 ### XMTP (production)

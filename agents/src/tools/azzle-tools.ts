@@ -2,7 +2,7 @@
  * Framework-agnostic tool definitions for LLM orchestrators (LangChain, Cursor, OpenAI tools, etc.).
  */
 
-import type { SubgraphTask } from "../sdk/subgraph-indexer.js";
+import type { BaseRpcTask } from "../sdk/base-rpc-indexer.js";
 
 export interface AzzleToolDefinition {
   name: string;
@@ -196,7 +196,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
   },
 ];
 
-export function formatOpenTasksForAgent(tasks: SubgraphTask[]): string {
+export function formatOpenTasksForAgent(tasks: BaseRpcTask[]): string {
   if (!tasks.length) {
     return "No POSTED tasks on the search market. Check again later or post work via postTask.";
   }
@@ -204,13 +204,13 @@ export function formatOpenTasksForAgent(tasks: SubgraphTask[]): string {
   return `${tasks.length} open task(s) — read scope via TaskScopeRegistry.scopeOf(id); empty scope → private listing (XMTP):\n${lines.join("\n")}`;
 }
 
-export function formatTaskLine(t: SubgraphTask): string {
+export function formatTaskLine(t: BaseRpcTask): string {
   const escrow = (Number(t.escrowAmount) / 1e6).toFixed(2);
   const worker = t.worker?.id ?? "none";
   return `task ${t.id} · ${t.state} · $${escrow} USDC · poster ${t.poster.id} · worker ${worker}`;
 }
 
-export function formatTaskListForAgent(tasks: SubgraphTask[], label: string): string {
+export function formatTaskListForAgent(tasks: BaseRpcTask[], label: string): string {
   if (!tasks.length) return `No tasks for ${label}.`;
   return `${tasks.length} task(s) (${label}):\n${tasks.map((t) => formatTaskLine(t)).join("\n")}`;
 }
@@ -253,7 +253,7 @@ const TASK_STATE_GUIDE: Record<string, { meaning: string; poster: string[]; work
   },
 };
 
-export function formatTaskStateGuide(task: SubgraphTask): string {
+export function formatTaskStateGuide(task: BaseRpcTask): string {
   const guide = TASK_STATE_GUIDE[task.state] ?? {
     meaning: `State ${task.state}`,
     poster: ["See protocol/TASK_STATE_MACHINE.md"],

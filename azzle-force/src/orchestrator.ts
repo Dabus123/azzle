@@ -7,7 +7,7 @@ import { EventBus } from "./events/bus.js";
 import { LocalEventBus } from "./events/local-bus.js";
 import { LlmGateway } from "./llm/gateway.js";
 import { GitHubClient } from "./tools/github.js";
-import { AzzleSubgraph } from "./tools/azzle.js";
+import { AzzleBaseRpc } from "./tools/azzle.js";
 import { TemporalClient } from "./temporal/client.js";
 import { LiteStore } from "./lite/store.js";
 import { LitePostgresStore, LiteNeo4jStore, LiteQdrantStore } from "./lite/adapters.js";
@@ -48,7 +48,7 @@ async function createLiteContext(includeTemporal = true): Promise<ForceContext> 
   const bus = new LocalEventBus();
   const llm = new LlmGateway({ baseUrl: config.openaiBaseUrl, apiKey: config.bankrApiKey });
   const github = new GitHubClient(config.githubToken);
-  const azzle = new AzzleSubgraph(config.subgraphUrl);
+  const azzle = new AzzleBaseRpc();
   const delivery = createOutreachDelivery();
   const reddit = createRedditDelivery();
   const farcaster = createFarcasterDelivery();
@@ -95,7 +95,7 @@ export async function createContext(includeTemporal = true): Promise<ForceContex
   const bus = new EventBus(config.natsUrl);
   const llm = new LlmGateway({ baseUrl: config.openaiBaseUrl, apiKey: config.bankrApiKey });
   const github = new GitHubClient(config.githubToken);
-  const azzle = new AzzleSubgraph(config.subgraphUrl);
+  const azzle = new AzzleBaseRpc();
   const delivery = createOutreachDelivery();
   const reddit = createRedditDelivery();
   const farcaster = createFarcasterDelivery();

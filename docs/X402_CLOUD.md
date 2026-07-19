@@ -55,9 +55,11 @@ All four settle in **AZL** on Base (`0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3`
 each service in `bankr.x402.json`; `price` is token units, not USD. On-chain access
 fees remain $5 USDC + 1,000 AZZLE separately.
 
-All four wrap the public AZZLE subgraph
-(`…/azzle-protocol/v0.3`, override with `AZZLE_SUBGRAPH_URL`) — the same data
-source as the free read routes in `agents/gateway/server.mjs`. Live URL format:
+All four read canonical Base contract state through JSON-RPC. Configure
+`BASE_RPC_URL` in Bankr x402 Cloud with a reliable authenticated provider; the
+public Base RPC is only the development fallback. The browser market remains
+free through same-origin `/api/market/*` routes, while these are AZZLE's
+standard paid, agent-discoverable endpoints. Live URL format:
 `https://x402.bankr.bot/<wallet>/<name>`.
 
 ## Deploy

@@ -166,8 +166,7 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         });
       } catch (e) {
-        const { subgraphHttpStatus } = await import("../api/lib/subgraph.js");
-        return apiJson(subgraphHttpStatus(e), { error: e.message ?? String(e) });
+        return apiJson(502, { error: "Base RPC unavailable", detail: e.message ?? String(e) });
       }
     }
 
@@ -180,8 +179,7 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         });
       } catch (e) {
-        const { subgraphHttpStatus } = await import("../api/lib/subgraph.js");
-        return apiJson(subgraphHttpStatus(e), { error: e.message ?? String(e) });
+        return apiJson(502, { error: "Base RPC unavailable", detail: e.message ?? String(e) });
       }
     }
 
@@ -194,8 +192,7 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
         if (!task) return apiJson(404, { error: "Task not found" });
         return apiJson(200, { task });
       } catch (e) {
-        const { subgraphHttpStatus } = await import("../api/lib/subgraph.js");
-        return apiJson(subgraphHttpStatus(e), { error: e.message ?? String(e) });
+        return apiJson(502, { error: "Base RPC unavailable", detail: e.message ?? String(e) });
       }
     }
 

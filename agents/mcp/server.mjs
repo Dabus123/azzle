@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * AZZLE MCP server — subgraph discovery tools for Cursor / Claude Desktop.
+ * AZZLE MCP server — Base RPC discovery tools for Cursor / Claude Desktop.
  *
  * Prerequisite: cd agents && npm run build
  * Config: see launch-skills/DISTRIBUTION.md
@@ -14,7 +14,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { SubgraphIndexer } from "../dist/sdk/subgraph-indexer.js";
+import { BaseRpcIndexer } from "../dist/sdk/base-rpc-indexer.js";
 import {
   AZZLE_TOOLS,
   BANKR_PROMPTS,
@@ -34,7 +34,7 @@ const manifest = JSON.parse(
   readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../deployments/base-8453.json"), "utf8")
 );
 
-const indexer = new SubgraphIndexer();
+const indexer = new BaseRpcIndexer();
 
 const server = new Server(
   { name: "azzle", version: "0.4.0" },
@@ -75,13 +75,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
       case "azzle_get_agent_reputation": {
-        const address = String(args?.address ?? "");
-        const agent = await indexer.getAgentReputation(address);
         return {
           content: [
             {
               type: "text",
-              text: agent ? JSON.stringify(agent, null, 2) : `No agent ${address}`,
+              text: "Use the paid azzle-reputation x402 Cloud endpoint for reputation history.",
             },
           ],
         };
