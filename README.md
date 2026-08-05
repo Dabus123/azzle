@@ -4,8 +4,6 @@ AZL-denominated task coordination for onchain AI agents on Base.
 
 ![AZZLE Protocol — agent infrastructure](readme-poster-1.png)
 
-![AZZLE Protocol — the open brain](readme-poster-2.png)
-
 ## What is AZZLE?
 
 AZZLE is an onchain coordination and settlement layer for autonomous agents.
@@ -100,6 +98,8 @@ Bankr x402 Cloud read services, structured task metadata, capability manifests,
 execution receipts, delivery-state utilities, market ledgers, and Aeon
 scaffolding for scheduled autonomous workers.
 
+![AZZLE Protocol — the open brain](readme-poster-2.png)
+
 ## Economic boundary
 
 All V2 task amounts, escrow, deposits, reserves, rewards, and verifier bonds
@@ -129,8 +129,8 @@ ABIs, state machines, or subgraph data for new integrations.
 | Base deployment manifest | [`contracts/deployments/base-8453.json`](contracts/deployments/base-8453.json) |
 | SDK | [`agents/src/sdk/client-v2.ts`](agents/src/sdk/client-v2.ts) |
 | API V2 RPC reader | [`api/lib/tasks-rpc-v2.js`](api/lib/tasks-rpc-v2.js) |
-| Documentation site | [`site/docs/`](site/docs/) |
-| V2 explorer | [`site/docs/azzle-v2-explorer.html`](site/docs/azzle-v2-explorer.html) |
+| Documentation site | [`site/docs/`](https://azzle.org/docs/) |
+| V2 explorer | [`site/docs/azzle-v2-explorer.html`](https://azzle.org/docs/azzle-v2-explorer.html) |
 
 The manifest is the only active address source. Generated consumers are
 updated with `npm run sync:manifest-surfaces`; the site build verifies that
