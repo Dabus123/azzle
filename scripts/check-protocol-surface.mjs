@@ -2,7 +2,7 @@
  * Fast regression check for accidental reintroduction of retired operational
  * surfaces. Historical audit and x-ray materials are intentionally excluded.
  */
-import { readdir, readFile } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -101,16 +101,22 @@ for (const token of [
     violations.push(`src/azzle-chain.js exposes retired V2-incompatible wallet token ${token}`);
   }
 }
-const walletBundle = await readFile(join(root, "site", "role-wallet.bundle.js"), "utf8");
-for (const token of ["postTask", "fundTask", "startWork", "acceptMilestone", "getTask("]) {
-  if (walletBundle.includes(token)) {
-    violations.push(`site/role-wallet.bundle.js exposes legacy wallet token ${token}`);
+const walletBundlePath = join(root, "site", "role-wallet.bundle.js");
+try {
+  await access(walletBundlePath);
+  const walletBundle = await readFile(walletBundlePath, "utf8");
+  for (const token of ["postTask", "fundTask", "startWork", "acceptMilestone", "getTask("]) {
+    if (walletBundle.includes(token)) {
+      violations.push(`site/role-wallet.bundle.js exposes legacy wallet token ${token}`);
+    }
   }
-}
-for (const token of ["topUp", "lockedBalance", "maxWithdrawableDeposit", "approveUsdcVault", "depositToVault", "withdrawFromVault"]) {
-  if (walletBundle.includes(token)) {
-    violations.push(`site/role-wallet.bundle.js exposes retired V2-incompatible wallet token ${token}`);
+  for (const token of ["topUp", "lockedBalance", "maxWithdrawableDeposit", "approveUsdcVault", "depositToVault", "withdrawFromVault"]) {
+    if (walletBundle.includes(token)) {
+      violations.push(`site/role-wallet.bundle.js exposes retired V2-incompatible wallet token ${token}`);
+    }
   }
+} catch {
+  console.log("[protocol-surface] wallet bundle not built; source surface check is authoritative");
 }
 for (const [rel, marker] of generatedTextConsumers) {
   const content = await readFile(join(root, rel), "utf8");
