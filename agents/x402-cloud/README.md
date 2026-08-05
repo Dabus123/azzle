@@ -1,6 +1,6 @@
 # AZZLE on Bankr x402 Cloud
 
-Paid, agent-discoverable endpoints that expose AZZLE's live on-chain data
+The standard paid, agent-discoverable interface for AZZLE live on-chain data:
 (task discovery + reputation) as monetized HTTP APIs via
 [Bankr x402 Cloud](https://bankr.bot/x402) — hosting, x402 payments, on-chain
 AZZLE settlement, and agent discovery handled by Bankr.
@@ -20,12 +20,13 @@ x402-cloud/
 └── x402/
     ├── azzle-open-tasks/index.ts
     ├── azzle-task/index.ts
+    ├── azzle-task-scope/index.ts
     ├── azzle-reputation/index.ts
     └── azzle-leaderboard/index.ts
 ```
 
 Each `index.ts` is a **self-contained** `Request → response` handler (Bankr
-bundles per service, so handlers inline their own Base RPC helper — no
+bundles per service, so handlers make direct Base RPC reads — no
 cross-directory imports). Handlers return plain objects (auto-wrapped as JSON)
 or a full `Response` for non-2xx cases.
 
@@ -35,6 +36,7 @@ or a full `Response` for non-2xx cases.
 |---------|---------|-------------|--------|
 | `azzle-open-tasks` | Tasks in `POSTED` state | 100 | `?limit=1..100` |
 | `azzle-task` | Single task by id | 100 | `?id=<taskId>` |
+| `azzle-task-scope` | Immutable public scope by task id | 100 | `?id=<taskId>` |
 | `azzle-reputation` | Agent rep, history, signals | 200 | `?address=0x...` |
 | `azzle-leaderboard` | Top agents / verifiers | 200 | `?kind=reputation\|verifiers&limit=` |
 
@@ -65,14 +67,15 @@ bankr whoami                     # verify
 ```bash
 cd agents/x402-cloud
 
-# Recommended: use a reliable authenticated Base RPC provider.
-bankr x402 env set BASE_RPC_URL=https://your-base-rpc-provider.example
+# optional: use a dedicated Base RPC provider
+bankr x402 env set BASE_RPC_URL=https://mainnet.base.org
 
 # deploy every service in bankr.x402.json (prices/schemas already configured)
 # NOTE: batch deploy (`bankr x402 deploy` with no name) can return 403 on some
 # accounts — deploy one service at a time if that happens:
 bankr x402 deploy azzle-open-tasks
 bankr x402 deploy azzle-task
+bankr x402 deploy azzle-task-scope
 bankr x402 deploy azzle-reputation
 bankr x402 deploy azzle-leaderboard
 
@@ -101,10 +104,11 @@ curl -i "https://x402.bankr.bot/<wallet>/azzle-open-tasks?limit=20"
 # paid call with automatic AZZLE payment from your Bankr wallet
 bankr x402 call "https://x402.bankr.bot/<wallet>/azzle-reputation?address=0xabc...def"
 bankr x402 call "https://x402.bankr.bot/<wallet>/azzle-task" -i   # interactive: prompts for id
+bankr x402 call "https://x402.bankr.bot/<wallet>/azzle-task-scope?id=42"
 ```
 
 Payments use **settle-after-response**: handlers return a non-2xx (and throw on
-Base RPC failure) for bad input or upstream errors, so callers are **not**
+upstream failure) for bad input or upstream errors, so callers are **not**
 charged for failed requests.
 
 ## Create / manage via chat (no CLI)
@@ -123,11 +127,10 @@ list my x402 endpoints
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `BASE_RPC_URL` | Base JSON-RPC endpoint for canonical contract reads | `https://mainnet.base.org` |
+| `BASE_RPC_URL` | Base JSON-RPC endpoint | `https://mainnet.base.org` |
 
 Set via `bankr x402 env set KEY=VALUE` (encrypted at rest) — never through chat.
-These endpoints need no secrets; configure a dedicated RPC URL for production
-rate limits and reliability.
+These endpoints need no secrets; Base public RPC is the default.
 
 ## Pricing in AZZLE
 
@@ -172,6 +175,5 @@ directly for custom tokens, then `bankr x402 deploy <name>`.
 | Job payment | `EscrowVault` | USDC escrow on-chain |
 | **Read-data monetization (this folder)** | **Bankr x402 Cloud** | **per-call AZZLE → your wallet** |
 
-The paid endpoints and the site's free market routes both read canonical Base
-contract state. The site preserves its free same-origin APIs for browser users;
-x402 Cloud is the standard paid, agent-discoverable interface.
+The free browser market uses first-party Base RPC routes; these endpoints are
+the paid agent-native discovery interface.

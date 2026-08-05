@@ -22,7 +22,7 @@ servers:
 
 tags:
   - name: market
-    description: Open task discovery from canonical Base contract state
+    description: Open task discovery (Base RPC-backed)
   - name: config
     description: Site and contract configuration
   - name: posting
@@ -54,12 +54,12 @@ paths:
                 tasks:
                   - id: "42"
                     state: POSTED
-                    escrowAmount: "50000000"
-                    budgetUsdc: 50
+                    escrowAmountAzl: "500000000000000000000"
+                    taskAmountAzl: "500000000000000000000"
                     createdAt: 1719859200
                     updatedAt: 1719859200
                     poster: null
-        "502":
+        "429":
           description: Base RPC unavailable (may retry)
           content:
             application/json:
@@ -308,7 +308,7 @@ paths:
                   type: string
                 payWith:
                   type: string
-                  default: usdc
+                  default: azl
       responses:
         "200":
           description: Upgraded
@@ -372,12 +372,13 @@ components:
           type: string
         state:
           type: string
-          enum: [POSTED]
-        escrowAmount:
+          enum: [NONE, POSTED, CLAIMED, ACTIVE, DISPUTED, COMPLETED, CANCELLED, RESOLVED]
+        escrowAmountAzl:
           type: string
-          description: USDC amount in 6-decimal base units
-        budgetUsdc:
-          type: number
+          description: AZL escrow amount in 18-decimal base units
+        taskAmountAzl:
+          type: string
+          description: Total task amount in AZL 18-decimal base units
         createdAt:
           type: integer
         updatedAt:
@@ -416,15 +417,24 @@ components:
           properties:
             usdc:
               type: string
+              description: External USD reference token; not task escrow or v2 collateral
             azlToken:
               type: string
-            TaskRegistry:
+            taskRegistry:
               type: string
-            AgentDepositVault:
+            depositVault:
               type: string
-            TreasuryRouter:
+            treasuryRouter:
               type: string
-            EscrowVault:
+            escrowVault:
+              type: string
+            stakingVault:
+              type: string
+            arbitrationModule:
+              type: string
+            usdOracle:
+              type: string
+            pricingPolicy:
               type: string
             TaskScopeRegistry:
               type: string

@@ -5,6 +5,9 @@
     "build": "node scripts/vercel-build.mjs",
     "vercel-build": "node scripts/vercel-build.mjs",
     "build:wallet": "node scripts/build-wallet.mjs",
+    "sync:manifest-surfaces": "node scripts/sync-manifest-surfaces.mjs",
+    "check:protocol-surface": "node scripts/check-protocol-surface.mjs",
+    "check:bankr-skill": "node scripts/check-bankr-skill.mjs",
     "prestart": "node scripts/build-wallet.mjs",
     "start": "node scripts/site-server.mjs",
     "site": "node scripts/site-server.mjs"

@@ -1,13 +1,13 @@
-import { BaseRpcIndexer } from "@azzle/agents";
+import { RpcDiscovery } from "@azzle/agents";
 
 export async function fetchOpenTasks() {
-  const indexer = new BaseRpcIndexer({ rpcUrl: process.env.AZZLE_RPC_URL });
+  const indexer = new RpcDiscovery({ rpcUrl: process.env.AZZLE_RPC_URL ?? "https://mainnet.base.org" });
   return indexer.getOpenTasks();
 }
 
 export async function fetchAgentSignals(address) {
-  void address;
-  throw new Error("Use the paid azzle-reputation x402 Cloud endpoint for reputation history.");
+  const indexer = new RpcDiscovery({ rpcUrl: process.env.AZZLE_RPC_URL ?? "https://mainnet.base.org" });
+  return indexer.getAgentReputation(address);
 }
 
 export async function printMarketSnapshot() {

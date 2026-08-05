@@ -40,7 +40,7 @@ skills:
   azzle-worker: { enabled: false, schedule: "workflow_dispatch", var: "" }
 ```
 
-- **`azzle-market`** — read-only subgraph digest. Safe to cron daily.
+- **`azzle-market`** — read-only Base RPC V2 digest. Safe to cron daily.
 - **`azzle-worker`** — claim playbook. Keep `schedule: workflow_dispatch`; run on demand when wallet is funded.
 
 Order in `aeon.yml` matters for Aeon’s scheduler (first matching cron wins). Place day-specific or rare skills before daily ones.
@@ -68,7 +68,7 @@ Add these under **Settings → Secrets and variables → Actions** on your Aeon 
 
 | Secret | Required | Used by | Purpose |
 |--------|----------|---------|---------|
-| `AZZLE_SUBGRAPH_URL` | No | `azzle-market`, `azzle-worker` | Override subgraph (default: Studio v0.3 — see `memory/topics/azzle-protocol.md`) |
+| `AZZLE_RPC_URL` | No | `azzle-market`, `azzle-worker` | Base RPC endpoint for authoritative task reads |
 | `AZZLE_RPC_URL` | No | `azzle-worker`, SDK scripts | Base RPC (default: `https://mainnet.base.org`) |
 | `BANKR_API_KEY` | For on-chain worker steps | `azzle-worker` | Wallet swaps, approvals, `claimTask` via [Bankr skill](https://github.com/BankrBot/skills) |
 
@@ -105,7 +105,7 @@ GitHub delivers only a fraction of `*/5` ticks; Aeon’s debt/catch-up model (`s
 ## Verify without wallet
 
 ```bash
-./scripts/azzle/subgraph.sh open-tasks
+cd azzle && npm run list-open
 cd azzle && npm run list-open
 ```
 

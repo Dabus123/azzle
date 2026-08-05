@@ -1,5 +1,5 @@
 /**
- * Minimal x402 stub — 402 responses only (no subgraph, no receipt store).
+ * Minimal x402 stub — 402 responses only (no market reads, no receipt store).
  * @see docs/X402_PAYMENTS.md · agents/x402/README.md
  */
 import { createServer } from "node:http";

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>V2 lifecycle simulation — AZZLE Protocol</title>
+  <meta name="description" content="Interactive AZZLE V2 fixed-total AZL task lifecycle simulation.">
+  <link rel="stylesheet" href="/site-theme.css">
+  <link rel="stylesheet" href="/role-dashboard.css">
+  <link rel="stylesheet" href="/docs.css">
+</head>
+<body class="page-docs">
+  <main class="docs-main" style="max-width:900px;margin:0 auto;padding:48px 24px">
+    <p class="docs-crumb"><a href="/docs/">Docs</a> / V2 lifecycle simulation</p>
+    <h1>V2 lifecycle simulation</h1>
+    <p class="docs-lead">A read-only walkthrough of the canonical <code>TaskRegistryV2</code> state machine and fixed-total AZL escrow.</p>
+
+    <section class="docs-section">
+      <h2>Canonical flow</h2>
+      <div id="flow" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"></div>
+      <p id="description"></p>
+      <button id="next" type="button">Next V2 transition</button>
+      <button id="reset" type="button">Reset</button>
+    </section>
+
+    <section class="docs-section">
+      <h2>Onchain calls</h2>
+      <pre id="calls"></pre>
+      <p>V2 does not implement the retired milestone, streaming, hour-block, proof-submission, review-state, or legacy USDC-task flows.</p>
+    </section>
+
+    <section class="docs-section">
+      <h2>Canonical sources</h2>
+      <ul>
+        <li><a href="/docs/contracts.html">V2 contract reference</a></li>
+        <li><a href="/docs/azzle-v2-explorer.html">V2 explorer</a></li>
+        <li><a href="https://github.com/Dabus123/azzle/blob/main/contracts/src/v2/TaskRegistryV2.sol">TaskRegistryV2.sol</a></li>
+      </ul>
+    </section>
+  </main>
+  <script>
+    const states = ["NONE", "POSTED", "CLAIMED", "ACTIVE", "COMPLETED"];
+    const calls = [
+      "post(totalAmount, deadline)",
+      "claim(taskId)",
+      "fund(taskId, amount)",
+      "activate(taskId) // compatibility call after full funding",
+      "markDelivered(taskId)",
+      "release(taskId, amount)",
+      "complete(taskId)"
+    ];
+    const descriptions = {
+      NONE: "No task exists yet.",
+      POSTED: "The poster created a fixed-total AZL task; a worker may claim it.",
+      CLAIMED: "A non-poster worker claimed the task; funding is still required.",
+      ACTIVE: "The poster fully funded escrow and the task can progress or be disputed.",
+      COMPLETED: "The terminal success state; remaining funded AZL is released to the worker."
+    };
+    let index = 0;
+    const flow = document.querySelector("#flow");
+    const description = document.querySelector("#description");
+    const callLog = document.querySelector("#calls");
+    function render() {
+      flow.innerHTML = states.map((state, i) =>
+        `${i ? "<span>→</span>" : ""}<code style="padding:8px;border:1px solid ${i === index ? "#dcff28" : "#555"}">${state}</code>`
+      ).join("");
+      description.textContent = descriptions[states[index]];
+      callLog.textContent = calls.slice(0, Math.max(0, index)).join("\n") || "// no calls yet";
+    }
+    document.querySelector("#next").addEventListener("click", () => { index = Math.min(index + 1, states.length - 1); render(); });
+    document.querySelector("#reset").addEventListener("click", () => { index = 0; render(); });
+    render();
+  </script>
+</body>
+</html>

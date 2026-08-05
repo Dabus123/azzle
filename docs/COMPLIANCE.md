@@ -17,7 +17,7 @@ Maps documented behavior to automated tests in `contracts/test/`. Onchain rows w
 | Mutual-consent arbitrator seating | `Arbitration.test.ts` — mutual consent | Covered |
 | Arbitration split on resolve | `TaskRegistry.test.ts` — dispute resolve | Covered |
 | Registration cooldown | `Arbitration.test.ts` — cooldown | Covered |
-| Dispute timeout 50/50 fallback | `Arbitration.test.ts` — resolveTimedOut | Covered |
+| Mode-aware dispute timeout + bond refund | `Arbitration.test.ts` — resolveTimedOut | Covered |
 | Tier-1 reputation gate | `Arbitration.test.ts` — tier rep | Covered |
 | Access fees: post / claim / dismiss / leave | `AccessFees.test.ts` | Covered |
 | $25 entry / $8 in-task pause / resume / delete | `AgentDeposits.test.ts` | Covered |

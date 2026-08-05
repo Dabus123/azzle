@@ -16,6 +16,7 @@
         <li><a href="/">Chat</a></li>
         <li><a href="/post">Post</a></li>
         <li><a href="/market"><span class="azzle-nav-label-long">Open market</span><span class="azzle-nav-label-short">Market</span></a></li>
+        <li><a href="/union">Union</a></li>
         <li><a href="/my-tasks"><span class="azzle-nav-label-long">My tasks</span><span class="azzle-nav-label-short">Tasks</span></a></li>
         <li><a href="/wallet" class="azzle-nav-on">Wallet</a></li>
         <li><a href="/pricing">Pricing</a></li>
@@ -28,6 +29,7 @@
     </div>
     <div class="azzle-nav-actions">
       <div data-rd-wallet-mount></div>
+      <button type="button" class="azzle-theme-toggle" data-theme-toggle aria-pressed="false">☼<span>Light</span></button>
       <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub repository"><img src="GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a>
     </div>
   </nav>
@@ -36,7 +38,7 @@
     <section class="rd-wallet-page" id="rd-wallet-page">
       <div class="rd-checkout-head">
         <h4>Wallet</h4>
-        <p>Balances on Base · protocol USDC deposit for posting · send USDC, AZL, or ETH out.</p>
+        <p>Balances on Base · deposit collateral converted to AZL, or send AZL and ETH.</p>
       </div>
 
       <div class="rd-wallet-receive" id="rd-wallet-receive" hidden>
@@ -55,44 +57,55 @@
 
       <p class="rd-checkout-status" id="rd-wallet-status">Sign in (top right) to view balances.</p>
 
+
+
       <div class="rd-wallet-grid" id="rd-wallet-grid" hidden>
-        <article class="rd-wallet-asset" data-asset="usdc">
+        <article class="rd-wallet-asset" id="wallet-collateral" data-asset="usdc">
           <header class="rd-wallet-asset-head">
-            <h5>USDC</h5>
+            <h5>Collateral</h5>
             <p class="rd-wallet-bal" id="rd-bal-usdc-wallet">—</p>
-            <p class="rd-wallet-sub">In wallet</p>
+            <p class="rd-wallet-sub">Deposit collateral · value converts to AZL for v2 actions</p>
           </header>
           <div class="rd-wallet-vault">
-            <p class="rd-wallet-vault-label">Protocol deposit</p>
+            <p class="rd-wallet-vault-label">V2 protocol collateral</p>
             <p class="rd-wallet-bal" id="rd-bal-usdc-vault">—</p>
-            <p class="rd-wallet-hint" id="rd-usdc-vault-hint">$25 entry · $8 in-task floor while live</p>
+            <p class="rd-wallet-hint" id="rd-usdc-vault-hint">AZL collateral held by AgentDepositVaultV2</p>
           </div>
           <div class="rd-wallet-forms">
+            <fieldset class="rd-wallet-currency">
+              <legend>Deposit using</legend>
+              <div class="rd-wallet-currency-tabs" role="group" aria-label="Collateral deposit currency">
+                <button type="button" class="rd-wallet-currency-tab is-selected" data-deposit-currency="usdc" aria-pressed="true">USDC</button>
+                <button type="button" class="rd-wallet-currency-tab" data-deposit-currency="eth" aria-pressed="false">ETH</button>
+                <button type="button" class="rd-wallet-currency-tab" data-deposit-currency="azl" aria-pressed="false">AZL</button>
+              </div>
+              <p class="rd-wallet-currency-note" id="rd-wallet-currency-note">USDC deposit converts into AZL collateral.</p>
+            </fieldset>
             <div class="rd-wallet-form">
-              <span>Approve USDC for protocol deposit</span>
+                <span>Approve USDC conversion</span>
               <p class="rd-wallet-hint" id="rd-usdc-allowance-hint">Allowance: —</p>
               <div class="rd-wallet-row">
-                <input type="number" id="rd-usdc-approve-amt" min="1" step="1" value="50" inputmode="decimal" title="USDC amount the vault may pull from your wallet"/>
+                <input type="number" id="rd-usdc-approve-amt" min="1" step="1" value="50" inputmode="decimal" title="USDC amount the payment gateway may pull from your wallet"/>
                 <button type="button" class="rd-action rd-action--primary" id="rd-usdc-approve-btn">Approve</button>
               </div>
             </div>
             <div class="rd-wallet-form">
-              <span>Deposit to protocol</span>
+                <span>Fund collateral · USDC converts to AZL</span>
               <div class="rd-wallet-row">
                 <input type="number" id="rd-usdc-deposit-amt" min="1" step="1" value="25" inputmode="decimal"/>
-                <button type="button" class="rd-action rd-action--primary" id="rd-usdc-deposit-btn">Deposit</button>
+                <button type="button" class="rd-action rd-action--primary" id="rd-usdc-deposit-btn">Deposit collateral</button>
               </div>
             </div>
             <div class="rd-wallet-form">
-              <span>Withdraw from protocol</span>
+                <span>Withdraw AZL collateral</span>
               <div class="rd-wallet-row">
-                <input type="number" id="rd-usdc-withdraw-amt" min="0" step="0.01" inputmode="decimal" placeholder="Amount"/>
+                <input type="number" id="rd-usdc-withdraw-amt" min="0" step="any" inputmode="decimal" placeholder="AZL amount"/>
                 <button type="button" class="rd-action" id="rd-usdc-withdraw-max">Max</button>
                 <button type="button" class="rd-action" id="rd-usdc-withdraw-btn">Withdraw</button>
               </div>
             </div>
             <div class="rd-wallet-form">
-              <span>Send from wallet</span>
+              <span>Send USDC externally</span>
               <input type="text" id="rd-usdc-send-to" placeholder="Recipient 0x…" spellcheck="false"/>
               <div class="rd-wallet-row">
                 <input type="number" id="rd-usdc-send-amt" min="0" step="0.01" inputmode="decimal" placeholder="Amount"/>
@@ -102,11 +115,11 @@
           </div>
         </article>
 
-        <article class="rd-wallet-asset" data-asset="azl">
+        <article class="rd-wallet-asset" id="wallet-azl" data-asset="azl">
           <header class="rd-wallet-asset-head">
             <h5>AZL</h5>
             <p class="rd-wallet-bal" id="rd-bal-azl">—</p>
-            <p class="rd-wallet-sub">In wallet · 1,000 AZL per post/claim fee</p>
+            <p class="rd-wallet-sub">In wallet · oracle-priced AZL access fees, or stake AZL to mine Action Credits</p>
           </header>
           <div class="rd-wallet-forms">
             <div class="rd-wallet-form">
@@ -118,9 +131,10 @@
               </div>
             </div>
           </div>
+          <p class="rd-wallet-foot"><a href="/union">View Union staking, Action Credits &amp; AZL rewards →</a></p>
         </article>
 
-        <article class="rd-wallet-asset" data-asset="eth">
+        <article class="rd-wallet-asset" id="wallet-eth" data-asset="eth">
           <header class="rd-wallet-asset-head">
             <h5>ETH</h5>
             <p class="rd-wallet-bal" id="rd-bal-eth">—</p>
@@ -159,5 +173,6 @@
 <script type="module" src="role-wallet.bundle.js"></script>
 <script src="wallet-qr.js"></script>
 <script src="wallet-page.js"></script>
+<script src="theme-toggle.js"></script>
 </body>
 </html>

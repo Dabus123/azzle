@@ -40,5 +40,22 @@ export {
   type XmtpTransportOptions,
 } from "./transport.js";
 export { NegotiationHandlers, type AgentRole, type NegotiationHandlersConfig } from "./handlers.js";
+export type {
+  NegotiationCallbacks,
+  NegotiationState,
+  DeliveryDecision,
+  PaymentDecision,
+  TaskAcceptedInfo,
+  MilestoneDefinitionPayload,
+  RevisionRequestPayload,
+  DeliveryNoticePayload,
+  AcceptDeliveryPayload,
+  PaymentRequestPayload,
+  CapabilityProofPayload,
+  DisputeEvidencePayload,
+  MutualCancelPayload,
+  ReplacementContextPayload,
+  SupervisorVetoPayload,
+} from "./handlers.js";
 export { ChainEventIndexer, type ChainEventIndexerConfig } from "./correlation.js";
 export { startAgent, type AgentStartupConfig, type StartedAgent } from "./agent.js";

@@ -12,7 +12,7 @@ loadDotEnv(import.meta.url);
 
 const manifest = loadManifest(import.meta.url, "base-8453.json");
 import { runApprovalScaffold } from "./lib/approvals.mjs";
-import { acceptMilestone, fundTaskEscrow, openDispute } from "./lib/escrow.mjs";
+import { acceptMilestone, fundTaskEscrow, openDispute, startMarketWorkWhenClaimed } from "./lib/escrow.mjs";
 
 const rpcUrl = process.env.AZZLE_RPC_URL ?? "https://mainnet.base.org";
 
@@ -25,9 +25,9 @@ function requireSigner() {
 function connectClient(signer) {
   return new AzzleClient({
     rpcUrl,
-    registryAddress: manifest.TaskRegistry,
-    escrowAddress: manifest.EscrowVault,
-    arbitrationAddress: manifest.ArbitrationModule,
+    registryAddress: manifest.taskRegistry,
+    escrowAddress: manifest.escrowVault,
+    arbitrationAddress: manifest.arbitrationModule,
   }).connect(signer);
 }
 
@@ -36,13 +36,11 @@ function sampleTerms(poster, worker = ethers.ZeroAddress) {
   return {
     poster,
     worker,
-    token: manifest.usdc,
-    totalAmount: 50_000_000n, // $50 USDC
-    escrowMode: "milestone",
-    milestoneAmounts: [50_000_000n],
+    token: manifest.external.azl,
+    totalAmount: 50_000_000_000_000_000_000n, // 50 AZL
     deadline: BigInt(Math.floor(Date.now() / 1000) + 7 * 86400),
-    acceptanceCriteriaHash,
-    replacementAllowed: true,
+    chainId: 8453n,
+    registryAddress: manifest.taskRegistry,
   };
 }
 
@@ -51,10 +49,10 @@ async function runPreflight() {
   const wallet = await signer.getAddress();
   await runApprovalScaffold(signer);
   const report = await checkWorkerPreflight(signer.provider, wallet, {
-    agentDepositVault: manifest.AgentDepositVault,
-    treasuryRouter: manifest.TreasuryRouter,
-    azlToken: manifest.azlToken,
-    usdc: manifest.usdc,
+    agentDepositVault: manifest.depositVault,
+    treasuryRouter: manifest.treasuryRouter,
+    azlToken: manifest.external.azl,
+    usdc: manifest.external.usdc,
   });
   logPreflightReport(report);
 }
@@ -86,6 +84,14 @@ async function postTaskFlow(mode = "market") {
   const fundAmount = terms.totalAmount;
   await fundTaskEscrow(client, signer, result.taskId, fundAmount);
 
+  if (mode === "direct" || worker) {
+    console.log(
+      "[poster] direct-hire invitation funded; waiting for the invited worker to call acceptDirectHire"
+    );
+  } else {
+    await startMarketWorkWhenClaimed(client, result.taskId);
+  }
+
   console.log("[poster] handlers wired:");
   console.log("  acceptMilestone(taskId, 0) — release milestone to worker");
   console.log("  openDispute(taskId, evidenceHash) — freeze escrow, enter arbitration");
@@ -100,6 +106,20 @@ async function fundOnly(taskIdArg) {
   const client = connectClient(signer);
   const amount = BigInt(process.env.FUND_AMOUNT ?? "50000000");
   await fundTaskEscrow(client, signer, taskId, amount);
+  const task = await client.getTask(taskId);
+  if (task.worker !== ethers.ZeroAddress && task.state === 2) {
+    console.log(
+      "[poster] task is CLAIMED; for a direct hire, wait for worker acceptDirectHire; " +
+        "for a market claim, run the start command"
+    );
+  }
+}
+
+async function startOnly(taskIdArg) {
+  const taskId = BigInt(taskIdArg ?? process.env.TASK_ID ?? "0");
+  if (taskId === 0n) throw new Error("Usage: node agent.mjs start <taskId>");
+  const client = connectClient(requireSigner());
+  await startMarketWorkWhenClaimed(client, taskId);
 }
 
 async function main() {
@@ -117,6 +137,10 @@ async function main() {
   }
   if (cmd === "fund") {
     await fundOnly(sub);
+    return;
+  }
+  if (cmd === "start") {
+    await startOnly(sub);
     return;
   }
   if (cmd === "accept") {
@@ -139,6 +163,7 @@ async function main() {
   console.log("  npm run post               # postTask (search market)");
   console.log("  node agent.mjs post direct # createTask (direct hire + WORKER_ADDRESS)");
   console.log("  npm run fund -- <taskId>   # fundTask → EscrowVault");
+  console.log("  node agent.mjs start <taskId> # market claim only; direct hire waits for worker acceptance");
   console.log("  node agent.mjs accept <taskId>");
   console.log("  node agent.mjs dispute <taskId>");
 }

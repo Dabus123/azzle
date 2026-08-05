@@ -60,6 +60,14 @@ export class XmtpNegotiationTransport implements NegotiationTransport {
 
   bindTaskId(negotiationId: string, taskId: string | bigint): void {
     const id = taskId.toString();
+    const existingTask = this.negotiationTaskMap.get(negotiationId);
+    const existingNegotiation = this.taskNegotiationMap.get(id);
+    if (existingTask !== undefined && existingTask !== id) {
+      throw new Error(`Negotiation ${negotiationId} is already bound to task ${existingTask}`);
+    }
+    if (existingNegotiation !== undefined && existingNegotiation !== negotiationId) {
+      throw new Error(`Task ${id} is already bound to negotiation ${existingNegotiation}`);
+    }
     this.negotiationTaskMap.set(negotiationId, id);
     this.taskNegotiationMap.set(id, negotiationId);
   }

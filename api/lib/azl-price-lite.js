@@ -1,5 +1,7 @@
 /** AZL/USD price helpers without viem (safe for Vercel serverless). */
-const AZL_BASE = "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3";
+import MANIFEST from "./contracts.json" with { type: "json" };
+
+const AZL_BASE = MANIFEST.external.azl;
 const DEXSCREENER = `https://api.dexscreener.com/latest/dex/tokens/${AZL_BASE}`;
 const COINGECKO = `https://api.coingecko.com/api/v3/simple/token_price/base?contract_addresses=${AZL_BASE}&vs_currencies=usd`;
 export const MAX_AZL_CHECKOUT = 50_000_000;

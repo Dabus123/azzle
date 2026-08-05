@@ -15,16 +15,17 @@ const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.24",
     settings: {
-      optimizer: { enabled: true, runs: 200 },
+      // Favor deployability: TaskRegistry is feature-dense and must remain below EIP-170.
+      optimizer: { enabled: true, runs: 0 },
       viaIR: true,
     },
   },
   paths: {
-    sources: "./src",
-    tests: "./test",
+    sources: "./src/v2",
+    tests: "./src/v2/test-canonical",
   },
   networks: {
-    hardhat: {},
+    hardhat: { chainId: 8453 },
     ...(mainnetRpc
       ? {
           mainnet: {
@@ -44,9 +45,15 @@ const config: HardhatUserConfig = {
         }
       : {}),
   },
-  // Single Etherscan.io key → API v2 (chainid=8453 for Base). Per-network keys use deprecated v1.
+  // Single Etherscan.io key -> API v2 (chainid=8453 for Base). Per-network keys use deprecated v1.
   etherscan: etherscanKey ? { apiKey: etherscanKey } : undefined,
   sourcify: { enabled: false },
 };
+
+if (!baseRpc && process.argv.includes("--network") && process.argv.includes("base")) {
+  throw new Error(
+    "Base network is unavailable: set BASE_RPC_URL in contracts/.env before running deployment or promotion commands."
+  );
+}
 
 export default config;

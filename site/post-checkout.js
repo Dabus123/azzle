@@ -200,7 +200,7 @@
         taskId,
         txHash,
         description: task?.description,
-        budgetUsdc: task?.budgetUsdc,
+        taskAmountAzl: task?.taskAmountAzl ?? task?.budgetAzl,
         deadlineDays: task?.deadlineDays,
         discoveryOpen: task?.discoveryOpen !== false,
       }),
@@ -485,7 +485,7 @@
               status.depositUsdc +
               " entry on file — listing debits $" +
               status.listingFeeUsdc +
-              " from your deposit (+ 1,000 AZL). Post will top up $" +
+              " from your AZL collateral. Post will use the oracle-priced access amount.",
               status.listingFeeUsdc +
               " automatically if needed.",
             undefined
@@ -496,11 +496,11 @@
               status.depositUsdc +
               "). " +
               quotaLine +
-              " · listing uses $5 + 1,000 AZL.",
+            " · listing uses the $5 USD target converted to AZL.",
             "ok"
           );
         } else {
-          setCheckoutStatus("You need at least 1,000 AZL in your wallet to list a task.", "err");
+          setCheckoutStatus("You need sufficient AZL collateral for the oracle-priced access fee.", "err");
         }
         if (depositBtn) {
           depositBtn.disabled = checkoutBusy;
@@ -549,14 +549,14 @@
     const fromForm = $("rd-checkout") ? readDraftFromForm() : null;
     const draft = override ?? (fromForm?.scope ? fromForm : null) ?? loadDraft();
     if (!draft?.scope && !draft?.taskPrompt) throw new Error("No task scope — start from the chat first.");
-    const budgetUsdc = parseFloat(draft.budget);
+    const budgetAzl = parseFloat(draft.budget);
     const deadlineDays = parseInt(draft.days, 10);
-    if (!Number.isFinite(budgetUsdc) || budgetUsdc <= 0) throw new Error("Invalid budget in USDC.");
+    if (!Number.isFinite(budgetAzl) || budgetAzl <= 0) throw new Error("Invalid task amount in AZL.");
     if (!Number.isFinite(deadlineDays) || deadlineDays <= 0) throw new Error("Invalid deadline.");
     const description = (draft.taskPrompt || draft.scope || "").trim();
     if (!description) throw new Error("No task description — start from the chat first.");
     const discoveryOpen = draft.discoveryOpen !== false;
-    return { description, budgetUsdc, deadlineDays, discoveryOpen };
+    return { description, taskAmountAzl: budgetAzl, deadlineDays, discoveryOpen };
   }
 
   async function runDeposit(onProgress) {
@@ -626,7 +626,7 @@
     saveDraft({
       scope: task.description,
       taskPrompt: task.description,
-      budget: String(task.budgetUsdc),
+      budget: String(task.taskAmountAzl),
       days: task.deadlineDays,
       discoveryOpen: task.discoveryOpen,
     });
@@ -635,7 +635,10 @@
     if ($("rd-btn-post")) $("rd-btn-post").disabled = true;
     onProgress?.("Confirm in your wallet…", "busy");
     try {
-      const result = await api.postTask(task, (msg) => onProgress?.(msg, "busy"));
+      if (typeof api.postV2 !== "function") {
+        throw new Error("The connected wallet bridge does not expose the v2 TaskRegistry post flow yet.");
+      }
+      const result = await api.postV2(task, (msg) => onProgress?.(msg, "busy"));
       await recordPostSuccess(walletAddress, result.taskId, result.hash, task);
       localStorage.setItem(TASK_ID_KEY, result.taskId);
       const scopeNote =

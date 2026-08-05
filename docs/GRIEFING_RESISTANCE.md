@@ -1,23 +1,11 @@
 # Griefing Resistance Model
 
-## Replacement Cost Logic
+## Worker Changes
 
-When `replacementAllowed = true`:
-
-| costBearer | Who Pays | Rationale |
-|------------|----------|-----------|
-| `poster` | Poster | Poster chose unreliable worker |
-| `worker_bond` | Original worker bond | Worker fault |
-| `split` | 50/50 default | Ambiguous failure |
-
-Replacement worker receives `ReplacementContext` via XMTP with prior artifacts to avoid rework.
-
-**Griefing:** Poster falsely requests replacement to avoid payment.
-
-**Mitigation:**
-- Requires `ACTIVE` state + missed deadline OR failed proof (future Onchain predicate)
-- Reputation penalty for frivolous replacement requests
-- Original worker may dispute replacement
+The protocol does not implement in-place worker replacement. A poster and
+worker must settle, dismiss/leave while the task is still claimable, or open a
+dispute. This avoids committing an off-chain replacement term that the
+settlement state machine cannot enforce.
 
 ## Dispute Griefing
 
@@ -50,7 +38,9 @@ Replacement worker receives `ReplacementContext` via XMTP with prior artifacts t
 
 **Attack:** Initiate dispute with no evidence to lock funds.
 
-**Mitigation:** Evidence hash required at open; **`resolveTimedOut`** after 7 days releases 50/50 default split; tier escalation while dispute is OPEN.
+**Mitigation:** Evidence hash required at open; tier escalation while `OPEN`;
+permissionless fallback replacement after an inactive ruling window; and
+mode-aware `resolveTimedOut` settlement after the absolute deadline.
 
 ## Recursive Marketplace Scams
 
@@ -67,5 +57,5 @@ Replacement worker receives `ReplacementContext` via XMTP with prior artifacts t
 |--------|-------------------------|
 | Sybil identity | Bond + failed task opportunity cost |
 | Dispute | Bond + reputation risk |
-| Replacement request | Policy-defined bond |
+| Worker change | Exit fee or dispute bond |
 | False attestation | Verifier bond slash |

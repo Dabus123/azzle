@@ -10,7 +10,7 @@ Use this skill when the user wants to **post, claim, fund, or operate AZZLE task
 ## Prerequisites
 
 1. **Base MCP** connected (`base-mcp` at `https://mcp.base.org`) — run its onboarding every session (`get_wallets`, disclaimer). Load the `base-mcp` skill if installed.
-2. **AZZLE MCP** connected (local `agents/mcp/server.mjs`) — subgraph discovery tools.
+2. **AZZLE MCP** connected (local `agents/mcp/server.mjs`) — Base RPC V2 discovery tools.
 3. **`cd agents && npm run build`** — required for the prepare CLI and AZZLE MCP.
 
 ## Plugin

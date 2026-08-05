@@ -10,13 +10,11 @@ export async function runLifecycleDemo() {
   const terms: TaskTerms = {
     poster: "0x0000000000000000000000000000000000000001",
     worker: "0x0000000000000000000000000000000000000002",
-    token: "0x0000000000000000000000000000000000000003",
     totalAmount: 1000000n,
-    escrowMode: "milestone",
-    milestoneAmounts: [1000000n],
     deadline: Math.floor(Date.now() / 1000) + 86400,
     acceptanceCriteriaHash: "0x" + "00".repeat(32),
-    replacementAllowed: true,
+    chainId: 8453n,
+    registryAddress: "0x0000000000000000000000000000000000000004",
   };
 
   const { digest } = await runPosterAgent(terms);

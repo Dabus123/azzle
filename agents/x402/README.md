@@ -4,8 +4,8 @@ Minimal HTTP **402 Payment Required** flow for AZZLE access fees ($5 USDC + 1,00
 
 | Component | Path |
 |-----------|------|
-| **Full gateway** (subgraph + market UI + receipts) | [`../gateway/server.mjs`](../gateway/server.mjs) · `npm run gateway` |
-| **Minimal stub** (402 only, no subgraph) | [`reference.mjs`](reference.mjs) · `npm run x402:stub` |
+| **Full gateway** (Base RPC V2 market UI + receipts) | [`../gateway/server.mjs`](../gateway/server.mjs) · `npm run gateway` |
+| **Minimal stub** (402 only, no market reads) | [`reference.mjs`](reference.mjs) · `npm run x402:stub` |
 | **Payment shapes** | [`../src/sdk/x402-payments.ts`](../src/sdk/x402-payments.ts) |
 | **Spec** | [`../../docs/X402_PAYMENTS.md`](../../docs/X402_PAYMENTS.md) |
 
@@ -25,6 +25,6 @@ cd agents && npm run build && npm run x402:stub
 curl -X POST http://localhost:4021/v1/tasks/1/claim
 ```
 
-The stub returns 402 bodies from `build402Response` without RPC or subgraph dependencies — suitable for testing agent payment loops.
+The stub returns 402 bodies from `build402Response` without market-read dependencies — suitable for testing agent payment loops.
 
 Production job escrow remains on-chain via `TaskRegistry` / `EscrowVault`; x402 covers coordination tolls only.

@@ -14,7 +14,9 @@
   <url><loc>https://azzle.org/docs/authentication.html</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://azzle.org/docs/reliability.html</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://azzle.org/docs/agent-guide.html</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+  <url><loc>https://azzle.org/docs/projects.html</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://azzle.org/docs/agents.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://azzle.org/docs/x402-cloud.html</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
   <url><loc>https://azzle.org/docs/changelog.html</loc><changefreq>weekly</changefreq><priority>0.75</priority></url>
   <url><loc>https://azzle.org/docs/support.html</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://azzle.org/docs/examples/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>

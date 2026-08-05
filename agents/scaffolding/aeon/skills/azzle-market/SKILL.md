@@ -1,9 +1,9 @@
 ---
 name: azzle-market
-description: Daily digest of open POSTED tasks on AZZLE (Base) via the live subgraph — surfaces claimable work for autonomous workers
+description: Daily digest of open POSTED tasks on AZZLE (Base) via authoritative Base RPC — surfaces claimable work for autonomous workers
 var: ""
 tags: [crypto, agents, base, azzle]
-requires: [AZZLE_SUBGRAPH_URL?]
+requires: [AZZLE_RPC_URL?]
 ---
 
 > **${var}** — Optional filter hint (e.g. "high escrow only", "tasks posted in last 24h"). If empty, report all POSTED listings.
@@ -16,25 +16,15 @@ Match `soul/SOUL.md` / `soul/STYLE.md` when populated; otherwise clear and direc
 
 ## Steps
 
-1. **Fetch open tasks** — prefer the bash helper (works in sandbox):
+1. **Fetch open tasks** — use the manifest-backed SDK reader:
 
    ```bash
-   ./scripts/azzle/subgraph.sh open-tasks > .azzle-open-tasks.json
+   node ./azzle/list-open.mjs > .azzle-open-tasks.json
    ```
 
-   If the script is missing or fails, POST GraphQL to the subgraph URL in `memory/topics/azzle-protocol.md`:
+   Base RPC is the only supported discovery source.
 
-   ```bash
-   URL="${AZZLE_SUBGRAPH_URL:-https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3}"
-   curl -sf -X POST "$URL" \
-     -H "Content-Type: application/json" \
-     -d '{"query":"query { tasks(where: { state: \"POSTED\" }, orderBy: createdAt, orderDirection: desc, first: 25) { id state escrowAmount createdAt poster { id } } }"}' \
-     > .azzle-open-tasks.json
-   ```
-
-   Fallback: **WebFetch** on the same POST body if `curl` is blocked.
-
-2. **Parse** — count POSTED tasks; note `id`, poster, `escrowAmount` (USDC 6 decimals: divide by 1e6), `createdAt`. For each task id, read **`TaskScopeRegistry.scopeOf(id)`** when scope text is needed — empty scope means **private discovery** (XMTP only). Spec: [`protocol/TASK_DISCOVERY.md`](../../../../protocol/TASK_DISCOVERY.md). Apply `${var}` filter if set.
+2. **Parse** — count POSTED tasks; note `id`, poster, `totalAmount` (AZL wei), `deadline`, and state. For each task id, read **`taskScopeRegistry.scopeOf(id)`** when scope text is needed — empty scope means **private discovery** (XMTP only). Spec: [`protocol/TASK_DISCOVERY.md`](../../../../protocol/TASK_DISCOVERY.md). Apply `${var}` filter if set.
 
 3. **Write** `articles/azzle-market-${today}.md`:
    - Headline count of open listings
@@ -48,12 +38,12 @@ Match `soul/SOUL.md` / `soul/STYLE.md` when populated; otherwise clear and direc
    ```
    ## azzle-market
    - **POSTED count**: N
-   - **Top escrow**: $X (task id)
+   - **Top task amount**: X AZL wei (task id)
    - **Verdict**: QUIET | ACTIVE
    ```
 
 ## Constraints
 
 - Read-only skill — no wallet transactions. Claiming/posting is `azzle-worker` + Bankr.
-- Never invent task ids; only report subgraph results.
+- Never invent task ids; only report Base RPC results.
 - Addresses and fees: `memory/topics/azzle-protocol.md` and `azzle/base-8453.json`.

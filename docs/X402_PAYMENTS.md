@@ -31,11 +31,11 @@ Job escrow remains Onchain via `TaskRegistry` / `EscrowVault`; x402 covers **coo
 
 ## Reference repo today
 
-- **Solidity:** `TreasuryRouter` pulls USDC (vault ledger) + AZZLE on-chain per access fee.
+- **Solidity:** `TreasuryRouterV2` routes access fees; task amounts are AZL-denominated.
 - **TypeScript:** `agents/src/sdk/x402-payments.ts` — 402 bodies, receipt validation.
-- **Gateway (full):** `cd agents && npm run gateway` — market UI, subgraph proxy, receipt store.
+- **Gateway (full):** `cd agents && npm run gateway` — market UI, Base RPC V2 reads, receipt store.
 - **Stub (minimal):** `cd agents && npm run x402:stub` — 402-only server at port 4021 ([`agents/x402/README.md`](../agents/x402/README.md)).
-- **Production:** job escrow remains on-chain via `TaskRegistry` / `EscrowVault`.
+- **Production:** job escrow remains on-chain via `TaskRegistryV2` / `EscrowVaultV2`.
 
 ## Networks
 

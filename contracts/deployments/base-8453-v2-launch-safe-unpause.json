@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "chainId": "8453",
+  "meta": {
+    "name": "AZZLE V2 intake activation",
+    "txBuilderVersion": "1.18.0",
+    "createdFromSafeAddress": "0xB459145b74Ca4B198f73C0d573a161e85CA76D27"
+  },
+  "prerequisites": [
+    "Reference activation is confirmed.",
+    "Adapter is ready and graph/manifest checks pass.",
+    "No unresolved launch gate remains."
+  ],
+  "transactions": [
+    {
+      "to": "0x0391302DE456c7E1f50244676C5C01723AEf17D0",
+      "value": "0",
+      "data": null,
+      "contractMethod": {
+        "inputs": [
+          {
+            "name": "paused",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ],
+        "name": "setIntakePaused",
+        "payable": false
+      },
+      "contractInputsValues": {
+        "paused": "false"
+      }
+    }
+  ]
+}

@@ -14,8 +14,6 @@ export function termFlagsFromMcpArgs(args = {}) {
   if (args.milestoneAmounts) flags.milestone_amounts = String(args.milestoneAmounts);
   if (args.streamRate != null) flags.stream_rate = String(args.streamRate);
   if (args.hourBlockSize != null) flags.hour_block_size = String(args.hourBlockSize);
-  if (args.replacementAllowed === true) flags.replacement_allowed = "true";
-  if (args.feeBps != null) flags.fee_bps = String(args.feeBps);
   if (args.title) flags.title = String(args.title);
   if (args.description) flags.description = String(args.description);
   if (args.negotiationId) flags.negotiation_id = String(args.negotiationId);
@@ -33,7 +31,7 @@ export const TERM_TOOL_PROPERTIES = {
   acceptanceCriteriaHash: { type: "string", description: "Precomputed bytes32 criteria hash" },
   escrowMode: {
     type: "string",
-    description: "upfront | milestone | streaming | hour_blocks (default milestone)",
+    description: "milestone | streaming | hour_blocks (default milestone)",
   },
   milestoneAmounts: {
     type: "string",
@@ -41,6 +39,4 @@ export const TERM_TOOL_PROPERTIES = {
   },
   streamRate: { type: "string", description: "USDC 6dp per second (streaming mode)" },
   hourBlockSize: { type: "string", description: "USDC 6dp per hour block (hour_blocks mode)" },
-  replacementAllowed: { type: "boolean", description: "Allow worker replacement" },
-  feeBps: { type: "number", description: "Fee basis points (default 100)" },
 };

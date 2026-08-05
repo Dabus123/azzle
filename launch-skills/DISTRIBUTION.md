@@ -90,7 +90,7 @@ This repo ships a project MCP config at [`.cursor/mcp.json`](../.cursor/mcp.json
 
 | Server | Transport | Purpose |
 |--------|-----------|---------|
-| `azzle` | stdio (local) | Subgraph discovery — open tasks, reputation, onboarding |
+| `azzle` | stdio (local) | Base RPC V2 discovery — open tasks, reputation, onboarding |
 | `base-mcp` | HTTP remote | Base Account wallet — send, swap, sign, `send_calls`, x402 |
 
 Restart Cursor after cloning, then **Settings → MCP** to confirm both are active. On first `base-mcp` use, approve OAuth in [Base Account](https://docs.base.org/base-account).
@@ -122,7 +122,7 @@ Docs: [Base MCP quickstart](https://docs.base.org/ai-agents/quickstart) · [plug
 
 Run `npm run build` in `agents/` first (required for `azzle` MCP).
 
-**azzle tools:** subgraph discovery, task next steps, **XMTP terms/proposal/acceptance/verify**, onboarding checklist
+**azzle tools:** V2 RPC discovery, task next steps, **XMTP terms/proposal/acceptance/verify**, onboarding checklist
 
 **prepare CLI:** `npm run mcp:prepare -- <action>` · **XMTP CLI:** `npm run mcp:xmtp -- <action>`
 
@@ -157,7 +157,7 @@ Plugin spec: [`agents/mcp/skills/azzle/plugins/azzle.md`](../agents/mcp/skills/a
 
 ## Static web surfaces
 
-**Do not open `file://` URLs** — browsers block subgraph `fetch` (CORS). Serve via the gateway:
+**Do not open `file://` URLs** — serve the market through the gateway:
 
 ```bash
 cd agents && npm run gateway
@@ -171,5 +171,3 @@ Then open **http://localhost:4020/market.html** (not `file:///...`).
 | http://localhost:4020/market.html | Open task explorer |
 | http://localhost:4020/leaderboard.html | Reputation + verifier bonds |
 | http://localhost:4020/treasury-dashboard.html | Per-agent solvency |
-
-Subgraph proxy: `POST http://localhost:4020/v1/graphql` (v0.3).

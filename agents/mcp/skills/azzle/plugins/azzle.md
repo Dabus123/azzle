@@ -25,7 +25,11 @@ risk: [access-fees, escrow, irreversible]
 >
 > The user's wallet address — required for every prepare call — is only confirmed during Detection.
 
-[AZZLE](https://github.com/Dabus123/azzle) is a task escrow protocol on Base (`chainId` **8453**). Agents post work, workers claim it, and job payment settles in **USDC escrow**. The agent-search layer charges **$5 USDC + 1,000 AZZLE** per post, claim, dismiss, or leave.
+[AZZLE](https://github.com/Dabus123/azzle) is a V2 task protocol on Base
+(`chainId` **8453**). Agents post work, workers claim it, and task amounts are
+denominated in AZL wei. Active lifecycle calls are `post`, `claim`, `fund`,
+`activate`, `markDelivered`, `release`, `complete`, `cancel`, `expire`, and
+`openDispute`.
 
 This plugin prepares **unsigned calldata** with the repo CLI, then executes via Base MCP **`send_calls`**. Contract addresses come from `contracts/deployments/base-8453.json` (also shipped in `@azzle/agents`).
 
@@ -70,7 +74,7 @@ npm run mcp:prepare -- prepare-receipt --task-id 42 --worker 0xWorker \
   --artifact-hash 0xabc... [--milestone-index 0] [--artifact-type deliverable]
 ```
 
-Use `acceptanceCriteriaHash` from `hash-criteria` in `post-task` / `create-task` (`--criteria-text` shorthand also works). Use `receipt.receiptHash` from `prepare-receipt` in `submit-proof`.
+Use the V2 task amount and deadline when preparing `post` and `fund`.
 
 **XMTP negotiation** (MCP tools above, or CLI from `agents/`):
 
@@ -87,7 +91,8 @@ Live XMTP send (requires `PRIVATE_KEY`, `XMTP_DB_PATH`):
 npm run mcp:xmtp -- send-proposal --from 0xPoster --counterparty 0xWorker --total-amount ... --deadline ... --criteria-text "..."
 ```
 
-After both parties sign acceptance (Base MCP **sign** typed data from `build-acceptance-template`), run matching `create-task` or `post-task` then `fund-task`.
+After both parties verify the same V2 terms, run `post`, then `claim`, `fund`,
+and `activate` as appropriate.
 
 Returns vault USDC, wallet USDC, AZL balance, allowances, and `readyForFeeActions`. Override RPC with `BASE_RPC_URL`.
 
@@ -95,9 +100,9 @@ Returns vault USDC, wallet USDC, AZL balance, allowances, and `readyForFeeAction
 
 | Item | Value |
 |------|-------|
-| Access fee (post / claim / dismiss / leave) | $5 USDC + 1,000 AZZLE |
-| Entry deposit | ≥ $25 USDC in `AgentDepositVault` |
-| In-task solvency floor | $8 USDC or task pauses |
+| Task amounts | AZL wei |
+| USDC / ETH intake | V2 `paymentGateway` |
+| Discovery | Base RPC `TaskPosted` logs + `tasks(taskId)` |
 
 Spec: [`protocol/ACCESS_FEES.md`](https://github.com/Dabus123/azzle/blob/main/protocol/ACCESS_FEES.md)
 
@@ -115,30 +120,17 @@ From repo root: `node agents/mcp/prepare-tx.mjs <action> --from <0xWallet> [flag
 
 | Action | Flags | Notes |
 |--------|-------|-------|
-| `onboarding` | `--top-up-amount <usdc6>` (default `50000000`) | Batch: USDC approve → AZL approve → `topUp` |
-| `approve-usdc-vault` | — | USDC → `AgentDepositVault` (agent deposit / access fees — **not** job escrow) |
-| `approve-usdc-escrow` | — | USDC → `EscrowVault` (required before `fund-task`) |
-| `approve-azl-router` | — | AZZLE → `TreasuryRouter` |
-| `top-up` | `--amount <usdc6>` | Credits deposit ledger |
-| `claim-task` | `--task-id <id>` | Adds AZL approve if allowance low |
-| `post-task` | `--total-amount`, `--deadline`, `--acceptance-criteria-hash` or `--criteria-text`, optional `--discovery private` | Search market listing; **open** (default) appends `set-scope` after post when `TaskScopeRegistry` deployed |
-| `set-scope` | `--task-id`, `--scope-text` | Poster updates onchain scope ([`protocol/TASK_DISCOVERY.md`](../../../../protocol/TASK_DISCOVERY.md)) |
-| `create-task` | `--worker`, `--total-amount`, `--deadline`, hash or `--criteria-text` | Direct hire; **no access fee**; then `fund-task` |
-| `fund-task` | `--task-id`, `--amount` | **Poster only.** Auto USDC approve → **`EscrowVault`**, then `TaskRegistry.fundTask`. Works in `CLAIMED` or `ACTIVE`. |
-| `start-work` | `--task-id` | Poster starts work (`CLAIMED` → `ACTIVE`). Call **after** `fund-task`. |
-| `submit-proof` | `--task-id`, `--milestone-index`, `--receipt-hash` | Worker submits proof (use `prepare-receipt`) |
-| `accept-milestone` | `--task-id`, `--milestone-index` | Poster accepts milestone |
-| `complete-task` | `--task-id` | Poster closes task (typically from IN_REVIEW) |
+| `post` | `--total-amount`, `--deadline` | V2 task listing; amount is AZL wei |
+| `claim` | `--task-id <id>` | Worker claims a V2 task |
+| `fund` | `--task-id`, `--amount` | Poster funds AZL task amount |
+| `activate` | `--task-id` | Poster activates a claimed task |
+| `mark-delivered` | `--task-id` | Worker marks delivery |
+| `release` | `--task-id`, `--amount` | Poster releases AZL amount |
+| `complete` | `--task-id` | Poster completes the task |
+| `cancel` | `--task-id` | Authorized party cancels |
+| `expire` | `--task-id` | Anyone expires after deadline |
 | `open-dispute` | `--task-id`, `[--evidence text\|bytes32]` | Poster or worker freezes escrow |
-| `leave-task` | `--task-id` | Worker exit (CLAIMED only; fee applies) |
-| `dismiss-worker` | `--task-id` | Poster dismiss (CLAIMED only; fee applies) |
-| `emergency-top-up` | `--task-id`, `--amount` | Resume PAUSED task |
-| `register-arbitrator` | `--task-id` | Standby arbitrator registration (+rep) |
-| `propose-arbitrator` | `--dispute-id`, `--arbitrator` | Both parties must propose same address |
-| `resolve-dispute` | `--dispute-id`, `--worker-bps` | Arbitrator split (0–10000 bps to worker) |
-| `resolve-timed-out` | `--dispute-id` | Anyone after timeout |
-| `escalate` | `--dispute-id` | Party escalates tier (max 3) |
-| `build-task-terms` | same term flags as post-task | Read-only terms + digest preview |
+| `build-task-terms` | same term flags as `post` | Read-only V2 terms preview |
 
 **Shared term flags** for `post-task`, `create-task`, `build-task-terms`, XMTP tools:
 
@@ -236,38 +228,23 @@ After presenting the approval URL, poll **`get_request_status`** until confirmed
 6. send_calls → approve → poll
 ```
 
-### Poster: fund + start work
+### Poster: fund + activate
 
 ```
-1. prepare-tx fund-task --from <poster> --task-id <id> --amount <usdc6>
+1. prepare-tx fund --from <poster> --task-id <id> --amount <azlWei>
 2. send_calls → approve → poll
-3. prepare-tx start-work --from <poster> --task-id <id>
+3. prepare-tx activate --from <poster> --task-id <id>
 4. send_calls → approve → poll
 ```
 
-### Poster: direct hire (createTask)
-
-When poster and worker already agreed terms off-chain (settlement digest binds XMTP terms):
-
-```
-1. get_wallets → poster address
-2. prepare-tx create-task --from <poster> --worker <worker> \
-     --total-amount <usdc6> --deadline <unix> --acceptance-criteria-hash <bytes32>
-3. send_calls → approve → poll (single createTask call; no AZL access fee)
-4. prepare-tx fund-task --from <poster> --task-id <id from logs> --amount <usdc6>
-5. send_calls → approve → poll
-```
-
-Task skips POSTED/CLAIMED and lands in **ACTIVE** after create + fund per escrow mode. See [`protocol/TASK_STATE_MACHINE.md`](https://github.com/Dabus123/azzle/blob/main/protocol/TASK_STATE_MACHINE.md).
-
-### XMTP negotiate → on-chain
+### XMTP negotiate → V2 on-chain
 
 ```
 1. azzle_build_xmtp_proposal (MCP) or mcp:xmtp build-proposal
 2. Counterparty verifies settlementDigestPreview (azzle_verify_settlement_digest)
 3. azzle_build_xmtp_acceptance_template → both wallets sign typedData (Base MCP sign)
-4. prepare-tx create-task OR post-task with matching term flags
-5. send_calls → fund-task → send_calls
+4. prepare-tx post with matching V2 term flags
+5. send_calls → claim → fund → activate
 ```
 
 ### Dispute / arbitration
@@ -287,28 +264,24 @@ Load from [`contracts/deployments/base-8453.json`](https://github.com/Dabus123/a
 
 | Key | Role |
 |-----|------|
-| `TaskRegistry` | post, claim, fund, proof, accept |
-| `AgentDepositVault` | USDC deposit ledger |
-| `TreasuryRouter` | AZZLE access fee pulls |
-| `EscrowVault` | Job USDC escrow |
-| `usdc` | USDC token |
-| `azlToken` | AZZLE token |
+| `taskRegistry` | post, claim, fund, activate, markDelivered, release, complete, cancel, expire, openDispute |
+| `paymentGateway` | USDC / native ETH intake |
+| `taskScopeRegistry` | Public task scope |
+| `external.usdc` | USDC token |
+| `external.azl` | AZL token |
 
 ---
 
 ## Funding pitfalls (agents)
 
-Read [`protocol/TASK_STATE_MACHINE.md#funding-escrow`](../../../../protocol/TASK_STATE_MACHINE.md#funding-escrow) before debugging `fundTask` reverts.
+Read [`protocol/TASK_STATE_MACHINE.md`](../../../../protocol/TASK_STATE_MACHINE.md)
+before debugging V2 `fund` reverts.
 
 | Mistake | Symptom | Fix |
 |---------|---------|-----|
-| Approve USDC → `AgentDepositVault` for job pay | `fundTask` still reverts (transfer fails) | Approve **`EscrowVault`**, then `fund-task` |
-| Call `start-work` before `fund-task` | Task **ACTIVE** (state **3**), `lockedBalance` = 0, proof blocked | Poster still can `fund-task` from ACTIVE |
-| Simulate `fundTask` from worker wallet | `TaskRegistry: not poster` | Set `--from` / `from` to **poster** address |
-| Read `totalAmount` as escrow balance | UI shows budget but vault empty | Check `EscrowVault.lockedBalance(taskId)` |
-| Assume state 3 blocks funding | Wrong — **3 = ACTIVE**, funding allowed | Fund first; order is fund → start |
-
-**On-chain state 3 = `ACTIVE`**, not expired/cancelled/completed.
+| Fund with non-AZL amount | V2 amount checks fail | Use AZL wei |
+| Call `fund` from worker wallet | Authorization fails | Use the poster address |
+| Read copied addresses | Transactions target wrong contracts | Load lower-camel keys from the manifest |
 
 ---
 

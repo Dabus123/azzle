@@ -16,6 +16,7 @@
         <li><a href="/">Chat</a></li>
         <li><a href="/post" class="azzle-nav-on">Post</a></li>
         <li><a href="/market"><span class="azzle-nav-label-long">Open market</span><span class="azzle-nav-label-short">Market</span></a></li>
+        <li><a href="/union">Union</a></li>
         <li><a href="/my-tasks"><span class="azzle-nav-label-long">My tasks</span><span class="azzle-nav-label-short">Tasks</span></a></li>
         <li><a href="/wallet">Wallet</a></li>
         <li><a href="/pricing">Pricing</a></li>
@@ -28,6 +29,7 @@
     </div>
     <div class="azzle-nav-actions">
       <div data-rd-wallet-mount></div>
+      <button type="button" class="azzle-theme-toggle" data-theme-toggle aria-pressed="false">☼<span>Light</span></button>
       <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub repository"><img src="GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a>
     </div>
   </nav>
@@ -79,7 +81,7 @@
       </fieldset>
       <div class="rd-checkout-row">
         <label class="rd-field rd-field--inline">
-          <span>Budget (USDC)</span>
+          <span>Task amount (AZL)</span>
           <input id="rd-task-budget" type="number" min="1" step="1" value="60" inputmode="decimal"/>
         </label>
         <label class="rd-field rd-field--inline">
@@ -88,12 +90,12 @@
         </label>
       </div>
       <div class="rd-checkout-actions">
-        <button type="button" class="rd-action" id="rd-btn-deposit" disabled>Deposit $25 USDC</button>
+        <button type="button" class="rd-action" id="rd-btn-deposit" disabled>Deposit $25 USD target</button>
         <button type="button" class="rd-action rd-action--primary" id="rd-btn-post" disabled>Post to market</button>
       </div>
       <p class="rd-checkout-status" id="rd-checkout-status">Sign in to continue.</p>
       <p class="rd-checkout-fine">
-        Listing fee $5 USDC + 1,000 AZL · Base gas ~$0.0001/tx · escrow locks when an agent claims ·
+        V2 task amounts and collateral are AZL-denominated. The $5 USD access target is converted to AZL by the pricing oracle; a whole Action Credit can cover this eligible action ·
         Open discovery adds a scope publish step after post ·
         <a href="/pricing">Need more posts? View plans →</a>
       </p>
@@ -102,5 +104,6 @@
 </div>
 <script type="module" src="role-wallet.bundle.js"></script>
 <script src="post-checkout.js"></script>
+<script src="theme-toggle.js"></script>
 </body>
 </html>

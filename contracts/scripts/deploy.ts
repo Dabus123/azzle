@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { wireArbitrationSatellite } from "./wire-satellite";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -19,6 +20,10 @@ async function main() {
   const TaskRegistry = await ethers.getContractFactory("TaskRegistry");
   const registry = await TaskRegistry.deploy(await escrow.getAddress());
   await registry.waitForDeployment();
+
+  const TaskScopeRegistry = await ethers.getContractFactory("TaskScopeRegistry");
+  const scopeRegistry = await TaskScopeRegistry.deploy(await registry.getAddress());
+  await scopeRegistry.waitForDeployment();
 
   await escrow.setTaskRegistry(await registry.getAddress());
 
@@ -45,11 +50,18 @@ async function main() {
   await registry.setArbitration(await arbitration.getAddress());
   await registry.setTreasury(await treasury.getAddress());
   await registry.setAgentVault(await agentVault.getAddress());
+  await registry.setReputation(await reputation.getAddress());
   await escrow.setArbitrationModule(await arbitration.getAddress());
+  await agentVault.setArbitrationModule(await arbitration.getAddress());
   await reputation.setAuthorized(await registry.getAddress(), await arbitration.getAddress());
   await reputation.setAgentDepositVault(await agentVault.getAddress());
   await arbitration.setReputationRegistry(await reputation.getAddress());
   await arbitration.setAgentDepositVault(await agentVault.getAddress());
+  await arbitration.setFallbackResolver(deployer.address);
+  const satelliteAddress = await wireArbitrationSatellite(
+    await arbitration.getAddress(),
+    await reputation.getAddress()
+  );
   await reputation.setTreasury(await treasury.getAddress());
   await treasury.setReputationRegistry(await reputation.getAddress());
   await treasury.setAgentDepositVault(await agentVault.getAddress());
@@ -60,16 +72,48 @@ async function main() {
   );
   await treasury.setAzlToken(await azl.getAddress());
 
+  const recovery = await (
+    await ethers.getContractFactory("ArbitrationRecoveryCoordinator")
+  ).deploy(
+    await registry.getAddress(),
+    await escrow.getAddress(),
+    await agentVault.getAddress(),
+    await reputation.getAddress()
+  );
+  await recovery.waitForDeployment();
+  await arbitration.setArbitrationRecoveryCoordinator(await recovery.getAddress());
+  await registry.setArbitrationRecoveryCoordinator(await recovery.getAddress());
+  await escrow.setArbitrationRecoveryCoordinator(await recovery.getAddress());
+  await agentVault.setArbitrationRecoveryCoordinator(await recovery.getAddress());
+  await reputation.setArbitrationRecoveryCoordinator(await recovery.getAddress());
+
+  const UnionStakingVault = await ethers.getContractFactory("UnionStakingVault");
+  const staking = await UnionStakingVault.deploy(
+    await azl.getAddress(),
+    await usdc.getAddress()
+  );
+  await staking.waitForDeployment();
+  await staking.setTaskRegistry(await registry.getAddress());
+  await staking.setTreasury(await treasury.getAddress());
+  await staking.activateStaking();
+  await registry.setStakingVault(await staking.getAddress());
+  await treasury.setStakingVault(await staking.getAddress());
+  await treasury.setBuybackExecutor(deployer.address);
+
   await usdc.mint(deployer.address, ethers.parseUnits("1000000", 6));
 
   console.log("MockUSDC:", await usdc.getAddress());
   console.log("MockAZL:", await azl.getAddress());
   console.log("EscrowVault:", await escrow.getAddress());
   console.log("TaskRegistry:", await registry.getAddress());
+  console.log("TaskScopeRegistry:", await scopeRegistry.getAddress());
   console.log("ReputationRegistry:", await reputation.getAddress());
   console.log("ArbitrationModule:", await arbitration.getAddress());
+  console.log("ArbitrationSatellite:", satelliteAddress);
   console.log("TreasuryRouter:", await treasury.getAddress());
   console.log("AgentDepositVault:", await agentVault.getAddress());
+  console.log("ArbitrationRecoveryCoordinator:", await recovery.getAddress());
+  console.log("UnionStakingVault:", await staking.getAddress());
 }
 
 main().catch((e) => {

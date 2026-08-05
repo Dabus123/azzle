@@ -3,10 +3,17 @@
   if (!bg) return;
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const lowPower = window.matchMedia("(max-width: 700px), (pointer: coarse)");
+  const lightTheme = document.documentElement.dataset.theme === "light";
   if (reduce.matches) return;
 
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
   const lerp = (a, b, t) => a + (b - a) * t;
+
+  if (lowPower.matches) {
+    const simpleBg = document.getElementById("parallax-bg");
+    if (simpleBg) simpleBg.style.filter = "none";
+  }
 
   // ---------------------------------------------------------------
   // 1. Build the SVG filter chain once: turbulence -> displacement
@@ -125,7 +132,7 @@
   // Dot-grid glow canvas — dots brighten near pointer + scroll pulses
   // ---------------------------------------------------------------
   const dotCanvas = document.getElementById("px-dot-canvas");
-  const GRID = 24;
+  const GRID = lowPower.matches ? 26 : 30;
   let dotCtx = null;
   let dotW = 0;
   let dotH = 0;
@@ -144,7 +151,7 @@
 
   function resizeDotCanvas() {
     if (!dotCanvas) return;
-    dotDpr = Math.min(window.devicePixelRatio || 1, 2);
+    dotDpr = lowPower.matches ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
     dotW = window.innerWidth;
     dotH = window.innerHeight;
     dotCanvas.width = Math.round(dotW * dotDpr);
@@ -176,7 +183,7 @@
         const x = col * GRID;
         const y = row * GRID + parallaxY;
 
-        let glow = 0.05;
+        let glow = 0.045;
 
         if (pointerRadius > 0) {
           const dx = x - mx;
@@ -185,7 +192,7 @@
           glow += Math.max(0, 1 - dist / pointerRadius) * 0.62;
         } else {
           const idlePulse = 0.5 + 0.5 * Math.sin((x + y) * 0.04 + scrollNorm * 5);
-          glow += idlePulse * 0.04;
+          glow += idlePulse * 0.035;
         }
 
         for (const center of scrollGlowCenters) {
@@ -195,23 +202,23 @@
           const dy = y - cy;
           const dist = Math.sqrt(dx * dx + dy * dy);
           const pulse = 0.5 + 0.5 * Math.sin(center.phase + scrollNorm * 8);
-          glow += Math.max(0, 1 - dist / center.radius) * (0.18 + velBoost * 0.22) * pulse;
+          glow += Math.max(0, 1 - dist / center.radius) * (0.08 + velBoost * 0.12) * pulse;
         }
 
         const scrollWave = Math.sin((y + scrollY * 0.18) * 0.012 + scrollNorm * 4) * 0.5 + 0.5;
-        glow += scrollWave * velBoost * 0.12;
+        glow += scrollWave * velBoost * 0.06;
 
         if (glow < 0.06) continue;
 
         const alpha = clamp(glow, 0, 0.92);
-        const radius = 0.9 + alpha * 2.4;
+        const radius = 0.22 + alpha * 0.58;
 
-        if (alpha > 0.28) {
+    if (!lowPower.matches && !lightTheme && alpha > 0.42) {
           dotCtx.beginPath();
-          dotCtx.arc(x, y, radius * 3.2, 0, Math.PI * 2);
-          const halo = dotCtx.createRadialGradient(x, y, 0, x, y, radius * 3.2);
-          halo.addColorStop(0, `rgba(220,255,40,${(alpha * 0.22).toFixed(3)})`);
-          halo.addColorStop(0.45, `rgba(200,255,30,${(alpha * 0.08).toFixed(3)})`);
+          dotCtx.arc(x, y, radius * 2.2, 0, Math.PI * 2);
+          const halo = dotCtx.createRadialGradient(x, y, 0, x, y, radius * 2.2);
+          halo.addColorStop(0, `rgba(220,255,40,${(alpha * 0.12).toFixed(3)})`);
+          halo.addColorStop(0.45, `rgba(200,255,30,${(alpha * 0.04).toFixed(3)})`);
           halo.addColorStop(1, "rgba(200,255,30,0)");
           dotCtx.fillStyle = halo;
           dotCtx.fill();
@@ -219,7 +226,9 @@
 
         dotCtx.beginPath();
         dotCtx.arc(x, y, radius, 0, Math.PI * 2);
-        dotCtx.fillStyle = `rgba(235,255,120,${alpha.toFixed(3)})`;
+        dotCtx.fillStyle = lightTheme
+          ? `rgba(104,128,20,${(alpha * 0.35).toFixed(3)})`
+          : `rgba(235,255,120,${alpha.toFixed(3)})`;
         dotCtx.fill();
       }
     }
@@ -453,6 +462,7 @@
   // browser to recompute the whole filter region) — update at a
   // capped rate instead of every single frame.
   function renderFilter(dt) {
+    if (lowPower.matches) return;
     filterFrameSkip += dt;
     if (filterFrameSkip < 32) return; // ~30fps cap for the filter chain
     filterFrameSkip = 0;
@@ -491,7 +501,7 @@
     renderFilter(dt);
 
     dotFrameSkip += dt;
-    if (dotFrameSkip >= 24) {
+    if (dotFrameSkip >= (lowPower.matches ? 64 : 40)) {
       dotFrameSkip = 0;
       renderDotGlow();
     }

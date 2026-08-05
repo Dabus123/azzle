@@ -29,6 +29,8 @@ export default async function handler(req, res) {
   const accept = String(req.headers.accept || "");
   const wantsSnap = accept.includes(SNAP_ACCEPT);
   const action = url.searchParams.get("action");
+  const snapId = url.searchParams.get("i") || url.searchParams.get("id") || "global";
+  const variant = url.searchParams.get("v") || url.searchParams.get("variant") || null;
 
   if (req.method === "OPTIONS") {
     res.writeHead(204, SNAP_CORS);
@@ -37,9 +39,16 @@ export default async function handler(req, res) {
   }
 
   if (url.searchParams.get("health") === "1" || url.pathname.endsWith("/health")) {
-    const state = await getVoteState();
+    const state = await getVoteState(snapId);
     res.writeHead(200, { ...SNAP_CORS, "Content-Type": "application/json" });
-    res.end(JSON.stringify({ ok: true, snapUrl, votes: { human: state.human, agent: state.agent } }));
+    res.end(
+      JSON.stringify({
+        ok: true,
+        snapUrl,
+        snapId,
+        votes: { human: state.human, agent: state.agent },
+      })
+    );
     return;
   }
 
@@ -53,11 +62,11 @@ export default async function handler(req, res) {
     const fid = extractFid(body);
 
     if (action === "human" || action === "agent") {
-      await recordVote(action, fid);
+      await recordVote(action, fid, snapId);
     }
 
-    const state = await getVoteState();
-    sendSnap(res, buildSnapPayload(state, { fid, snapUrl }), snapUrl);
+    const state = await getVoteState(snapId);
+    sendSnap(res, buildSnapPayload(state, { fid, snapUrl, snapId, variant }), snapUrl);
     return;
   }
 
@@ -68,11 +77,11 @@ export default async function handler(req, res) {
   }
 
   if (wantsSnap) {
-    const state = await getVoteState();
-    sendSnap(res, buildSnapPayload(state, { snapUrl }), snapUrl);
+    const state = await getVoteState(snapId);
+    sendSnap(res, buildSnapPayload(state, { snapUrl, snapId, variant }), snapUrl);
     return;
   }
 
   res.writeHead(200, snapHtmlHeaders(snapUrl));
-  res.end(snapFallbackHtml(snapUrl));
+  res.end(snapFallbackHtml(snapUrl, { snapId, variant }));
 }

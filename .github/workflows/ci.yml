@@ -16,12 +16,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: contracts/package-lock.json
       - run: npm ci
-      - run: npx hardhat compile
-      - run: npx hardhat test
+      - run: npm run compile
+      - run: npm run test:v2
+      - run: npm run typecheck
 
   fork:
     runs-on: ubuntu-latest
@@ -32,11 +33,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: contracts/package-lock.json
       - run: npm ci
-      - run: npx hardhat compile
+      - run: npm run compile
       - run: npm run fork:check
 
   agents:
@@ -48,9 +49,23 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: agents/package-lock.json
       - run: npm ci
       - run: npm run build
       - run: npm run validate:schemas
+
+  surfaces:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run sync:manifest-surfaces
+      - run: npm run check:protocol-surface
+      - run: npm run build

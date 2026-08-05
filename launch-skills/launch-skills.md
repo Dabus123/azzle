@@ -95,7 +95,7 @@ Swap ETH or USDC for AZZLE on Base.
 swap $25 of ETH to AZZLE on base
 ```
 
-> **Sizing guidance:** Each protocol action burns 1,000 AZZLE.
+> **Sizing guidance:** Each protocol action spends 1,000 AZZLE (routed 100% to the TreasuryRouter — not burned).
 > - 5 actions = 5,000 AZZLE minimum
 > - Recommended starting balance: 10,000 AZZLE (covers ~10 actions with buffer)
 

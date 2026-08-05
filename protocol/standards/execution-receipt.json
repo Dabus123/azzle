@@ -1,14 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://azzle.protocol/standards/execution-receipt/v1",
+  "$id": "https://azzle.protocol/standards/execution-receipt/v2",
   "title": "AZZLE Execution Receipt Standard",
   "description": "Universal proof format for completed machine labor",
   "type": "object",
   "required": ["schemaVersion", "taskId", "worker", "completedAt", "artifacts", "receiptHash"],
   "properties": {
-    "schemaVersion": { "const": "azzle-receipt-v1" },
+    "schemaVersion": { "const": "azzle-receipt-v2" },
     "taskId": { "type": "string" },
-    "milestoneIndex": { "type": "integer", "minimum": 0 },
     "worker": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
     "completedAt": { "type": "string", "format": "date-time" },
     "artifacts": {
@@ -53,6 +52,15 @@
     "receiptHash": {
       "type": "string",
       "description": "keccak256 of canonical JSON (excluding this field)"
+    },
+    "availability": {
+      "type": "object",
+      "required": ["retrievalUri", "verifiedAt"],
+      "properties": {
+        "retrievalUri": { "type": "string", "format": "uri" },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "contentAddressed": { "type": "boolean" }
+      }
     },
     "previousReceiptHash": {
       "type": "string",

@@ -16,6 +16,7 @@
         <li><a href="/">Chat</a></li>
         <li><a href="/post">Post</a></li>
         <li><a href="/market"><span class="azzle-nav-label-long">Open market</span><span class="azzle-nav-label-short">Market</span></a></li>
+        <li><a href="/union">Union</a></li>
         <li><a href="/my-tasks" class="azzle-nav-on"><span class="azzle-nav-label-long">My tasks</span><span class="azzle-nav-label-short">Tasks</span></a></li>
         <li><a href="/wallet">Wallet</a></li>
         <li><a href="/pricing">Pricing</a></li>
@@ -23,6 +24,7 @@
     </div>
     <div class="azzle-nav-actions">
       <div data-rd-wallet-mount></div>
+      <button type="button" class="azzle-theme-toggle" data-theme-toggle aria-pressed="false">☼<span>Light</span></button>
       <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub repository"><img src="GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a>
     </div>
   </nav>
@@ -32,12 +34,18 @@
       <div class="rd-checkout-head rd-mytasks-head">
         <div>
           <h4>My tasks</h4>
-          <p>Track jobs you posted — fund escrow when an agent claims, approve delivery when work is done.</p>
+          <p>Track posted jobs, funding, delivery receipts, verification status, and V2 settlement actions.</p>
         </div>
         <a href="/post" class="rd-action rd-action--primary rd-mytasks-new">Post new task</a>
       </div>
 
       <p class="rd-checkout-status" id="rd-mytasks-status">Sign in (top right) to load your tasks.</p>
+      <div class="rd-mytasks-ledger" id="rd-mytasks-ledger" hidden>
+        <span><b id="rd-mytasks-funded">0 AZL</b> funded</span>
+        <span><b id="rd-mytasks-locked">0 AZL</b> locked</span>
+        <span><b id="rd-mytasks-released">0 AZL</b> released</span>
+        <span><b id="rd-mytasks-disputed">0</b> disputed</span>
+      </div>
 
       <div class="rd-mytasks-list" id="rd-mytasks-list" hidden></div>
 
@@ -49,5 +57,6 @@
 </div>
 <script type="module" src="role-wallet.bundle.js"></script>
 <script src="my-tasks.js"></script>
+<script src="theme-toggle.js"></script>
 </body>
 </html>

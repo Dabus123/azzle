@@ -82,7 +82,7 @@ async function main() {
   console.log(`AZZLE verifier agent (Base ${manifest.chainId})`);
   console.log("");
   console.log("Commands:");
-  console.log("  npm run preflight   # bond + slash-risk + subgraph snapshot");
+  console.log("  npm run preflight   # bond + slash-risk + Base RPC snapshot");
   console.log("  npm run stake       # ReputationRegistry.stakeVerifierBond");
   console.log("  node agent.mjs unstake");
   console.log("  npm run validate    # receipt validation loop stub");

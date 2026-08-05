@@ -6,6 +6,11 @@ API endpoints that callers pay for automatically over the
 a **monetization / distribution layer for read data** — paid task discovery and
 reputation lookups — not as the protocol's fee rail.
 
+## Standard agent discovery API
+
+Use x402 Cloud for paid, agent-native AZZLE discovery. The free browser market
+uses first-party Base RPC endpoints; neither surface depends on a subgraph.
+
 ## What this is (and is not)
 
 | | Settles where | Token(s) | Recipient |
@@ -55,11 +60,7 @@ All four settle in **AZL** on Base (`0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3`
 each service in `bankr.x402.json`; `price` is token units, not USD. On-chain access
 fees remain $5 USDC + 1,000 AZZLE separately.
 
-All four read canonical Base contract state through JSON-RPC. Configure
-`BASE_RPC_URL` in Bankr x402 Cloud with a reliable authenticated provider; the
-public Base RPC is only the development fallback. The browser market remains
-free through same-origin `/api/market/*` routes, while these are AZZLE's
-standard paid, agent-discoverable endpoints. Live URL format:
+All handlers read authoritative Base contract state through JSON-RPC. Live URL format:
 `https://x402.bankr.bot/<wallet>/<name>`.
 
 ## Deploy

@@ -30,9 +30,9 @@ export interface BaseRpcIndexerConfig {
 
 const TASK_ABI = [
   "function taskCount() view returns (uint256)",
-  "function getTask(uint256) view returns (address poster,address worker,address token,uint256 totalAmount,uint8 escrowMode,bytes32 settlementDigest,uint8 state,uint256 deadline,uint256 createdAt,bool replacementAllowed,uint256 parentTaskId)",
+  "function tasks(uint256) view returns (address poster,address worker,uint256 totalAmount,uint256 funded,uint256 released,uint64 deadline,uint8 state)",
 ];
-const STATES = ["DRAFT", "POSTED", "CLAIMED", "ACTIVE", "IN_REVIEW", "COMPLETED", "CANCELLED", "EXPIRED", "DISPUTED", "RESOLVED", "REPLACING", "PAUSED", "DELETED"];
+const STATES = ["NONE", "POSTED", "CLAIMED", "ACTIVE", "DISPUTED", "COMPLETED", "CANCELLED", "RESOLVED"];
 
 export class BaseRpcIndexer {
   readonly rpcUrl: string;
@@ -43,17 +43,17 @@ export class BaseRpcIndexer {
   constructor(config: BaseRpcIndexerConfig = {}) {
     this.rpcUrl = config.rpcUrl ?? process.env.BASE_RPC_URL ?? "https://mainnet.base.org";
     this.provider = new ethers.JsonRpcProvider(this.rpcUrl);
-    this.registry = new ethers.Contract(BASE_MAINNET_MANIFEST.TaskRegistry, TASK_ABI, this.provider);
+    this.registry = new ethers.Contract(BASE_MAINNET_MANIFEST.taskRegistry, TASK_ABI, this.provider);
     this.scanWindow = Math.max(100, config.scanWindow ?? 400);
   }
 
   private mapTask(id: bigint, task: any): BaseRpcTask | null {
-    if (!task.poster || task.poster === ethers.ZeroAddress || task.createdAt === 0n) return null;
+    if (!task.poster || task.poster === ethers.ZeroAddress) return null;
     return {
-      id: id.toString(), state: STATES[Number(task.state)] ?? "UNKNOWN",
+      id: `v2:${id.toString()}`, state: STATES[Number(task.state)] ?? "UNKNOWN",
       poster: { id: task.poster }, worker: task.worker === ethers.ZeroAddress ? null : { id: task.worker },
-      escrowAmount: task.totalAmount.toString(), createdAt: task.createdAt.toString(),
-      updatedAt: task.createdAt.toString(), settlementDigest: task.settlementDigest ?? null,
+      escrowAmount: task.totalAmount.toString(), createdAt: "0",
+      updatedAt: "0", settlementDigest: null,
     };
   }
 
@@ -62,7 +62,7 @@ export class BaseRpcIndexer {
     const tasks: BaseRpcTask[] = [];
     const start = count > BigInt(this.scanWindow) ? count - BigInt(this.scanWindow) + 1n : 1n;
     for (let id = count; id >= start && tasks.length < limit; id -= 1n) {
-      const task = this.mapTask(id, await this.registry.getTask(id));
+      const task = this.mapTask(id, await this.registry.tasks(id));
       if (task && predicate(task)) tasks.push(task);
     }
     return tasks;
@@ -72,7 +72,7 @@ export class BaseRpcIndexer {
   async getRecentTasks(limit = 50) { return this.recent(Math.min(Math.max(limit, 1), 100)); }
   async getTask(taskId: string | bigint) {
     const id = BigInt(taskId);
-    return this.mapTask(id, await this.registry.getTask(id));
+    return this.mapTask(id, await this.registry.tasks(id));
   }
   async getTasksByPoster(poster: string, limit = 25) {
     const normalized = poster.toLowerCase();

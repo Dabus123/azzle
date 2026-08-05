@@ -128,9 +128,11 @@ export function digestFromSerializedTerms(terms) {
     totalAmount: BigInt(terms.totalAmount),
     escrowMode: terms.escrowMode,
     milestoneAmounts: terms.milestoneAmounts.map((m) => BigInt(m)),
+    streamRate: BigInt(terms.streamRate ?? 0),
+    hourBlockSize: BigInt(terms.hourBlockSize ?? 0),
     deadline: Number(terms.deadline),
     acceptanceCriteriaHash: terms.acceptanceCriteriaHash,
-    replacementAllowed: Boolean(terms.replacementAllowed),
-    feeBps: Number(terms.feeBps ?? 100),
+    chainId: BigInt(terms.chainId ?? 8453),
+    registryAddress: terms.registryAddress,
   });
 }

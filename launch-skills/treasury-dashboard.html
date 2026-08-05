@@ -32,7 +32,7 @@
     <span id="solvency-pill" class="pill idle">—</span>
   </div>
   <div class="treasury-meta" id="meta">
-    RPC <span>mainnet.base.org</span> · Subgraph <span id="subgraph-status">azzle-protocol</span> ·
+    RPC <span>mainnet.base.org</span> · V2 RPC <span id="subgraph-status">live</span> ·
     refresh <span id="refresh-countdown">—</span>
   </div>
 
@@ -61,7 +61,7 @@
       <h2>AZZLE Balance</h2>
       <div class="metric" id="azl-balance">—</div>
       <div class="sub" id="azl-actions">— actions remaining @ 1,000 AZZLE/action</div>
-      <div class="row"><span class="k">Burn runway</span><span class="v" id="azl-runway">—</span></div>
+      <div class="row"><span class="k">Spend runway</span><span class="v" id="azl-runway">—</span></div>
       <div class="row"><span class="k">7d action cadence</span><span class="v" id="azl-cadence">—</span></div>
     </div>
 
@@ -74,11 +74,11 @@
         </div>
         <div>
           <div class="metric sm neg" id="fee-usdc">—</div>
-          <div class="sub">Fees burned · USDC (post / claim)</div>
+          <div class="sub">Fees spent · USDC (post / claim)</div>
         </div>
         <div>
           <div class="metric sm neg" id="fee-azl">—</div>
-          <div class="sub">Fees burned · AZZLE cost basis</div>
+          <div class="sub">Fees spent · AZZLE cost basis</div>
         </div>
         <div>
           <div class="metric sm" id="net-income">—</div>
@@ -122,7 +122,6 @@
   // ── Config (contracts/deployments/base-8453.json) ───────────────────────
   const CHAIN_ID = 8453;
   const RPC = "https://mainnet.base.org";
-  const SUBGRAPH = "https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3";
 
   const ADDR = {
     vault: "0x62808379CbDEfe7E8b2FcD659158E49463c34e5D",
@@ -231,17 +230,6 @@
     }
   }
 
-  async function gql(query, variables) {
-    const res = await fetch(SUBGRAPH, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, variables }),
-    });
-    const json = await res.json();
-    if (json.errors?.length) throw new Error(json.errors.map((e) => e.message).join("; "));
-    return json.data;
-  }
-
   async function queryLogs(contract, filter, fromBlock, toBlock) {
     const ranges = [];
     for (let start = fromBlock; start <= toBlock; start += LOG_CHUNK + 1) {
@@ -280,23 +268,6 @@
 
   async function fetchWorkerTasks(agent) {
     const addr = ethers.getAddress(agent);
-
-    try {
-      const data = await gql(
-        `query WorkerTasks($id: String!) {
-          tasks(where: { worker: $id, state_in: ["ACTIVE", "IN_REVIEW"] }, orderBy: updatedAt, orderDirection: desc, first: 100) {
-            id state escrowAmount updatedAt
-          }
-        }`,
-        { id: addr.toLowerCase() }
-      );
-      if (data?.tasks) {
-        $("subgraph-status").textContent = "azzle-protocol · live";
-        return data.tasks.map((t) => ({ id: t.id, state: t.state, source: "subgraph" }));
-      }
-    } catch (_) {
-      $("subgraph-status").textContent = "azzle-protocol · rpc fallback";
-    }
 
     const ids = await discoverWorkerTaskIds(agent);
     const tasks = [];
@@ -624,7 +595,7 @@
       } else if (actionsLeft === 0) {
         $("azl-runway").textContent = "0h — insufficient AZZLE";
       } else {
-        $("azl-runway").textContent = "∞ — no burn activity in 7d";
+        $("azl-runway").textContent = "∞ — no fee spend in 7d";
       }
 
       const { total, taskRows, allReleases } = await fetchEscrowAndReleases(tasks);

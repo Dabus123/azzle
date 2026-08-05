@@ -11,9 +11,14 @@
 
   const btn = document.querySelector(".docs-sidebar-toggle");
   const nav = document.querySelector(".docs-sidebar-nav");
-  if (!btn || !nav) return;
-  btn.addEventListener("click", () => {
-    const open = nav.classList.toggle("open");
-    btn.setAttribute("aria-expanded", open ? "true" : "false");
-  });
+  if (btn && nav) {
+    btn.addEventListener("click", () => {
+      const open = nav.classList.toggle("open");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+
+  const script = document.createElement("script");
+  script.src = "/theme-toggle.js";
+  document.body.appendChild(script);
 })();

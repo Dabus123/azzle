@@ -2,39 +2,29 @@
  * x402 Cloud service: azzle-task
  * Paid single-task inspection — full AZZLE task row by on-chain id.
  *
- * Self-contained handler (per-service bundle): no cross-directory imports.
  * Price + schema live in ../../bankr.x402.json.
  *
  * @see docs/X402_CLOUD.md
  */
 
 const RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
-const TASK_REGISTRY = "0x0a47c3a2d515ec3a23f225a7bac1b0a1654e4d48";
-const GET_TASK_SELECTOR = "0x1d65e77e";
-const STATES = ["DRAFT", "POSTED", "CLAIMED", "ACTIVE", "IN_REVIEW", "COMPLETED", "CANCELLED", "EXPIRED", "DISPUTED", "RESOLVED", "REPLACING", "PAUSED", "DELETED"];
+import { BASE_MAINNET_MANIFEST } from "../manifest";
 
-async function rpc(data: string) {
+const TASK_REGISTRY = BASE_MAINNET_MANIFEST.taskRegistry;
+const GET_TASK = "0x1d65e77e";
+const ZERO = "0x0000000000000000000000000000000000000000";
+const STATES = ["NONE", "POSTED", "CLAIMED", "ACTIVE", "DISPUTED", "COMPLETED", "CANCELLED", "RESOLVED"];
+
+async function rpc<T>(method: string, params: unknown[]): Promise<T> {
   const res = await fetch(RPC_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_call", params: [{ to: TASK_REGISTRY, data }, "latest"] }),
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
   });
   if (!res.ok) throw new Error(`Base RPC HTTP ${res.status}`);
-  const body = (await res.json()) as { result?: string; error?: { message?: string } };
-  if (body.error || body.result === undefined) throw new Error(body.error?.message || "Base RPC empty response");
-  return body.result;
-}
-
-function word(data: string, index: number) {
-  return BigInt(`0x${data.slice(2 + index * 64, 2 + (index + 1) * 64)}`);
-}
-
-function address(data: string, index: number) {
-  return `0x${word(data, index).toString(16).padStart(40, "0")}`;
-}
-
-function usdc(amount: bigint): string {
-  return `${amount / 1_000_000n}.${(amount % 1_000_000n).toString().padStart(6, "0").slice(0, 2)}`;
+  const json = (await res.json()) as { result?: T; error?: { message: string } };
+  if (json.error || json.result === undefined) throw new Error(json.error?.message ?? "Base RPC empty response");
+  return json.result;
 }
 
 function json(body: unknown, status: number): Response {
@@ -44,6 +34,14 @@ function json(body: unknown, status: number): Response {
   });
 }
 
+function word(data: string, index: number): string {
+  return data.slice(2 + index * 64, 2 + (index + 1) * 64);
+}
+
+function address(data: string, index: number): string {
+  return `0x${word(data, index).slice(24)}`;
+}
+
 export default async function handler(req: Request) {
   const id = new URL(req.url).searchParams.get("id");
   if (!id || !/^\d+$/.test(id)) {
@@ -51,29 +49,44 @@ export default async function handler(req: Request) {
     return json({ error: "invalid_id", hint: "pass ?id=<numeric task id>" }, 400);
   }
 
-  const data = await rpc(`${GET_TASK_SELECTOR}${BigInt(id).toString(16).padStart(64, "0")}`);
-  const createdAt = word(data, 8);
-  const poster = address(data, 0);
-  if (!createdAt || poster === "0x0000000000000000000000000000000000000000") {
+  let data: string;
+  try {
+    data = await rpc<string>("eth_call", [{
+      to: TASK_REGISTRY,
+      data: `${GET_TASK}${BigInt(id).toString(16).padStart(64, "0")}`,
+    }, "latest"]);
+  } catch {
     return json({ protocol: "azzle", chainId: 8453, id, found: false }, 404);
   }
 
-  const amount = word(data, 3);
+  const poster = address(data, 0);
+  if (poster.toLowerCase() === ZERO) {
+    return json({ protocol: "azzle", chainId: 8453, id, found: false }, 404);
+  }
   const worker = address(data, 1);
+  const totalAmount = BigInt(`0x${word(data, 2)}`);
+  const funded = BigInt(`0x${word(data, 3)}`);
+  const released = BigInt(`0x${word(data, 4)}`);
+  const state = Number(BigInt(`0x${word(data, 8)}`));
   return {
     protocol: "azzle",
+    protocolVersion: "v2",
     chainId: 8453,
     found: true,
     task: {
-      id,
-      state: STATES[Number(word(data, 6))] || "UNKNOWN",
+      protocolVersion: "v2",
+      asset: "AZL",
+      id: `v2:${id}`,
+      localTaskId: id,
+      state: STATES[state] ?? "UNKNOWN",
       poster,
-      worker: worker === "0x0000000000000000000000000000000000000000" ? null : worker,
-      escrowUsdc: usdc(amount),
-      escrowAmount: amount.toString(),
-      createdAt: Number(createdAt),
-      updatedAt: Number(createdAt),
-      settlementDigest: `0x${data.slice(2 + 5 * 64, 2 + 6 * 64)}`,
+      worker: worker.toLowerCase() === ZERO ? null : worker,
+      totalAmountAzlWei: totalAmount.toString(),
+      fundedAzlWei: funded.toString(),
+      releasedAzlWei: released.toString(),
+      deadline: Number(BigInt(`0x${word(data, 5)}`)),
+      fundingDeadline: Number(BigInt(`0x${word(data, 6)}`)),
+      deliveredAt: Number(BigInt(`0x${word(data, 7)}`)),
     },
     generatedAt: Math.floor(Date.now() / 1000),
   };

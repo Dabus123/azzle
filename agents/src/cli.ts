@@ -167,9 +167,6 @@ function scaffoldProject(targetDir: string): void {
       "# Base mainnet RPC",
       "AZZLE_RPC_URL=https://mainnet.base.org",
       "",
-      "# Use a dedicated Base RPC provider in production",
-      "# AZZLE_RPC_URL=https://your-base-rpc-provider.example",
-      "",
       "# Wallet private key (never commit .env)",
       "# PRIVATE_KEY=0x...",
       "",
@@ -215,7 +212,7 @@ function addToProject(): void {
   console.log(`
 Installed @azzle/agents.
 
-  import { AzzleClient, BaseRpcIndexer } from "@azzle/agents";
+  import { AzzleClient, RpcDiscovery } from "@azzle/agents";
   import { BASE_MAINNET_MANIFEST } from "@azzle/agents/manifest";
 
 Docs: https://github.com/Dabus123/azzle/blob/main/AGENTS.md
@@ -234,15 +231,14 @@ function printAddresses(): void {
 const AGENT_TEMPLATE = `import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { BaseRpcIndexer } from "@azzle/agents";
+import { RpcDiscovery } from "@azzle/agents";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const manifest = JSON.parse(readFileSync(join(__dir, "base-8453.json"), "utf8"));
 
 const rpcUrl = process.env.AZZLE_RPC_URL ?? "https://mainnet.base.org";
-
 async function listOpen() {
-  const indexer = new BaseRpcIndexer({ rpcUrl });
+  const indexer = new RpcDiscovery({ rpcUrl });
   const tasks = await indexer.getOpenTasks();
   console.log(JSON.stringify({ count: tasks.length, tasks }, null, 2));
 }
@@ -256,7 +252,7 @@ async function main() {
 
   console.log("AZZLE agent scaffold");
   console.log("  RPC:", rpcUrl);
-  console.log("  TaskRegistry:", manifest.TaskRegistry);
+  console.log("  taskRegistry:", manifest.taskRegistry);
   console.log("");
   console.log("Commands:");
   console.log("  node agent.mjs list-open   # POSTED tasks from Base RPC");

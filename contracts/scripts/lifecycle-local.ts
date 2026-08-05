@@ -3,6 +3,7 @@
  * Run: npx hardhat run scripts/lifecycle-local.ts
  */
 import { ethers } from "hardhat";
+import { DEFAULT_ACCEPTANCE_HASH, settlementDigest } from "../test/helpers/deploy";
 
 async function main() {
   const [poster, worker] = await ethers.getSigners();
@@ -39,6 +40,11 @@ async function main() {
   await registry.setAgentVault(await agentVault.getAddress());
   await arbitration.setReputationRegistry(await reputation.getAddress());
   await arbitration.setAgentDepositVault(await agentVault.getAddress());
+  const satellite = await (
+    await ethers.getContractFactory("ArbitrationSatellite")
+  ).deploy(await arbitration.getAddress(), await reputation.getAddress());
+  await arbitration.setArbitrationSatellite(await satellite.getAddress());
+  await reputation.setArbitrationSatellite(await satellite.getAddress());
   await reputation.setTreasury(await treasury.getAddress());
   await treasury.setReputationRegistry(await reputation.getAddress());
   await agentVault.wire(
@@ -48,14 +54,22 @@ async function main() {
   );
 
   const amount = ethers.parseUnits("100", 6);
-  const digest = ethers.keccak256(ethers.toUtf8Bytes("settlement-v1"));
   const deadline = (await ethers.provider.getBlock("latest"))!.timestamp + 86400;
+  const digest = await settlementDigest({ registry, poster, usdc }, {
+    worker: worker.address,
+    totalAmount: amount,
+    escrowMode: 1,
+    deadline,
+    milestoneAmounts: [amount],
+    acceptanceCriteriaHash: DEFAULT_ACCEPTANCE_HASH,
+  });
 
   console.log("\n--- Deployed ---");
   console.log("MockUSDC:", await usdc.getAddress());
   console.log("EscrowVault:", await escrow.getAddress());
   console.log("TaskRegistry:", await registry.getAddress());
   console.log("ArbitrationModule:", await arbitration.getAddress());
+  console.log("ArbitrationSatellite:", await satellite.getAddress());
   console.log("ReputationRegistry:", await reputation.getAddress());
   console.log("TreasuryRouter:", await treasury.getAddress());
 
@@ -69,7 +83,8 @@ async function main() {
     true,
     [amount],
     0,
-    0
+    0,
+    DEFAULT_ACCEPTANCE_HASH
   );
   console.log("\n--- Task 1 created ---");
 

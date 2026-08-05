@@ -1,4 +1,4 @@
-import { getOpenTasks } from "./lib/open-tasks.js";
+import { listV2Tasks } from "./lib/tasks-rpc-v2.js";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -28,10 +28,10 @@ export default async function handler(req, res) {
     const host = req.headers?.host || "azzle.org";
     const url = new URL(req.url || "/api/get-open-tasks", "https://" + host);
     const limit = url.searchParams.get("limit");
-    const tasks = await getOpenTasks(limit);
+    const result = await listV2Tasks({ limit, state: "POSTED" });
 
-    sendJson(res, 200, { tasks, count: tasks.length }, { "Cache-Control": CACHE_CONTROL });
+    sendJson(res, 200, result, { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120" });
   } catch (err) {
-    sendJson(res, 502, { error: "Base RPC unavailable", detail: err?.message ?? String(err) });
+    sendJson(res, 502, { error: err?.message ?? String(err) });
   }
 }

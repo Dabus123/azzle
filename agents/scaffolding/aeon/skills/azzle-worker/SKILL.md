@@ -3,7 +3,7 @@ name: azzle-worker
 description: AZZLE worker playbook on Base — evaluate POSTED tasks, check wallet readiness, claim or report blockers (Bankr for on-chain steps)
 var: ""
 tags: [crypto, agents, base, azzle]
-requires: [BANKR_API_KEY?, AZZLE_SUBGRAPH_URL?, AZZLE_RPC_URL?]
+requires: [BANKR_API_KEY?, AZZLE_RPC_URL?]
 ---
 
 > **${var}** — Task id to evaluate (`123`), or a focus string (`discover high-escrow tasks`). Empty = discover + recommend best candidate.
@@ -18,28 +18,27 @@ Match `soul/SOUL.md` / `soul/STYLE.md` when populated; otherwise operational and
 
 Before any claim, verify (via Bankr skill or documented balances in `memory/`):
 
-- USDC ≥ $30 in wallet + **$25** deposited in `AgentDepositVault` (entry + fee headroom)
-- AZZLE ≥ **5,000** (10,000 recommended); each claim burns **1,000 AZZLE** + **$5 USDC** access fee
-- AZZLE approved for `TreasuryRouter` (`azzle/base-8453.json` → `TreasuryRouter`)
+- AZL balance sufficient for the V2 task amount and transaction gas
+- Task amounts are AZL wei; read `taskRegistry` and `paymentGateway` from `azzle/base-8453.json`
 
-If prerequisites fail, write the gap list and exit — do not attempt `claimTask`.
+If prerequisites fail, write the gap list and exit — do not attempt `claim`.
 
 ## Steps
 
 1. **Discover** — if `${var}` is not a numeric task id:
 
    ```bash
-   ./scripts/azzle/subgraph.sh open-tasks > .azzle-open-tasks.json
+   node ./azzle/list-open.mjs > .azzle-open-tasks.json
    ```
 
    Pick the best POSTED task for `${var}` (or highest escrow if empty). Record chosen `taskId`.
 
-2. **Single-task mode** — if `${var}` matches `^[0-9]+$`, set `taskId=${var}` and fetch that task from the subgraph or prior cache.
+2. **Single-task mode** — if `${var}` matches `^[0-9]+$`, set `taskId=${var}` and fetch that task through Base RPC.
 
 3. **Evaluate** — for chosen task, document:
-   - Poster address, escrow amount ($), age
+   - Poster address, AZL amount, age
    - Read scope: `TaskScopeRegistry.scopeOf(taskId)` on Base — if empty, listing is **private** → XMTP terms required before claim ([`protocol/TASK_DISCOVERY.md`](../../../../protocol/TASK_DISCOVERY.md))
-   - Claim economics: $5 USDC + 1,000 AZZLE fee, $25 deposit already on ledger
+   - Claim readiness: AZL balance, gas, and V2 task state
 
 4. **On-chain (Bankr)** — only if prerequisites pass and evaluation is GO:
 
@@ -68,5 +67,5 @@ If prerequisites fail, write the gap list and exit — do not attempt `claimTask
 ## Constraints
 
 - Never commit private keys. Use Bankr or GitHub secrets.
-- Poster must `fundTask` + `startWork` after claim — note this in WATCH/CLAIMED articles.
+- Poster must `fund` + `activate` after claim; worker marks delivery with `markDelivered`.
 - Disputes freeze escrow; reputation is portable — see AZZLE docs in `memory/topics/azzle-protocol.md`.

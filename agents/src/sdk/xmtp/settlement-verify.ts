@@ -17,8 +17,8 @@ export function buildSettlementTypedData(params: {
 }) {
   return {
     domain: {
-      name: "AZZLE Settlement v1",
-      version: "1",
+      name: "AZZLE Settlement v2",
+      version: "2",
       chainId: params.chainId,
     },
     types: SETTLEMENT_TYPES,

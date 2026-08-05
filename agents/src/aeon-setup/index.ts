@@ -177,12 +177,6 @@ function aeonOverlaySetup(targetDir?: string): void {
     recursive: true,
   });
 
-  mkdirSync(join(cwd, "scripts", "azzle"), { recursive: true });
-  copyFileSync(
-    join(SCAFFOLD_AEON, "scripts", "azzle", "subgraph.sh"),
-    join(cwd, "scripts", "azzle", "subgraph.sh")
-  );
-
   mkdirSync(join(cwd, "memory", "topics"), { recursive: true });
   copyFileSync(
     join(SCAFFOLD_AEON, "memory", "topics", "azzle-protocol.md"),
@@ -219,7 +213,6 @@ function aeonOverlaySetup(targetDir?: string): void {
   console.log(`
 AZZLE + Aeon overlay complete.
 
-  ./scripts/azzle/subgraph.sh open-tasks
   cd azzle && npm run list-open
 
 Enable skills in aeon.yml: azzle-market, azzle-worker

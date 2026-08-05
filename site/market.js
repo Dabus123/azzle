@@ -4,6 +4,9 @@
   let refreshTimer = null;
   let openTaskId = null;
   let currentView = "open";
+  let closeModalTimer = 0;
+  const v2Tasks = new Map();
+  const legacyTasks = new Map();
 
   const $ = (id) => document.getElementById(id);
   const BASESCAN = "https://basescan.org";
@@ -21,10 +24,10 @@
     return addr.slice(0, 6) + "…" + addr.slice(-4);
   }
 
-  function fmtUsdc(n) {
+  function fmtAzl(n) {
     const v = Number(n);
     if (!Number.isFinite(v)) return "—";
-    return "$" + (Math.round(v * 100) / 100).toLocaleString();
+    return (Math.round(v / 1e18 * 100) / 100).toLocaleString() + " AZL";
   }
 
   function fmtAgo(ts) {
@@ -72,24 +75,63 @@
   }
 
   async function fetchOpenTasks() {
-    const res = await fetch("/api/get-open-tasks?limit=100", { cache: "no-store" });
+    const query = new URLSearchParams({ limit: "100" });
+    const type = $("rd-market-filter-type")?.value.trim();
+    const capability = $("rd-market-filter-capability")?.value.trim();
+    const minimum = $("rd-market-filter-min")?.value.trim();
+    if (type) query.set("taskType", type);
+    if (capability) query.set("capability", capability);
+    if (minimum) query.set("minAmountAzlWei", (BigInt(Math.max(0, Number(minimum))) * 10n ** 18n).toString());
+    const res = await fetch("/api/get-open-tasks-v2?" + query, { cache: "no-store" });
     const data = await parseJsonResponse(res);
+    if (!res.ok && data.error === "not_found") return [];
     if (!res.ok) throw new Error(data.error || "Could not load open tasks");
-    return data.tasks ?? [];
+    const tasks = (data.tasks ?? []).map((task) => ({
+      ...task,
+      id: task.id,
+      taskAmountAzl: task.totalAmountAzlWei,
+      fundedAzl: task.fundedAzlWei,
+      lockedAzl: task.fundedAzlWei,
+      registryAddress: task.registry,
+      state: task.state,
+    }));
+    tasks.forEach((task) => v2Tasks.set(task.id, task));
+    return tasks;
   }
 
   async function fetchRecentTasks() {
-    const res = await fetch("/api/get-recent-tasks?limit=50", { cache: "no-store" });
+    const res = await fetch("/api/get-open-tasks-v2?limit=50&state=ALL", { cache: "no-store" });
     const data = await parseJsonResponse(res);
+    if (!res.ok && data.error === "not_found") return [];
     if (!res.ok) throw new Error(data.error || "Could not load task history");
-    return data.tasks ?? [];
+    return (data.tasks ?? []).map((task) => ({
+      ...task,
+      taskAmountAzl: task.totalAmountAzlWei,
+      fundedAzl: task.fundedAzlWei,
+      lockedAzl: task.fundedAzlWei,
+      registryAddress: task.registry,
+    }));
+  }
+
+  async function fetchLegacyTasks() {
+    const res = await fetch("/api/market/legacy?limit=100", { cache: "no-store" });
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(data.error || "Could not load archived V1 tasks");
+    const tasks = (data.tasks ?? []).map((task) => ({
+      ...task,
+      protocolVersion: "v1-archived",
+      taskAmountAzl: task.totalAmountWei,
+      registryAddress: task.registry,
+    }));
+    tasks.forEach((task) => legacyTasks.set(task.id, task));
+    return tasks;
   }
 
   function stateTone(state) {
     if (state === "POSTED") return "open";
-    if (state === "CLAIMED" || state === "ACTIVE" || state === "IN_REVIEW") return "live";
+    if (state === "CLAIMED" || state === "ACTIVE") return "live";
     if (state === "COMPLETED" || state === "RESOLVED") return "done";
-    if (state === "DISPUTED" || state === "PAUSED") return "warn";
+    if (state === "DISPUTED") return "warn";
     return "other";
   }
 
@@ -118,6 +160,8 @@
   }
 
   async function fetchTaskDetail(taskId) {
+    if (currentView === "legacy" && legacyTasks.has(taskId)) return legacyTasks.get(taskId);
+    if (v2Tasks.has(taskId)) return v2Tasks.get(taskId);
     const res = await fetch("/api/get-task?id=" + encodeURIComponent(taskId), {
       cache: "no-store",
     });
@@ -161,13 +205,17 @@
 
     if (!grid || !task) return;
 
-    if (title) title.textContent = "Task #" + task.id;
+    if (title) title.textContent = (task.protocolVersion === "v1-archived" ? "V1 archive task #" : "Task #") + task.id;
     if (sub) {
+      if (task.protocolVersion === "v1-archived") {
+        sub.textContent = "Archived V1 task · read-only historical reference · not actively maintained";
+      } else {
       sub.textContent = task.discoveryPrivate
         ? "Private listing · negotiate scope via XMTP before claiming"
         : task.claimable
-          ? "Open on the search market · claim costs $5 USDC + 1,000 AZL"
+          ? "Open on the search market · claim access is an oracle-priced AZL fee; Action Credits cover eligible claims"
           : "State: " + task.state;
+      }
     }
     if (status) {
       status.textContent = "";
@@ -197,8 +245,8 @@
 
     grid.innerHTML =
       detailRow("Status", stateBadge) +
-      detailRow("Budget", escapeHtml(fmtUsdc(task.budgetUsdc) + " USDC")) +
-      detailRow("Escrow locked", escapeHtml(fmtUsdc(task.lockedUsdc) + " USDC")) +
+      detailRow("Task amount", escapeHtml(fmtAzl(task.taskAmountAzl ?? task.budgetAzl))) +
+      detailRow("Escrow locked", escapeHtml(fmtAzl(task.lockedAzl))) +
       detailRow(
         "Escrow funded",
         task.funded ? "Yes — full budget locked" : "Not yet — locks when poster funds"
@@ -213,7 +261,10 @@
         : "") +
       detailRow("Poster", basescanAddr(task.poster)) +
       (task.worker ? detailRow("Worker", basescanAddr(task.worker)) : "") +
-      detailRow("Settlement digest", "<code>" + escapeHtml(fmtDigest(task.settlementDigest)) + "</code>");
+      detailRow("Settlement digest", "<code>" + escapeHtml(fmtDigest(task.settlementDigest)) + "</code>") +
+      (task.protocolVersion === "v1-archived"
+        ? detailRow("Protocol", "V1 archive — no V2 actions available")
+        : "");
 
     grid.hidden = false;
     if (note) note.hidden = !task.description;
@@ -229,7 +280,10 @@
         BASESCAN +
         "/address/" +
         task.escrowAddress +
-        '" target="_blank" rel="noopener">Escrow vault</a>';
+        '" target="_blank" rel="noopener">Escrow vault</a>' +
+        (task.protocolVersion === "v1-archived"
+          ? '<span class="rd-market-archive-inline">Archived V1 only — do not use with the V2 wallet.</span>'
+          : "");
       links.hidden = false;
     }
   }
@@ -254,7 +308,19 @@
 
   function closeDetail() {
     const modal = $("rd-market-detail-modal");
-    if (modal) modal.hidden = true;
+    if (!modal || modal.hidden) return;
+    if (closeModalTimer) window.clearTimeout(closeModalTimer);
+    modal.classList.remove("rd-market-detail-modal--open");
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      if (!modal.classList.contains("rd-market-detail-modal--open")) modal.hidden = true;
+    };
+    modal.addEventListener("transitionend", (e) => {
+      if (e.target === modal && e.propertyName === "opacity") finish();
+    }, { once: true });
+    closeModalTimer = window.setTimeout(finish, 320);
     openTaskId = null;
     syncUrl(null);
     document.body.classList.remove("rd-market-modal-open");
@@ -267,8 +333,13 @@
     const links = $("rd-market-detail-links");
     if (!modal || !taskId) return;
 
+    if (closeModalTimer) window.clearTimeout(closeModalTimer);
     openTaskId = String(taskId);
     modal.hidden = false;
+    modal.classList.remove("rd-market-detail-modal--open");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => modal.classList.add("rd-market-detail-modal--open"));
+    });
     document.body.classList.add("rd-market-modal-open");
     syncUrl(openTaskId);
 
@@ -301,8 +372,8 @@
           t.id +
           "</span></td>" +
           "<td>" +
-          fmtUsdc(t.budgetUsdc) +
-          " USDC</td>" +
+          fmtAzl(t.taskAmountAzl ?? t.budgetAzl) +
+          "</td>" +
           "<td><span class=\"rd-market-addr\" title=\"" +
           escapeHtml(t.poster || "") +
           "\">" +
@@ -336,8 +407,8 @@
           stateBadge(t.state) +
           "</td>" +
           "<td>" +
-          fmtUsdc(t.budgetUsdc) +
-          " USDC</td>" +
+          fmtAzl(t.taskAmountAzl ?? t.budgetAzl) +
+          "</td>" +
           "<td><span class=\"rd-market-addr\" title=\"" +
           escapeHtml(t.poster || "") +
           "\">" +
@@ -355,6 +426,20 @@
           "</tr>"
       )
       .join("");
+    bindRowClicks(tbody);
+  }
+
+  function renderLegacyRows(tasks) {
+    const tbody = $("rd-market-legacy-rows");
+    if (!tbody) return;
+    tbody.innerHTML = tasks.map((t) =>
+      "<tr class=\"rd-market-row\" data-id=\"" + escapeHtml(t.id) + "\" tabindex=\"0\" role=\"button\">" +
+      "<td><span class=\"rd-market-id\">#" + escapeHtml(t.id) + "</span></td>" +
+      "<td>" + escapeHtml(fmtAzl(t.taskAmountAzl)) + "</td>" +
+      "<td><span class=\"rd-market-addr\" title=\"" + escapeHtml(t.poster || "") + "\">" + shortAddr(t.poster) + "</span></td>" +
+      "<td>" + escapeHtml(fmtAgo(t.createdAt)) + "</td>" +
+      "<td><span class=\"rd-market-open-hint\">Read only</span></td></tr>"
+    ).join("");
     bindRowClicks(tbody);
   }
 
@@ -435,8 +520,47 @@
     }
   }
 
+  async function loadLegacyTasks() {
+    const tableWrap = $("rd-market-legacy-wrap");
+    const empty = $("rd-market-legacy-empty");
+    const foot = $("rd-market-legacy-foot");
+    setStatus("Loading archived V1 tasks…", "busy");
+    if (tableWrap) tableWrap.hidden = true;
+    if (empty) empty.hidden = true;
+    if (foot) foot.hidden = false;
+    try {
+      const tasks = await fetchLegacyTasks();
+      if (!tasks.length) {
+        setStatus("No archived V1 tasks found.", undefined);
+        if (empty) empty.hidden = false;
+        return;
+      }
+      renderLegacyRows(tasks);
+      if (tableWrap) tableWrap.hidden = false;
+      setStatus(tasks.length + " archived V1 task" + (tasks.length === 1 ? "" : "s") + " · read only.", undefined);
+    } catch (e) {
+      const msg = (e && e.message) || "";
+      if (msg === "not_found" || msg.toLowerCase().includes("not found")) {
+        setStatus("Archived V1 data is unavailable in this deployment.", undefined);
+        if (empty) {
+          empty.textContent = "No archived V1 data is available here. V1 is historical and no longer maintained.";
+          empty.hidden = false;
+        }
+      } else if (msg.toLowerCase().includes("rate") || msg.includes("429")) {
+        setStatus("V1 archive RPC is busy. Try refresh in a moment.", undefined);
+        if (empty) {
+          empty.textContent = "The archived V1 registry is live, but its public RPC is rate-limited right now.";
+          empty.hidden = false;
+        }
+      } else {
+        setStatus(msg || "Could not load archived V1 tasks", "err");
+      }
+    }
+  }
+
   function loadCurrentView() {
     if (currentView === "history") return loadHistoryTasks();
+    if (currentView === "legacy") return loadLegacyTasks();
     return loadOpenTasks();
   }
 
@@ -451,13 +575,15 @@
   }
 
   function setView(view) {
-    const next = view === "history" ? "history" : "open";
+    const next = view === "history" || view === "legacy" ? view : "open";
     currentView = next;
 
     const openTab = $("rd-market-view-open");
     const historyTab = $("rd-market-view-history");
+    const legacyTab = $("rd-market-view-legacy");
     const openPanel = $("rd-market-panel-open");
     const historyPanel = $("rd-market-panel-history");
+    const legacyPanel = $("rd-market-panel-legacy");
     const title = $("rd-market-title");
     const lead = $("rd-market-lead");
 
@@ -469,15 +595,22 @@
       historyTab.classList.toggle("on", next === "history");
       historyTab.setAttribute("aria-selected", next === "history" ? "true" : "false");
     }
+    if (legacyTab) {
+      legacyTab.classList.toggle("on", next === "legacy");
+      legacyTab.setAttribute("aria-selected", next === "legacy" ? "true" : "false");
+    }
     if (openPanel) openPanel.hidden = next !== "open";
     if (historyPanel) historyPanel.hidden = next !== "history";
+    if (legacyPanel) legacyPanel.hidden = next !== "legacy";
 
-    if (title) title.textContent = next === "history" ? "Task history" : "Open market";
+    if (title) title.textContent = next === "history" ? "Task history" : next === "legacy" ? "V1 archive" : "Open market";
     if (lead) {
       lead.textContent =
         next === "history"
           ? "Recent tasks across all states on Base — settled, active, and closed."
-          : "All POSTED tasks on Base — claimable on the search market. Claim costs $5 USDC + 1,000 AZL.";
+          : next === "legacy"
+            ? "Archived V1 tasks — read-only historical reference, not part of the actively maintained protocol."
+          : "All POSTED v2 tasks on Base — access is oracle-priced in AZL; Action Credits cover eligible claims.";
     }
 
     syncViewUrl();
@@ -491,8 +624,10 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     $("rd-market-refresh")?.addEventListener("click", loadCurrentView);
+    $("rd-market-filter-apply")?.addEventListener("click", loadCurrentView);
     $("rd-market-view-open")?.addEventListener("click", () => setView("open"));
     $("rd-market-view-history")?.addEventListener("click", () => setView("history"));
+    $("rd-market-view-legacy")?.addEventListener("click", () => setView("legacy"));
     $("rd-market-detail-close")?.addEventListener("click", closeDetail);
     $("rd-market-detail-backdrop")?.addEventListener("click", closeDetail);
     document.addEventListener("keydown", (e) => {
@@ -502,7 +637,7 @@
     const params = new URLSearchParams(window.location.search);
     openTaskId = params.get("task") || params.get("id");
     const view = params.get("view");
-    if (view === "history") currentView = "history";
+    if (view === "history" || view === "legacy") currentView = view;
 
     setView(currentView);
     scheduleRefresh();

@@ -26,14 +26,14 @@ function requireSigner() {
 function connectClient(signer) {
   return new AzzleClient({
     rpcUrl,
-    registryAddress: manifest.TaskRegistry,
-    escrowAddress: manifest.EscrowVault,
-    arbitrationAddress: manifest.ArbitrationModule,
+    registryAddress: manifest.taskRegistry,
+    escrowAddress: manifest.escrowVault,
+    arbitrationAddress: manifest.arbitrationModule,
   }).connect(signer);
 }
 
 async function readArbitratorStats(provider, wallet) {
-  const rep = new Contract(manifest.ReputationRegistry, REPUTATION_ABI, provider);
+  const rep = new Contract(manifest.reputationRegistry, REPUTATION_ABI, provider);
   const [arbitratorRep, resolvedCount] = await Promise.all([
     rep.arbitratorReputation(wallet),
     rep.resolvedCount(wallet),
@@ -45,10 +45,10 @@ async function runPreflight() {
   const signer = requireSigner();
   const wallet = await signer.getAddress();
   const report = await checkWorkerPreflight(signer.provider, wallet, {
-    agentDepositVault: manifest.AgentDepositVault,
-    treasuryRouter: manifest.TreasuryRouter,
-    azlToken: manifest.azlToken,
-    usdc: manifest.usdc,
+    agentDepositVault: manifest.depositVault,
+    treasuryRouter: manifest.treasuryRouter,
+    azlToken: manifest.external.azl,
+    usdc: manifest.external.usdc,
   });
   logPreflightReport(report);
   const stats = await readArbitratorStats(signer.provider, wallet);
@@ -115,10 +115,10 @@ async function tierCheck(amountArg) {
   const wallet = await signer.getAddress();
   const stats = await readArbitratorStats(signer.provider, wallet);
   const report = await checkWorkerPreflight(signer.provider, wallet, {
-    agentDepositVault: manifest.AgentDepositVault,
-    treasuryRouter: manifest.TreasuryRouter,
-    azlToken: manifest.azlToken,
-    usdc: manifest.usdc,
+    agentDepositVault: manifest.depositVault,
+    treasuryRouter: manifest.treasuryRouter,
+    azlToken: manifest.external.azl,
+    usdc: manifest.external.usdc,
   });
   const result = checkTierEligibility(tier, {
     rep: stats.rep,

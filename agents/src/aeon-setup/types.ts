@@ -22,7 +22,7 @@ export const ROLE_CATALOG: RoleMeta[] = [
   {
     id: "verifier",
     label: "Verifier",
-    hint: "Stake verifier bond, validate receipts, subgraph signals",
+    hint: "Stake verifier bond, validate receipts, Base RPC signals",
   },
   {
     id: "arbitrator",

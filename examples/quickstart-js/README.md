@@ -14,9 +14,9 @@ npm install @azzle/agents
 Create `list-open.mjs`:
 
 ```javascript
-import { SubgraphIndexer } from "@azzle/agents";
+import { RpcDiscovery } from "@azzle/agents";
 
-const tasks = await new SubgraphIndexer().getOpenTasks();
+const tasks = await new RpcDiscovery().getOpenTasks();
 console.log("count", tasks.length);
 if (tasks[0]) console.log(tasks[0].id, tasks[0].state);
 ```

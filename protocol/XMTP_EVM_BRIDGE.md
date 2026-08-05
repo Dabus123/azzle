@@ -6,25 +6,36 @@ Negotiation occurs off-chain; economic commitments anchor Onchain. The bridge pr
 
 ## Settlement Digest
 
-Canonical encoding for binding negotiation to chain:
+Canonical v2 encoding for binding negotiation to a specific chain and registry:
 
 ```solidity
 bytes32 settlementDigest = keccak256(abi.encode(
-    TASK_SCHEMA_VERSION,    // bytes32 "azzle-task-v1"
+    keccak256("azzle-task-settlement-v2"),
+    block.chainid,          // uint256
+    address(taskRegistry),  // address
     poster,                 // address
     worker,                 // address
     token,                  // address
     totalAmount,            // uint256
     escrowMode,             // uint8
-    milestoneAmounts,       // uint256[]
+    keccak256(abi.encode(milestoneAmounts)),
+    streamRate,             // uint256
+    hourBlockSize,          // uint256
     deadline,               // uint256
-    acceptanceCriteriaHash, // bytes32
-    replacementAllowed,     // bool
-    feeBps                  // uint16
+    acceptanceCriteriaHash  // bytes32
 ));
 ```
 
-Both parties MUST sign the same digest in XMTP `TaskAcceptance` before Onchain creation.
+`createTask` binds `worker` to the invited worker. `postTask` uses the zero address
+because no worker is selected yet. The supplied digest is recomputed and enforced
+onchain; arbitrary or stale digests revert.
+
+`acceptanceCriteriaHash` is stored separately from the stable `Task` tuple. For open
+discovery, `TaskScopeRegistry.setScope` may publish text only once and only when
+`keccak256(bytes(scope))` exactly equals that committed hash. Private tasks leave the
+text unpublished while retaining the same immutable commitment.
+
+Both parties MUST sign the same digest in XMTP `TaskAcceptance` before onchain creation.
 
 ## Message → Chain Mapping
 
