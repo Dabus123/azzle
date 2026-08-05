@@ -27,6 +27,7 @@ const STATIC = [
   "home-parallax.js",
   "infoboard.js",
   "home-quicknav.js",
+  "hire-demo.js",
   "site-theme.css",
   "post-checkout.js",
   "market.js",
