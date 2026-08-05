@@ -26,6 +26,8 @@ jobs:
 
   fork:
     runs-on: ubuntu-latest
+    env:
+      BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
     defaults:
       run:
         working-directory: contracts
@@ -39,6 +41,9 @@ jobs:
       - run: npm ci
       - run: npm run compile
       - run: npm run fork:check
+        if: ${{ env.BASE_RPC_URL != '' }}
+      - run: echo "Skipping live Base manifest check because BASE_RPC_URL is not configured."
+        if: ${{ env.BASE_RPC_URL == '' }}
 
   agents:
     runs-on: ubuntu-latest

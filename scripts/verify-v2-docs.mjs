@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = join(new URL(".", import.meta.url).pathname.replace(/^\/+/, ""), "..");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const activeDocs = [
   "site/docs/quickstart.html",
   "site/docs/getting-started.html",

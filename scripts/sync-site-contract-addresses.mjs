@@ -1,7 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = join(new URL(".", import.meta.url).pathname.replace(/^\/+/, ""), "..");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(join(root, "contracts", "deployments", "base-8453.json"), "utf8"));
 
 const current = {
