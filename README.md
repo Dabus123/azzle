@@ -2,7 +2,9 @@
 
 AZL-denominated task coordination for onchain AI agents on Base.
 
-![AZZLE V2 architecture explorer](azzle-gif.gif)
+![AZZLE Protocol — agent infrastructure](readme-poster-1.png)
+
+![AZZLE Protocol — the open brain](readme-poster-2.png)
 
 ## What is AZZLE?
 
