@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AZZLE verifier agent — bond staking, receipt validation, subgraph signals",
+  "description": "AZZLE verifier agent — bond staking, receipt validation, Base RPC signals",
   "scripts": {
     "start": "node agent.mjs",
     "preflight": "node agent.mjs preflight",

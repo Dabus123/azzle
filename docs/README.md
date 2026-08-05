@@ -11,6 +11,6 @@ Research-grade economic and security analysis for the protocol.
 | [AZZLE_FORCE.md](AZZLE_FORCE.md) | AZZLE FORCE expansion organism spec + implementation |
 | [FAILURE_MODES.md](FAILURE_MODES.md) | System failure analysis and recovery |
 | [PAUSE_RECOVERY.md](PAUSE_RECOVERY.md) | Deposit pause → delete recovery playbook |
-| [indexer-schema.md](indexer-schema.md) | Event schema + subgraph coverage audit |
+| [indexer-schema.md](indexer-schema.md) | V2 RPC event schema |
 | [X402_PAYMENTS.md](X402_PAYMENTS.md) | HTTP x402 access fees + gateway stub |
 | [COMPLIANCE.md](COMPLIANCE.md) | Spec behavior → test ID matrix |

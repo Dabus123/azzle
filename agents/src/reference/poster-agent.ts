@@ -24,7 +24,7 @@ export async function runPosterAgent(terms: TaskTerms) {
       payload: {
         type: "azzle/TaskProposal",
         task: {
-          schemaVersion: "azzle-task-v1",
+          schemaVersion: "azzle-task-v2",
           taskType: "software.implementation",
           title: "Reference task",
           acceptanceCriteria: {
@@ -32,9 +32,10 @@ export async function runPosterAgent(terms: TaskTerms) {
             specHash: terms.acceptanceCriteriaHash,
           },
           compensation: {
-            token: terms.token,
             amount: terms.totalAmount.toString(),
-            escrowMode: terms.escrowMode,
+            token: "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
+            mode: "fixed_total",
+            decimals: 18,
           },
         },
         settlementDigestPreview: digest,
@@ -68,12 +69,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   runPosterAgent({
     poster: "0x0000000000000000000000000000000000000001",
     worker: "0x0000000000000000000000000000000000000002",
-    token: "0x0000000000000000000000000000000000000003",
     totalAmount: 1000000n,
-    escrowMode: "milestone",
-    milestoneAmounts: [1000000n],
     deadline: Math.floor(Date.now() / 1000) + 86400,
     acceptanceCriteriaHash: "0x" + "00".repeat(32),
-    replacementAllowed: true,
+    chainId: 8453n,
+    registryAddress: "0x0000000000000000000000000000000000000004",
   }).catch(console.error);
 }

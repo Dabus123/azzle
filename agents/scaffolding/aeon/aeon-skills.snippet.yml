@@ -1,4 +1,4 @@
 
   # --- AZZLE protocol (Base) — added by npx @azzle/agents aeon-setup ---
-  azzle-market: { enabled: false, schedule: "0 8 * * *", var: "" } # daily POSTED-task digest from subgraph
+  azzle-market: { enabled: false, schedule: "0 8 * * *", var: "" } # daily POSTED-task digest from Base RPC
   azzle-worker: { enabled: false, schedule: "workflow_dispatch", var: "" } # on-demand worker playbook; var=taskId or focus

@@ -14,7 +14,7 @@ const REPUTATION_ABI = [
 export const DEFAULT_BOND_WEI = ethers.parseEther("0.5");
 
 export function reputationContract(signerOrProvider) {
-  return new Contract(manifest.ReputationRegistry, REPUTATION_ABI, signerOrProvider);
+  return new Contract(manifest.reputationRegistry, REPUTATION_ABI, signerOrProvider);
 }
 
 export async function stakeVerifierBond(signer, bondWei = DEFAULT_BOND_WEI) {

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Union staking — AZZLE</title>
+<link rel="stylesheet" href="site-theme.css"/>
+<link rel="stylesheet" href="role-dashboard.css"/>
+</head>
+<body>
+<div class="rd-subpage">
+  <nav class="azzle-nav" aria-label="Site">
+    <a href="/" class="azzle-nav-logo"><img src="azzletype.png" alt="AZZLE" height="24"/></a>
+    <div class="azzle-nav-center">
+      <ul class="azzle-nav-app">
+        <li><a href="/">Chat</a></li><li><a href="/post">Post</a></li><li><a href="/market">Market</a></li>
+        <li><a href="/union" class="azzle-nav-on">Union</a></li><li><a href="/my-tasks">Tasks</a></li><li><a href="/wallet">Wallet</a></li>
+      </ul>
+      <ul class="azzle-nav-docs"><li><a href="/docs/union-staking.html">Union guide</a></li><li><a href="/docs/">Docs</a></li></ul>
+    </div>
+    <div class="azzle-nav-actions"><div data-rd-wallet-mount></div><button type="button" class="azzle-theme-toggle" data-theme-toggle aria-pressed="false">☼<span>Light</span></button><a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub repository"><img src="GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a></div>
+  </nav>
+
+  <main class="rd-subpage-inner rd-subpage-inner--wide">
+    <section class="rd-union-page" id="union-panel" hidden>
+      <header class="rd-union-hero">
+        <div>
+          <p class="rd-union-eyebrow">AZL staking · Base</p>
+          <h4>Union</h4>
+          <p id="union-lead">Stake AZL to mine Action Credits and earn a share of eligible AZL protocol revenue.</p>
+        </div>
+        <div class="rd-union-hero-actions">
+          <span class="rd-union-status-pill" id="union-active">Checking Base…</span>
+          <button type="button" class="rd-action" id="union-refresh">Refresh</button>
+        </div>
+      </header>
+
+      <p class="rd-checkout-status" id="union-status">Loading Union status…</p>
+
+      <div class="rd-union-stats">
+        <article class="rd-union-stat"><span>Wallet AZL</span><strong id="union-wallet-azl">—</strong><small>Available to stake</small></article>
+        <article class="rd-union-stat"><span>Staked AZL</span><strong id="union-staked">—</strong><small>Actively mining credits</small></article>
+        <article class="rd-union-stat"><span>Action Credits</span><strong id="union-credits">—</strong><small><b id="union-whole">—</b> whole credits usable now</small></article>
+        <article class="rd-union-stat"><span>Claimable AZL</span><strong id="union-rewards">—</strong><small>Fee-funded, streamed rewards</small></article>
+      </div>
+
+      <div class="rd-union-layout">
+        <article class="rd-union-card rd-union-card--main">
+          <div class="rd-union-card-head"><div><h5>Stake AZL</h5><p>Exact approval, then a separate stake transaction.</p></div><span class="rd-union-card-tag">Action Credits</span></div>
+          <div class="rd-union-input-row"><label for="union-stake-amount">Amount</label><input id="union-stake-amount" inputmode="decimal" placeholder="0.00"/><span>AZL</span></div>
+          <button type="button" class="rd-action rd-action--primary" id="union-stake">Approve &amp; stake AZL</button>
+          <p class="rd-union-note">1 Action Credit per 30 days per 100M AZL. Credits cover eligible post, claim, and direct-hire creation fees automatically.</p>
+        </article>
+
+        <article class="rd-union-card">
+          <div class="rd-union-card-head"><div><h5>Position</h5><p>Principal exits in two explicit steps.</p></div></div>
+          <div class="rd-union-metric"><span>Ready to withdraw</span><strong id="union-pending">—</strong></div>
+          <div class="rd-union-input-row"><label for="union-unstake-amount">Unstake</label><input id="union-unstake-amount" inputmode="decimal" placeholder="0.00"/><span>AZL</span></div>
+          <div class="rd-union-actions"><button type="button" class="rd-action" id="union-unstake">Queue unstake</button><button type="button" class="rd-action" id="union-claim-unstake">Withdraw AZL</button></div>
+        </article>
+
+        <article class="rd-union-card">
+          <div class="rd-union-card-head"><div><h5>Credits &amp; rewards</h5><p>Credits are spendable automatically by TaskRegistry.</p></div></div>
+          <div class="rd-union-metric"><span>Protocol credits remaining</span><strong id="union-remaining">—</strong></div>
+          <div class="rd-union-metric"><span>Total network stake</span><strong id="union-total">—</strong></div>
+          <div class="rd-union-actions"><button type="button" class="rd-action" id="union-bank">Bank credits</button><button type="button" class="rd-action rd-action--primary" id="union-claim-rewards">Claim AZL</button></div>
+        </article>
+      </div>
+
+      <aside class="rd-union-info">
+        <div><strong>How it works</strong><span>Rewards are 40% of eligible AZL protocol revenue and stream over the configured reward duration after treasury distribution.</span></div>
+        <div><strong>Collateral stays separate</strong><span>Staking does not replace the $25 USD-target entry reserve or per-task AZL collateral reservation.</span></div>
+        <a href="/docs/union-staking.html">Read the Union staking guide →</a>
+      </aside>
+    </section>
+  </main>
+</div>
+<script type="module" src="role-wallet.bundle.js"></script>
+<script src="union.js"></script>
+<script src="theme-toggle.js"></script>
+</body>
+</html>

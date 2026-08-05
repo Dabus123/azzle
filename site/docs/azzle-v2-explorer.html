@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>V2 Explorer — AZZLE Protocol Docs</title>
+  <meta name="description" content="Interactive reference for the complete AZZLE V2 Base deployment graph, lifecycle, oracle, custody, arbitration, staking, and Action Credits."/>
+  <link rel="canonical" href="https://azzle.org/docs/azzle-v2-explorer.html"/>
+  <link rel="stylesheet" href="/site-theme.css"/>
+  <link rel="stylesheet" href="/role-dashboard.css"/>
+  <link rel="stylesheet" href="/docs.css"/>
+  <link rel="icon" href="/favicon.ico"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+    :root {
+      color-scheme: dark;
+      --bg: #030503;
+      --surface: rgba(9, 22, 15, .82);
+      --surface-strong: #07130d;
+      --surface-raised: #0c1e14;
+      --line: rgba(57, 255, 136, .14);
+      --line-strong: rgba(57, 255, 136, .32);
+      --text: #d9ffe9;
+      --muted: #7fa393;
+      --green: #39ff88;
+      --green-soft: rgba(57, 255, 136, .12);
+      --cyan: #33e0c8;
+      --cyan-soft: rgba(51, 224, 200, .12);
+      --amber: #ffcf5c;
+      --amber-soft: rgba(255, 207, 92, .12);
+      --red: #ff5468;
+      --red-soft: rgba(255, 84, 104, .12);
+      --magenta: #ff3df0;
+      --magenta-soft: rgba(255, 61, 240, .12);
+      --blue: #5ec8ff;
+      --blue-soft: rgba(94, 200, 255, .12);
+      --slate: #8aa79b;
+      --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --disp: 'JetBrains Mono', var(--mono);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; min-width: 320px; background:
+        radial-gradient(1000px 460px at 8% -12%, rgba(57, 255, 136, .10), transparent 58%),
+        radial-gradient(760px 420px at 100% 0%, rgba(255, 61, 240, .08), transparent 55%),
+        var(--bg);
+      color: var(--text); font: 14px/1.62 var(--mono);
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+    }
+    ::selection { background: rgba(57, 255, 136, .32); color: #04160b; }
+
+    /* ---------- ambient cypherpunk signature: scanlines + crt vignette ---------- */
+    .scanlines {
+      position: fixed; inset: 0; pointer-events: none; z-index: 998; mix-blend-mode: overlay; opacity: .55;
+      background: repeating-linear-gradient(to bottom, rgba(120,255,180,0) 0px, rgba(120,255,180,0) 2px, rgba(120,255,180,.05) 3px, rgba(120,255,180,0) 4px);
+      animation: scan-drift 11s linear infinite;
+    }
+    @keyframes scan-drift { from { background-position: 0 0; } to { background-position: 0 240px; } }
+    .crt-vignette {
+      position: fixed; inset: 0; pointer-events: none; z-index: 997;
+      background: radial-gradient(120% 100% at 50% 0%, transparent 55%, rgba(0,0,0,.55) 100%);
+    }
+    .cursor { display: inline-block; width: .55em; margin-left: 2px; background: var(--green); animation: blink 1.05s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    header {
+      border-bottom: 1px solid var(--line); padding: 48px max(24px, calc((100vw - 1200px) / 2));
+      position: relative; overflow: hidden;
+    }
+    header::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .14;
+      background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 38px 38px; mask-image: radial-gradient(closest-side, #000, transparent);
+    }
+    .hex-noise {
+      position: absolute; top: 0; right: 0; width: 46%; height: 100%; pointer-events: none; z-index: 0;
+      color: var(--green); opacity: .06; font: 11px/1.5 var(--mono); letter-spacing: .12em; overflow: hidden;
+      -webkit-mask-image: linear-gradient(to left, #000, transparent 85%); mask-image: linear-gradient(to left, #000, transparent 85%);
+      word-break: break-all; user-select: none;
+    }
+    .hero { position: relative; z-index: 1; max-width: 920px; }
+    .eyebrow { color: var(--green); font: 700 11px/1 var(--disp); letter-spacing: .16em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; display: inline-block; width: 7px; height: 7px; margin: 0 8px 1px 0; border-radius: 1px; background: var(--green); box-shadow: 0 0 14px var(--green); }
+    h1 { margin: 13px 0 10px; font: 800 clamp(32px, 5vw, 52px)/1.03 var(--disp); letter-spacing: -.02em; text-transform: uppercase; }
+    h1 span { color: var(--green); text-shadow: 0 0 22px rgba(57,255,136,.35); }
+    .intro { max-width: 780px; color: var(--muted); font-size: 14.5px; }
+    .badge-row, .fact-row { display: flex; flex-wrap: wrap; gap: 9px; }
+    .badge-row { margin-top: 20px; }
+    .badge { border: 1px solid var(--line-strong); border-radius: 3px; padding: 5px 10px; color: var(--muted); font: 11px var(--mono); letter-spacing: .03em; }
+    .badge.v2 { color: var(--cyan); border-color: rgba(51,224,200,.35); background: var(--cyan-soft); }
+    .badge.warn { color: var(--amber); border-color: rgba(255,207,92,.4); background: var(--amber-soft); animation: pulse-warn 2.6s ease-in-out infinite; }
+    @keyframes pulse-warn { 0%,100% { box-shadow: 0 0 0 rgba(255,207,92,0); } 50% { box-shadow: 0 0 12px rgba(255,207,92,.25); } }
+    .fact-row { margin-top: 28px; gap: 28px; }
+    .fact b { display: block; color: var(--green); font: 700 21px var(--disp); letter-spacing: -.02em; }
+    .fact small { color: var(--muted); font: 11px var(--mono); letter-spacing: .02em; }
+
+    /* ---------- sticky topbar: section nav + tour controls ---------- */
+    .topbar { position: sticky; top: 0; z-index: 5; background: rgba(3,5,3,.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    nav { display: flex; flex-wrap: wrap; gap: 2px; overflow-x: auto; padding: 8px max(18px, calc((100vw - 1200px) / 2)) 6px; scrollbar-width: none; }
+    nav::-webkit-scrollbar { display: none; }
+    nav button {
+      border: 1px solid transparent; border-radius: 3px; background: transparent; color: var(--muted);
+      cursor: pointer; font: 600 9.5px var(--disp); letter-spacing: .01em; padding: 6px 7px; white-space: nowrap; text-transform: uppercase;
+    }
+    nav button:hover { color: var(--text); background: rgba(57,255,136,.06); border-color: var(--line); }
+    nav button.active { color: #04160b; background: var(--green); box-shadow: 0 0 16px rgba(57,255,136,.35); }
+
+    .tour-bar { display: flex; align-items: center; gap: 10px; padding: 8px max(18px, calc((100vw - 1200px) / 2)) 10px; border-top: 1px dashed var(--line); }
+    .tour-btn {
+      border: 1px solid var(--line-strong); border-radius: 3px; background: var(--surface-strong); color: var(--green);
+      cursor: pointer; font: 700 11px var(--disp); letter-spacing: .04em; padding: 7px 12px; white-space: nowrap; text-transform: uppercase;
+    }
+    .tour-btn:hover { border-color: var(--green); background: var(--green-soft); }
+    .tour-btn.icon { padding: 7px 10px; color: var(--muted); }
+    .tour-btn.icon:hover { color: var(--text); }
+    .tour-btn.stop { color: var(--red); border-color: rgba(255,84,104,.35); display: none; }
+    .tour-bar.active .tour-btn.stop { display: inline-block; }
+    .tour-readout {
+      flex: 1; min-width: 160px; color: var(--muted); font: 12px var(--mono); letter-spacing: .01em;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .tour-bar.active .tour-readout { color: var(--green); }
+    .tour-progress { width: 130px; height: 4px; border: 1px solid var(--line-strong); border-radius: 2px; background: var(--surface-strong); overflow: hidden; flex-shrink: 0; }
+    .tour-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--green), var(--cyan)); transition: width .25s linear; }
+    @media (max-width: 640px) { .tour-progress { display: none; } .tour-readout { display: none; } }
+
+    main { max-width: 1200px; margin: 0 auto; padding: 38px 24px 96px; }
+    section { display: none; }
+    section.active, section.leaving { display: block; }
+    section.active { opacity: 1; transform: translateY(0); transition: opacity .2s ease, transform .2s ease; }
+    section.leaving { opacity: 0; transform: translateY(-6px); pointer-events: none; transition: opacity .15s ease, transform .15s ease; }
+    section.entering { opacity: 0; transform: translateY(6px); }
+    @media (prefers-reduced-motion: reduce) {
+      section.active, section.leaving, section.entering { transition: none !important; opacity: 1 !important; transform: none !important; }
+      .scanlines, .badge.warn, .cursor { animation: none !important; }
+    }
+    h2 { margin: 0; font: 700 24px/1.2 var(--disp); letter-spacing: -.01em; text-transform: uppercase; }
+    h2 span { color: var(--green); font: 700 12px var(--disp); letter-spacing: .04em; margin-right: 9px; }
+    .lead { max-width: 800px; margin: 6px 0 24px; color: var(--muted); }
+    h3 { margin: 30px 0 11px; font: 700 13px var(--disp); letter-spacing: .03em; text-transform: uppercase; color: var(--text); }
+    .grid { display: grid; gap: 14px; }
+    .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card, .diagram, .callout {
+      border: 1px solid var(--line); border-radius: 4px; background: linear-gradient(160deg, rgba(12,30,20,.72), rgba(6,12,9,.9));
+      box-shadow: 0 16px 40px rgba(0,0,0,.4);
+    }
+    .card { padding: 16px; transition: border-color .15s ease; }
+    .card:hover { border-color: var(--line-strong); }
+    .card h3 { margin: 0 0 7px; color: var(--text); }
+    .card p { color: var(--muted); margin: 0; font-size: 12.5px; }
+    .card .code { color: var(--cyan); font: 600 11px var(--mono); }
+    .callout { margin: 16px 0; padding: 13px 15px; border-left: 3px solid var(--green); color: var(--muted); border-radius: 0 4px 4px 0; }
+    .callout b { color: var(--green); }
+    .callout.warning { border-left-color: var(--amber); }
+    .callout.warning b { color: var(--amber); }
+    .callout.danger { border-left-color: var(--red); }
+    .callout.danger b { color: var(--red); }
+    .diagram { padding: 24px; overflow: auto; }
+    .flow { min-width: 880px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: stretch; }
+    .node { position: relative; min-height: 108px; padding: 14px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface-strong); }
+    .node:not(:last-child)::after { content: "→"; position: absolute; right: -13px; top: 42%; z-index: 2; color: var(--green); font: 24px var(--mono); }
+    .node .type { display: block; color: var(--muted); font: 10px var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+    .node b { display: block; margin: 3px 0; color: var(--amber); font-size: 13px; }
+    .node p { margin: 0; color: var(--muted); font-size: 11px; }
+    .node.money b { color: var(--cyan); }
+    .node.security b { color: var(--amber); }
+    .node.arb b { color: var(--magenta); }
+    .node.final b { color: var(--green); }
+    .node { cursor: pointer; transition: border-color .15s ease, transform .15s ease, background .15s ease; }
+    .node:hover, .node.selected { border-color: var(--green); background: #0e2418; transform: translateY(-2px); box-shadow: 0 0 18px rgba(57,255,136,.12); }
+    .focus-panel { margin-top: 14px; padding: 14px; border: 1px solid rgba(57,255,136,.38); border-radius: 4px; color: var(--muted); background: var(--green-soft); }
+    .focus-panel b { color: var(--green); }
+    .svg-diagram { position: relative; height: 610px; min-height: 610px; padding: 0; overflow: hidden; }
+    .svg-diagram.compact-diagram { height: 230px; min-height: 230px; margin: 0 0 18px; }
+    .svg-diagram svg.links { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
+    .svg-diagram .svg-node { position: absolute; z-index: 2; width: 150px; min-height: 58px; padding: 9px 10px; border: 1px solid var(--line-strong); border-radius: 3px; background: var(--surface-strong); cursor: pointer; transition: opacity .15s ease, border-color .15s ease, box-shadow .15s ease; }
+    .svg-diagram .svg-node b { display:block; color:var(--amber); font-size:11px; }
+    .svg-diagram .svg-node small { display:block; color:var(--muted); font:9px var(--mono); margin-top:2px; }
+    .svg-diagram .svg-node.selected { border-color:var(--green); box-shadow:0 0 0 3px rgba(57,255,136,.16), 0 0 16px rgba(57,255,136,.2); }
+    .svg-diagram .svg-node.muted { opacity:.18; }
+    .svg-diagram .svg-node.connected { border-color:rgba(57,255,136,.58); }
+    .svg-diagram path.edge-related { stroke-width:3px; filter:drop-shadow(0 0 4px currentColor); }
+    .focus-controls { display:flex; flex-wrap:wrap; gap:7px; margin:0 0 12px; }
+    .focus-controls button { color:var(--muted); background:var(--surface-strong); border:1px solid var(--line); border-radius:3px; padding:6px 9px; font:10px var(--mono); letter-spacing:.03em; text-transform:uppercase; cursor:pointer; }
+    .focus-controls button.active { color:var(--bg); background:var(--green); border-color:var(--green); }
+    .svg-edge-label { fill:var(--text); font:9px var(--mono); paint-order:stroke; stroke:var(--surface-strong); stroke-width:5px; stroke-linejoin:round; }
+    .diagram-detail { margin:-7px 0 18px; padding:11px 13px; border:1px solid var(--line); border-radius:4px; color:var(--muted); background:var(--surface-strong); font-size:12px; }
+    .diagram-detail b { color:var(--cyan); }
+    .diagram-detail button { float:right; color:var(--muted); background:transparent; border:1px solid var(--line-strong); border-radius:3px; padding:3px 6px; font:10px var(--mono); cursor:pointer; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 0 0 13px; color: var(--muted); font-size: 11px; }
+    .legend i { display: inline-block; width: 12px; height: 3px; margin-right: 5px; border-radius: 1px; vertical-align: middle; }
+    .stack { display: grid; gap: 7px; }
+    .step { display: grid; grid-template-columns: 28px 1fr; align-items: start; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+    .step:last-child { border: 0; }
+    .step i { display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid rgba(57,255,136,.4); border-radius: 3px; color: var(--green); font: 700 11px var(--mono); font-style: normal; }
+    .step b { display: block; font-size: 13px; }
+    .step p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .state-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .state { padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 3px; color: var(--muted); background: var(--surface-strong); font: 700 11px var(--mono); letter-spacing: .02em; }
+    .state.start { border-color: rgba(57,255,136,.5); color: var(--green); }
+    .state.dispute { border-color: rgba(255,61,240,.5); color: var(--magenta); }
+    .state.terminal { border-color: rgba(51,224,200,.45); color: var(--cyan); }
+    .arrow { color: var(--muted); font: 18px var(--mono); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; overflow: hidden; }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 4px; }
+    th { background: rgba(4,10,7,.9); color: var(--green); font: 10px var(--disp); letter-spacing: .08em; text-align: left; text-transform: uppercase; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    tr:last-child td { border: 0; }
+    tr:hover td { background: rgba(57,255,136,.045); }
+    td code { color: var(--cyan); font: 600 11px var(--mono); white-space: nowrap; }
+    td small { color: var(--muted); }
+    .pill { display: inline-block; border-radius: 3px; padding: 2px 6px; font: 10px var(--mono); letter-spacing: .02em; }
+    .pill.public { color: var(--green); background: var(--green-soft); }
+    .pill.role { color: var(--amber); background: var(--amber-soft); }
+    .pill.owner { color: var(--magenta); background: var(--magenta-soft); }
+    .pill.internal { color: var(--slate); background: rgba(138,167,155,.12); }
+    .rule { padding: 11px 13px; border-left: 3px solid var(--amber); background: var(--amber-soft); border-radius: 0 4px 4px 0; margin: 9px 0; color: var(--muted); }
+    .rule b { color: var(--amber); }
+    .storage { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 9px; }
+    .field { padding: 11px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-strong); }
+    .field code { display: block; color: var(--cyan); font: 700 11px var(--mono); }
+    .field span { display: block; margin: 3px 0; color: var(--magenta); font: 10px var(--mono); }
+    .field p { margin: 0; color: var(--muted); font-size: 11px; }
+    .search { width: 100%; border: 1px solid var(--line-strong); border-radius: 4px; outline: 0; background: var(--surface-strong); color: var(--text); padding: 11px 13px; font: 13px var(--mono); }
+    .search::placeholder { color: var(--muted); }
+    .search:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(57,255,136,.12); }
+    :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+    footer { border-top: 1px solid var(--line); padding: 28px 20px; color: var(--muted); text-align: center; font: 11px var(--mono); }
+    footer .cmt { color: var(--slate); }
+    @media (max-width: 760px) { .two,.three,.four { grid-template-columns: 1fr; } header { padding-top: 34px; } .fact-row { gap: 16px; } .hex-noise { display: none; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; scroll-behavior: auto !important; } }
+    /* Reuse the documentation visual language while preserving the explorer's
+       interactive diagrams and code-oriented density. */
+    .page-v2-explorer {
+      --bg:#0a0a0f;
+      --surface:#111118;
+      --surface-strong:#111118;
+      --surface-raised:#16161f;
+      --line:rgba(255,255,255,.08);
+      --line-strong:rgba(255,255,255,.16);
+      --text:#f4f4f5;
+      --muted:#a1a1aa;
+      --green:#dcff28;
+      --green-soft:rgba(220,255,40,.12);
+      --cyan:#5ec8ff;
+      --cyan-soft:rgba(94,200,255,.12);
+      --amber:#fbbf24;
+      --amber-soft:rgba(251,191,36,.12);
+      --red:#f87171;
+      --red-soft:rgba(248,113,113,.12);
+      --magenta:#a78bfa;
+      --magenta-soft:rgba(167,139,250,.12);
+      --blue:#5ec8ff;
+      --blue-soft:rgba(94,200,255,.12);
+      --slate:#71717a;
+      --mono:'JetBrains Mono','SF Mono',monospace;
+      --disp:Inter,system-ui,sans-serif;
+    }
+    .page-v2-explorer .scanlines,
+    .page-v2-explorer .crt-vignette { display:none; }
+    .page-v2-explorer body,
+    .page-v2-explorer header,
+    .page-v2-explorer main,
+    .page-v2-explorer footer { font-family:Inter,system-ui,sans-serif; }
+    .page-v2-explorer h1,
+    .page-v2-explorer h2,
+    .page-v2-explorer h3,
+    .page-v2-explorer .eyebrow,
+    .page-v2-explorer .badge,
+    .page-v2-explorer .fact b { font-family:Inter,system-ui,sans-serif; text-transform:none; }
+    .page-v2-explorer header { background:var(--bg); border-color:var(--b); }
+    .page-v2-explorer header::after { opacity:.05; }
+    .page-v2-explorer .topbar { background:rgba(10,10,15,.92); border-color:var(--b); }
+    .page-v2-explorer nav button { border-radius:var(--radius-sm); font-family:Inter,system-ui,sans-serif; }
+    .page-v2-explorer nav button.active { color:var(--on-accent); background:var(--accent); box-shadow:0 0 0 1px rgba(220,255,40,.25); }
+    .page-v2-explorer .card,
+    .page-v2-explorer .diagram,
+    .page-v2-explorer .callout { border-color:var(--b); border-radius:var(--radius); background:var(--surface); box-shadow:var(--shadow); }
+    .page-v2-explorer .card:hover { border-color:var(--b2); }
+    .page-v2-explorer .node,
+    .page-v2-explorer .field,
+    .page-v2-explorer .state,
+    .page-v2-explorer .focus-panel,
+    .page-v2-explorer .diagram-detail,
+    .page-v2-explorer .search { border-color:var(--b2); border-radius:var(--radius-sm); background:var(--s2); }
+    .page-v2-explorer .node:hover,
+    .page-v2-explorer .node.selected { border-color:var(--accent); background:var(--accent-dim); box-shadow:0 0 0 1px rgba(220,255,40,.2); }
+    .page-v2-explorer .tour-btn { border-radius:var(--radius-sm); background:var(--s2); color:var(--accent); font-family:Inter,system-ui,sans-serif; }
+    .page-v2-explorer footer a { color:var(--accent); }
+    body.page-v2-explorer { padding-top: 56px; background: var(--bg); color: var(--text); }
+    .page-v2-explorer > .azzle-nav { position: fixed; z-index: 20; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; margin: 0; padding: 0 20px; overflow: visible; background: var(--bg); border-bottom: 1px solid var(--b); font-family: Inter,system-ui,sans-serif; }
+    .page-v2-explorer > .azzle-nav .azzle-nav-logo,
+    .page-v2-explorer > .azzle-nav .azzle-nav-center,
+    .page-v2-explorer > .azzle-nav .azzle-nav-actions { display: flex; align-items: center; }
+    .page-v2-explorer > .azzle-nav .azzle-nav-center { flex: 1; justify-content: center; }
+    .page-v2-explorer > .azzle-nav .azzle-nav-app { display: flex; align-items: center; gap: 4px; margin: 0; padding: 0; overflow: visible; list-style: none; }
+    .page-v2-explorer > .azzle-nav .azzle-nav-app a { display: inline-flex; align-items: center; padding: 8px 11px; color: var(--muted); font: 500 13px/1 Inter,system-ui,sans-serif; text-decoration: none; }
+    .page-v2-explorer > .azzle-nav .azzle-nav-app a:hover,
+    .page-v2-explorer > .azzle-nav .azzle-nav-app a.azzle-nav-on { color: var(--text); }
+    .page-v2-explorer > .azzle-nav .azzle-nav-actions { gap: 10px; }
+    .page-v2-explorer > .azzle-nav .azzle-nav-gh { display: inline-flex; align-items: center; }
+    .page-v2-explorer > .azzle-nav .docs-topnav-cta { display: inline-flex; padding: 8px 12px; border-radius: 6px; color: var(--on-accent); background: var(--accent); font: 600 12px/1 Inter,system-ui,sans-serif; text-decoration: none; }
+    .v2-docs-sidebar { position: fixed; z-index: 6; top: 56px; left: 0; width: 260px; height: calc(100vh - 56px); padding: 28px 20px 32px 24px; border-right: 1px solid rgba(255,255,255,.08); background: rgba(10,10,15,.94); overflow-y: auto; font-family: Inter,system-ui,sans-serif; }
+    .v2-docs-sidebar-head { padding: 0 10px 20px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .v2-docs-sidebar-head span, .v2-docs-sidebar-group small { display:block; color: #dcff28; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+    .v2-docs-sidebar-head a { display:block; margin-top:6px; color:#fafafa; font-size:15px; font-weight:600; text-decoration:none; }
+    .v2-docs-sidebar-group { padding:18px 0 4px; }
+    .v2-docs-sidebar-group small { padding:0 10px 8px; color:#71717a; }
+    .v2-docs-sidebar-group a { display:block; padding:9px 12px; border:1px solid transparent; border-radius:8px; color:#a1a1aa; font-size:13px; text-decoration:none; }
+    .v2-docs-sidebar-group a:hover, .v2-docs-sidebar-group a.on { color:#fafafa; background:rgba(220,255,40,.12); border-color:rgba(220,255,40,.22); }
+    .v2-docs-sidebar-foot { margin-top:24px; padding-top:20px; border-top:1px solid rgba(255,255,255,.08); }
+    .v2-docs-sidebar-foot a { display:block; padding:11px 14px; border-radius:8px; color:#0a0a0f; background:#dcff28; font:600 13px Inter,system-ui,sans-serif; text-align:center; text-decoration:none; }
+    .page-v2-explorer header, .page-v2-explorer .topbar, .page-v2-explorer main, .page-v2-explorer footer { margin-left:260px; }
+    .page-v2-explorer header { padding-left:48px; padding-right:48px; }
+    .page-v2-explorer main { max-width:none; margin-right:0; padding-left:48px; padding-right:48px; }
+    .page-v2-explorer .topbar nav,
+    .page-v2-explorer .tour-bar { padding-left:48px; padding-right:48px; }
+    @media (max-width: 900px) {
+      .v2-docs-sidebar { position:static; width:auto; height:auto; border-right:0; border-bottom:1px solid rgba(255,255,255,.08); }
+      .page-v2-explorer header, .page-v2-explorer .topbar, .page-v2-explorer main, .page-v2-explorer footer { margin-left:0; }
+      .page-v2-explorer header, .page-v2-explorer main { padding-left:24px; padding-right:24px; }
+      .page-v2-explorer .topbar nav,
+      .page-v2-explorer .tour-bar { padding-left:24px; padding-right:24px; }
+    }
+  </style>
+</head>
+<body class="page-docs page-v2-explorer" data-docs-page="v2-explorer">
+  <nav class="azzle-nav" aria-label="Site">
+    <a href="/" class="azzle-nav-logo"><img src="/azzletype.png" alt="AZZLE" height="24"/></a>
+    <div class="azzle-nav-center">
+      <ul class="azzle-nav-app">
+        <li><a href="/docs/" class="azzle-nav-on">Docs</a></li>
+        <li><a href="/market">Market</a></li>
+        <li><a href="/post">Post</a></li>
+        <li><a href="/wallet">Wallet</a></li>
+      </ul>
+    </div>
+    <div class="azzle-nav-actions">
+      <a href="/docs/quickstart.html" class="docs-topnav-cta">Quickstart</a>
+      <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub"><img src="/GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a>
+    </div>
+  </nav>
+  <div class="v2-docs-sidebar" aria-label="Documentation">
+    <div class="v2-docs-sidebar-head"><span>Developer</span><a href="/docs/">Documentation</a></div>
+    <div class="v2-docs-sidebar-group">
+      <small>Start</small>
+      <a href="/docs/">Overview</a>
+      <a href="/docs/quickstart.html">Quickstart</a>
+    </div>
+    <div class="v2-docs-sidebar-group">
+      <small>Reference</small>
+      <a href="/docs/api.html">API reference</a>
+      <a href="/docs/contracts.html">Contracts</a>
+      <a class="on" aria-current="page" href="/docs/azzle-v2-explorer.html">V2 explorer</a>
+      <a href="/docs/union-staking.html">Union staking</a>
+      <a href="/docs/authentication.html">Authentication</a>
+    </div>
+    <div class="v2-docs-sidebar-group">
+      <small>Build</small>
+      <a href="/docs/agent-guide.html">Agent guide</a>
+      <a href="/docs/examples/">Examples</a>
+      <a href="/docs/use-cases/">Use cases</a>
+    </div>
+    <div class="v2-docs-sidebar-foot"><a href="/market">Open market →</a></div>
+  </div>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="crt-vignette" aria-hidden="true"></div>
+  <header>
+    <div class="hex-noise" id="hexNoise" aria-hidden="true"></div>
+    <div class="hero">
+      <div class="eyebrow">Base · V2 onchain schematic · read-only<span class="cursor">&nbsp;</span></div>
+      <h1>AZZLE <span>V2</span></h1>
+      <p class="intro">The complete AZL-denominated V2 protocol graph on Base: exact-input acquisition, oracle safety, deposits, escrow, bonded arbitration, treasury routing, staking, and Action Credits. Addresses and deployment metadata follow the finalized V2 manifest.</p>
+      <div class="badge-row">
+        <span class="badge v2">FINALIZED V2 DEPLOYMENT</span>
+        <span class="badge">AZL · 18 DECIMALS</span>
+        <span class="badge">BASE · CHAIN 8453</span>
+        <span class="badge warn">ACTIVATION-GATED INTAKE</span>
+      </div>
+      <div class="fact-row">
+        <div class="fact"><b>16</b><small>deployed suite components</small></div>
+        <div class="fact"><b>8</b><small>task states</small></div>
+        <div class="fact"><b>24h</b><small>delayed oracle reference</small></div>
+        <div class="fact"><b>$10k</b><small>open-task par cap</small></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="topbar" id="topbar">
+    <nav id="nav" aria-label="Explorer sections"></nav>
+    <div class="tour-bar" id="tourBar">
+      <button class="tour-btn" id="tourToggle" aria-label="Run guided walkthrough">▶ Run walkthrough</button>
+      <button class="tour-btn icon" id="tourPrev" aria-label="Previous section">‹</button>
+      <button class="tour-btn icon" id="tourNext" aria-label="Next section">›</button>
+      <button class="tour-btn stop" id="tourStop" aria-label="Stop walkthrough">■ stop</button>
+      <div class="tour-readout" id="tourReadout">root@azzle:~$ idle</div>
+      <div class="tour-progress"><div class="tour-progress-fill" id="tourProgressFill"></div></div>
+    </div>
+  </div>
+
+  <main id="app"></main>
+  <footer><span class="cmt">// </span>Derived from <code>contracts/src/v2/</code> · deployment: <code>base-8453.json</code> · <a href="/docs/contracts.html">contract directory</a></footer>
+
+  <script>
+    // ---------- ambient hex noise ----------
+    (function(){
+      const el = document.querySelector('#hexNoise');
+      let out = '';
+      for (let i = 0; i < 420; i++) out += Math.floor(Math.random()*256).toString(16).padStart(2,'0') + ' ';
+      el.textContent = out;
+    })();
+
+    const sections = [
+      ['overview', '01 · Architecture'],
+      ['oracle', '02 · Oracle & Intake'],
+      ['lifecycle', '03 · Task Lifecycle'],
+      ['custody', '04 · Custody & Escrow'],
+      ['arbitration', '05 · Arbitration'],
+      ['economics', '06 · Economics & Credits'],
+      ['permissions', '07 · Permissions'],
+      ['reference', '08 · Function Reference'],
+      ['storage', '09 · State & Invariants'],
+      ['release', '10 · Deployment Gate']
+    ];
+    const app = document.querySelector('#app'), nav = document.querySelector('#nav');
+    const section = (id, title, lead, body) => `<section id="${id}"><h2><span>${sections.findIndex(x => x[0] === id)+1 < 10 ? '0' : ''}${sections.findIndex(x => x[0] === id)+1}</span>${title}</h2><p class="lead">${lead}</p>${body}</section>`;
+    const card = (title, code, copy, cls='') => `<article class="card ${cls}"><div class="code">${code}</div><h3>${title}</h3><p>${copy}</p></article>`;
+
+    const pages = {
+      overview: section('overview', 'V2 architecture', 'The production graph is intentionally separate from the legacy USDC suite. Every V2 task amount, deposit balance, payout, bond, and staking position is AZL-denominated after acquisition.', `
+        <div class="callout"><b>Protocol boundary.</b> V2 clients must select the V2 manifest and ABI explicitly. A legacy task ID or contract address must never be treated as V2.</div>
+        <div class="focus-controls" id="architecture-controls" aria-label="Architecture focus layer">
+          <button data-focus="all">show all</button><button class="active" data-focus="operations">operations</button><button data-focus="money">AZL money</button><button data-focus="oracle">oracle</button><button data-focus="arbitration">arbitration</button><button data-focus="credits">credits</button><button data-focus="factory">factory</button>
+        </div>
+        <div class="diagram svg-diagram" id="v2-architecture" aria-label="Interactive 16-component V2 architecture graph"></div>
+        <div class="focus-panel" id="architecture-detail"><b>Operations layer</b><br>Select a component or focus layer. Arrows show direct protocol authority or AZL flow; all other paths are intentionally faded.</div>
+        <div class="diagram">
+          <div class="legend"><span><i style="background:var(--green)"></i>protocol operation</span><span><i style="background:var(--cyan)"></i>AZL custody / transfer</span><span><i style="background:var(--amber)"></i>oracle safety gate</span><span><i style="background:var(--magenta)"></i>dispute authority</span><span><i style="background:var(--blue)"></i>Action Credit flow</span><span><i style="background:var(--slate)"></i>factory wiring</span></div>
+          <div class="flow">
+            <div class="node security"><span class="type">external inputs</span><b>USDC / ETH</b><p>Exact-input payer funding with caller min-AZL output and a short deadline.</p></div>
+            <div class="node security"><span class="type">acquisition boundary</span><b>Payment Gateway</b><p>Fixed USDC→WETH→AZL or ETH→WETH→AZL execution. Measures token deltas.</p></div>
+            <div class="node money"><span class="type">AZL ledger</span><b>Agent Deposit Vault</b><p>Credited deposits, live-task reserves, access fees, exit charges, and deferred payouts.</p></div>
+            <div class="node final"><span class="type">work protocol</span><b>Task Registry + Escrow</b><p>AZL task state machine, funded escrow, releases, expiration, and terminal accounting.</p></div>
+          </div>
+          <div class="flow" style="margin-top:14px">
+            <div class="node security"><span class="type">price sources</span><b>V4 Observer + ETH/USD</b><p>Permissionless AZL/WETH tick records plus a validated Chainlink ETH/USD round.</p></div>
+            <div class="node security"><span class="type">price safety</span><b>Delayed TWAP Adapter</b><p>Liquidity floor, spot/TWAP bound, and a staged reference that survives a 24-hour delay.</p></div>
+            <div class="node arb"><span class="type">revenue / stake</span><b>Treasury + Staking</b><p>Access and protocol revenue are recorded in AZL; stakers receive AZL rewards.</p></div>
+            <div class="node arb"><span class="type">dispute system</span><b>Arbitration + Bonds</b><p>Round-robin selection from an authorized, AZL-bonded verifier panel.</p></div>
+          </div>
+        </div>
+        <div class="grid three" style="margin-top:14px">
+          ${card('Pricing policy', 'AzlPricingPolicy', 'Converts immutable USD policy targets to AZL at the moment a value-increasing action is taken.')}
+          ${card('Scope publication', 'TaskScopeRegistryV2', 'Poster can publish one immutable bounded scope string after task creation.')}
+          ${card('Atomic setup', 'AzzleSuiteV2Factory', 'CREATE2 deployment, one-shot wiring, graph validation, and two-step governance handoff.')}
+        </div>
+      `),
+      oracle: section('oracle', 'Oracle and acquisition safety', 'V2 does not custody USDC or native ETH. These assets are converted at the entry boundary and only the measured AZL output is credited.', `
+        <div class="callout"><b>In simple words.</b> The protocol only opens the payment door when it can see a recent, sufficiently liquid AZL market and a healthy ETH/USD price. If it cannot, it stops new purchases; it does not guess the price.</div>
+        <div class="diagram svg-diagram compact-diagram" id="oracle-diagram" aria-label="Oracle readiness arrow diagram"></div>
+        <div class="grid two">
+          <div class="card">
+            <h3>Oracle readiness sequence</h3>
+            <div class="stack">
+              <div class="step"><i>1</i><div><b>Build a continuous observation epoch</b><p><code>AzlV4ObservationOracle.record()</code> tracks only PoolManager ticks and rejects stale / gapped history.</p></div></div>
+              <div class="step"><i>2</i><div><b>Stage a mature TWAP reference</b><p>Governance calls <code>proposeReference()</code>; the current observed mean tick is only staged.</p></div></div>
+              <div class="step"><i>3</i><div><b>Wait 24 hours and re-check</b><p>Governance calls <code>activateReference()</code> only after the delay if a fresh TWAP still agrees with the staged reference.</p></div></div>
+              <div class="step"><i>4</i><div><b>Open intake only after governance accepts ownership</b><p>The gateway is deployed paused. The active reference expires after seven days, closing intake again unless renewed.</p></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Fail-closed conditions</h3>
+            <div class="rule"><b>Observation continuity.</b> Gaps over <code>maxObservationGap</code> start a new epoch. A full <code>twapWindow</code> must then elapse before quoting.</div>
+            <div class="rule"><b>Pool integrity.</b> Slot0 must be well-formed; active V4 liquidity must meet the immutable deployment threshold.</div>
+            <div class="rule"><b>Price shape.</b> Spot must stay within 953 ticks (~10%) of TWAP; the live TWAP must also stay within 953 ticks of the delayed reference.</div>
+            <div class="rule"><b>Chainlink.</b> ETH/USD must be positive, structurally valid, non-future, and younger than <code>maxFeedAge</code>.</div>
+          </div>
+        </div>
+        <h3>Exact-input payment path</h3>
+        <div class="diagram"><div class="flow">
+          <div class="node"><span class="type">payer</span><b>fundWithUsdc / fundWithEth</b><p>Exact input, <code>minAzlOut</code>, and deadline.</p></div>
+          <div class="node"><span class="type">fixed route</span><b>BaseAzlExactInputExecutor</b><p>Does not accept arbitrary paths, destinations, or callback calldata.</p></div>
+          <div class="node money"><span class="type">balance-delta check</span><b>Measured AZL output</b><p>Rejects retained input, taxed transfers, output mismatch, and dust.</p></div>
+          <div class="node money"><span class="type">credit</span><b>Deposit Vault credit</b><p>Only measured AZL is transferred and credited to the payer.</p></div>
+        </div></div>
+        <div class="callout warning"><b>Design limitation, stated precisely.</b> The live AZL quote originates from the AZL/WETH market. The delayed reference and liquidity/spot guards prevent same-window and thin-liquidity acceptance; intake remains paused unless that whole gate is healthy. This is not a substitute for a future independent deep AZL market or a Chainlink AZL/USD feed.</div>
+      `),
+      lifecycle: section('lifecycle', 'Task lifecycle', 'A V2 task carries a fixed AZL total, a deadline, funding and release accounting, and an AZL-denominated policy reserve for each party.', `
+        <div class="callout"><b>In simple words.</b> A task starts empty, gets a worker, receives AZL funding, and then ends in one final state. Once it ends, its reserve, cap allocation, and any posting credit are settled exactly once.</div>
+        <div class="diagram svg-diagram compact-diagram" id="lifecycle-diagram" aria-label="Task lifecycle arrow diagram"></div>
+        <div class="state-flow">
+          <span class="state start">POSTED</span><span class="arrow">→</span><span class="state">CLAIMED</span><span class="arrow">→</span><span class="state">ACTIVE</span><span class="arrow">→</span><span class="state terminal">COMPLETED</span>
+          <span class="arrow">↘</span><span class="state dispute">DISPUTED</span><span class="arrow">→</span><span class="state terminal">RESOLVED</span>
+          <span class="arrow">·</span><span class="state terminal">CANCELLED</span>
+        </div>
+        <div class="grid two" style="margin-top:18px">
+          <div class="card"><h3>Normal path</h3><div class="stack">
+            <div class="step"><i>1</i><div><b>Post</b><p>Registry atomically spends a whole Action Credit when available; otherwise it debits the AZL access fee. Either route locks the entry floor and fixed task reserve while recording par-value exposure.</p></div></div>
+            <div class="step"><i>2</i><div><b>Claim</b><p>A non-poster worker receives the same credit-or-AZL-fee selection and a separate fixed reserve lock. Escrow is created.</p></div></div>
+            <div class="step"><i>3</i><div><b>Fund and activate</b><p>Poster transfers the full task amount into escrow, then activates the fully funded task.</p></div></div>
+            <div class="step"><i>4</i><div><b>Release and complete</b><p>Poster releases work payments, then completes the task; remainder is released and both reservations unlock.</p></div></div>
+          </div></div>
+          <div class="card"><h3>Liveness / terminal paths</h3><div class="stack">
+            <div class="step"><i>↯</i><div><b>Cancel before funding</b><p>Poster may cancel a POSTED or CLAIMED task only while funded amount is zero. A claimed worker's task-bound poster credit transfers to that worker on cancellation.</p></div></div>
+            <div class="step"><i>⌛</i><div><b>Permissionless expiry</b><p>After its deadline, any eligible nonterminal non-disputed task can be expired. Remaining escrow returns to the poster; a worker delivery assertion is subject to the delivery grace gate before poster-default compensation applies.</p></div></div>
+            <div class="step"><i>⚖</i><div><b>Dispute</b><p>Either party can freeze a funded remainder from CLAIMED or ACTIVE, with an evidence hash.</p></div></div>
+          </div></div>
+        </div>
+        <div class="callout"><b>Cap accounting.</b> The registry stores the task’s USD6 value at posting using <code>quoteUsdForAzlPar</code>—not the collateral haircut—and deletes that latch only on terminal transition.</div>
+      `),
+      custody: section('custody', 'AZL custody and settlement', 'The deposit ledger and task escrow are separate AZL liabilities. Both reject fee-on-transfer accounting discrepancies and preserve solvency through deferred payouts.', `
+        <div class="callout"><b>In simple words.</b> Your deposit balance is your protocol wallet. A task escrow is a separate locked pot for one job. Keeping them separate prevents one task’s payout from changing everyone else’s deposit accounting.</div>
+        <div class="diagram svg-diagram compact-diagram" id="custody-diagram" aria-label="Custody and escrow arrow diagram"></div>
+        <div class="grid three">
+          ${card('Deposit ledger', 'AgentDepositVaultV2', 'Tracks total deposits, party reserves, and deferred payouts. A withdrawal cannot violate an active task’s entry-deposit floor.')}
+          ${card('Task escrow', 'EscrowVaultV2', 'Holds only funded task AZL. It can release to the worker, refund the poster, or settle a frozen remainder by basis points.')}
+          ${card('Deferred payout', 'claimPayout(recipient)', 'If a transfer cleanly fails without changing balances, the liability remains claimable instead of blocking settlement.')}
+        </div>
+        <h3>Escrow outcome accounting</h3>
+        <div class="table-wrap"><table><thead><tr><th>Trigger</th><th>Escrow state</th><th>AZL outcome</th><th>Reservation outcome</th></tr></thead><tbody>
+          <tr><td><code>release(taskId, amount)</code></td><td>FUNDED</td><td>Exact amount paid or deferred to worker</td><td>Still locked until a terminal registry path</td></tr>
+          <tr><td><code>complete(taskId)</code></td><td>FUNDED → settled</td><td>All remaining funded AZL goes to worker</td><td>Both task reserves released</td></tr>
+          <tr><td><code>expire(taskId)</code></td><td>FUNDED → settled</td><td>Remaining funded AZL refunded to poster</td><td>Both task reserves released</td></tr>
+          <tr><td><code>settle(taskId, workerBps)</code></td><td>FROZEN → SETTLED</td><td>Unreleased AZL split to worker / poster</td><td>Registry resolves and releases; proven default can pay exit charges</td></tr>
+        </tbody></table></div>
+        <div class="callout warning"><b>Escrow scope.</b> V2 uses a fixed-total AZL release model. The active ABI is defined by the V2 contracts and does not include legacy workflow calls.</div>
+      `),
+      arbitration: section('arbitration', 'Bonded arbitration', 'Disputes are keyed by V2 task ID. Assignment scans a governance-curated panel from a blockhash/cursor/caller-derived starting point; it is not unbiased randomness or strict round-robin selection.', `
+        <div class="callout"><b>In simple words.</b> Either task party can raise a dispute. The system scans for an eligible bonded verifier, skipping parties and unavailable members. If no member is currently eligible, anyone can attempt assignment during the fallback window; if the verifier goes silent, anyone can finish the case through timeout.</div>
+        <div class="diagram svg-diagram compact-diagram" id="arbitration-diagram" aria-label="Arbitration arrow diagram"></div>
+        <div class="diagram"><div class="flow">
+          <div class="node"><span class="type">party action</span><b>openDispute</b><p>Poster or worker provides a nonzero evidence hash; registry marks task DISPUTED.</p></div>
+          <div class="node arb"><span class="type">selection</span><b>Panel scan</b><p>Uses blockhash, caller, and cursor-derived start data, then skips parties, unauthorized accounts, and unavailable verifiers.</p></div>
+          <div class="node arb"><span class="type">evidence / ruling</span><b>ArbitrationModuleV2</b><p>Bounded evidence window, then bounded ruling window.</p></div>
+          <div class="node final"><span class="type">terminal settlement</span><b>Escrow + Registry</b><p>AZL split, task resolution, reputation result, and assignment release.</p></div>
+        </div></div>
+        <div class="grid two" style="margin-top:14px">
+          <div class="card"><h3>Ruling outcomes</h3>
+            <div class="rule"><b>POSTER_WINS.</b> Worker receives 0% of the frozen remainder; worker is the defaulting party for the task-latched exit charge.</div>
+            <div class="rule"><b>WORKER_WINS.</b> Worker receives 100%; poster is the defaulting party for the task-latched exit charge.</div>
+            <div class="rule"><b>SPLIT / MUTUAL.</b> Worker allocation is strictly between 0% and 100%; outcomes are reputation-neutral and do not charge a default exit fee.</div>
+          </div>
+          <div class="card"><h3>Timeout guarantee</h3>
+            <p>If evidence/ruling windows lapse, anyone can call <code>timeout(taskId)</code>. The case settles 50/50 as <code>MUTUAL</code>. An assigned verifier can be slashed up to the configured cap, clamped to their available bond, then their assignment is released; an unassigned dispute has no verifier slash.</p>
+            <div class="callout warning"><b>Operational gate.</b> Factory graph validation requires a nonempty panel, but governance must ensure that at least one authorized panel account has actually bonded before opening intake.</div>
+          </div>
+        </div>
+      `),
+      economics: section('economics', 'Policy tiers and AZL economics', 'USD policy values are converted to AZL only at the action that creates a new obligation. After that point the AZL amount is fixed; the protocol does not reprice existing balances or task liabilities.', `
+        <div class="callout"><b>In simple words.</b> USD sets the size of a new rule, but AZL is what the protocol actually holds. After a task, reserve, or fee is created, its AZL amount stays fixed even if the market price moves later.</div>
+        <div class="callout"><b>Credits in real time.</b> A staker does not wait for a daily batch or a manual claim. <code>creditsOf(account)</code> includes the account’s banked whole credits plus its credit accrual from stake and elapsed time up to the current block. Posting or claiming settles that live accrual before checking whether one whole credit can pay the fee.</div>
+        <div class="diagram svg-diagram compact-diagram" id="credits-diagram" aria-label="Staking and Action Credit arrow diagram"></div>
+        <div class="grid four">
+          ${card('Entry deposit', 'entryDepositAzl()', 'Required free deposit balance before post / claim access actions.')}
+          ${card('Live-task reserve', 'liveTaskReserveAzl()', 'Latched separately for each party on post and claim.')}
+          ${card('Access fee', 'accessFeeAzl()', 'Debited from available deposit balance and routed to treasury.')}
+          ${card('Exit charge', 'exitCompensationAzl() + exitProtocolShareAzl()', 'Latched at reservation time; applied only to a proven default.')}
+        </div>
+        <h3>Revenue and staking</h3>
+        <div class="grid two">
+          <div class="card"><h3>Treasury Router</h3><p>Revenue must already have arrived in the deposit vault before it can be recorded. Distribution is bounded by recorded revenue minus prior distributions; it routes AZL to staking and a configured burn recipient.</p></div>
+          <div class="card"><h3>Union Staking Vault</h3><p>After governance activation, stakers hold AZL principal, receive AZL rewards, and mine Action Credits. Zero-stake emissions become tracked undistributed rewards rather than a windfall to a later first staker.</p></div>
+        </div>
+        <h3>Action Credit mining and settlement</h3>
+        <div class="diagram"><div class="flow">
+          <div class="node money"><span class="type">activated staker</span><b>AZL principal + time</b><p>Credits accrue continuously in real time after <code>activateStaking()</code>: one whole credit per 100M AZL over 30 days, capped at 600,000 lifetime credits.</p></div>
+          <div class="node"><span class="type">fee selection</span><b>post / claim</b><p><code>trySpendCredit</code> first; the normal AZL access-fee debit is used only if fewer than one whole credit is available.</p></div>
+          <div class="node arb"><span class="type">task-bound credits</span><b>Independent post / claim slots</b><p>Poster and worker credits use separate task namespaces. A posting credit remains reserved through settlement; a claim credit settles independently.</p></div>
+          <div class="node final"><span class="type">terminal result</span><b>Return, transfer, or consume</b><p>Normal/non-default expiry returns the poster credit; claimed cancellation transfers it to the worker; delivered poster-default expiry transfers it to the worker; completion consumes it.</p></div>
+        </div></div>
+        <div class="grid two" style="margin-top:14px">
+          <div class="card"><h3>Credit boundaries</h3><div class="rule"><b>Only the access fee.</b> Credits never replace entry collateral, task reserves, exit charges, escrow funding, verifier bonds, or staked principal.</div><div class="rule"><b>Banked after unstake.</b> Mature, unused credits remain available after a staker withdraws AZL principal.</div></div>
+          <div class="card"><h3>Activation boundary</h3><div class="rule"><b>One-way governance gate.</b> Rewards and credits are inert until activation; activation does not unpause payment intake.</div><div class="rule"><b>Whole-credit spending.</b> Fractional mining is retained as account carry and becomes usable only at one full credit.</div></div>
+        </div>
+        <h3>Posting-credit terminal outcomes</h3>
+        <div class="table-wrap"><table><thead><tr><th>How the task ends</th><th>What happens to poster's task-bound credit</th><th>Why</th></tr></thead><tbody>
+          <tr><td>Normal completion</td><td>Consumed</td><td>The task completed normally, so the fee bypass is final.</td></tr>
+          <tr><td>Worker wins dispute</td><td>Transferred to worker</td><td>The original Action Credit design compensates the harmed worker with the poster's reserved credit.</td></tr>
+          <tr><td>Poster wins, split, or mutual</td><td>Returned to poster</td><td>No full worker-default outcome occurred.</td></tr>
+          <tr><td>Unclaimed expiry / non-default expiry</td><td>Returned to poster</td><td>No poster default is established.</td></tr>
+          <tr><td>Claimed cancellation</td><td>Poster credit transfers to worker</td><td>The worker committed to the task before the poster cancelled.</td></tr>
+          <tr><td>Delivered expiry after grace</td><td>Poster credit transfers to worker</td><td>Poster-default compensation applies; remaining escrow still follows the non-adjudicated refund policy.</td></tr>
+          <tr><td>Worker claim credit</td><td>Consumed at claim</td><td>It is the worker's own immediate claim-fee bypass, not a poster task-fee liability.</td></tr>
+        </tbody></table></div>
+        <div class="callout"><b>Open-task risk cap.</b> The initial <code>10,000,000,000 USD6</code> limit is a cap on aggregate live task notional at par value. It is not a global cap on every AZL balance held by deposits, bonds, treasury, or staking.</div>
+      `),
+      permissions: section('permissions', 'Permission matrix', 'All V2 owned contracts use two-step ownership. Operational methods are intentionally narrowly role-gated.', `
+        <div class="table-wrap"><table><thead><tr><th>Function family</th><th>Caller</th><th>Contract</th><th>Why</th></tr></thead><tbody>
+          <tr><td><code>fundWithUsdc / fundWithEth</code></td><td><span class="pill public">payer</span></td><td>Payment Gateway</td><td>Exact-input acquisition while intake is open and oracle-valid.</td></tr>
+          <tr><td><code>credit</code></td><td><span class="pill role">gateway</span></td><td>Deposit Vault</td><td>Prevents unbacked ledger balances.</td></tr>
+          <tr><td><code>reserveTask / debitAccessFee</code></td><td><span class="pill role">registry</span></td><td>Deposit Vault</td><td>Only the task lifecycle can create policy obligations.</td></tr>
+          <tr><td><code>fund / release / refund</code></td><td><span class="pill role">registry</span></td><td>Escrow Vault</td><td>Escrow cannot be operated by task parties directly.</td></tr>
+          <tr><td><code>freeze / settle</code></td><td><span class="pill role">arbitration</span></td><td>Escrow Vault</td><td>Frozen funds only move through dispute resolution.</td></tr>
+          <tr><td><code>rule</code></td><td><span class="pill role">assigned arbitrator</span></td><td>Arbitration Module</td><td>Only the selected bonded panel member may rule.</td></tr>
+          <tr><td><code>configure / pause / panel</code></td><td><span class="pill owner">owner</span></td><td>owned modules</td><td>One-shot graph wiring or prospective operational control.</td></tr>
+          <tr><td><code>expire / timeout</code></td><td><span class="pill public">anyone</span></td><td>Registry / Arbitration</td><td>Permissionless liveness routes prevent dependence on an unresponsive party.</td></tr>
+        </tbody></table></div>
+      `),
+      reference: section('reference', 'Function reference', 'Search the primary V2 interaction surface. The explorer intentionally names V2 functions exactly rather than mapping them to incompatible legacy equivalents.', `
+        <input class="search" id="function-search" placeholder="grep --function --contract --purpose …" aria-label="Filter functions">
+        <div class="table-wrap" style="margin-top:12px"><table id="function-table"><thead><tr><th>Function</th><th>Contract</th><th>Access</th><th>Purpose</th></tr></thead><tbody>
+          <tr><td><code>fundWithUsdc(uint256,uint256,uint256)</code></td><td>AzlPaymentGateway</td><td>payer</td><td>Exact USDC input, measured AZL credit.</td></tr>
+          <tr><td><code>fundWithEth(uint256,uint256)</code></td><td>AzlPaymentGateway</td><td>payer</td><td>Exact native ETH input, measured AZL credit.</td></tr>
+          <tr><td><code>proposeReference / activateReference / rollReference</code></td><td>AzlEthTwapAdapter</td><td>owner</td><td>Stage, delayed-activate, or roll a live reference after initialization.</td></tr>
+          <tr><td><code>post / claim / fund / activate</code></td><td>TaskRegistryV2</td><td>party</td><td>Create and fund a fixed-AZL task. <code>activate</code> is a compatibility call after full funding.</td></tr>
+          <tr><td><code>markDelivered / release / complete / cancel / expire</code></td><td>TaskRegistryV2</td><td>poster / worker / public</td><td>Delivery assertion, payments, and liveness terminal paths.</td></tr>
+          <tr><td><code>openDispute</code></td><td>TaskRegistryV2</td><td>task party</td><td>Freeze an unreleased funded amount with evidence.</td></tr>
+          <tr><td><code>submitEvidence / beginRuling / rule / timeout / assignArbitrator</code></td><td>ArbitrationModuleV2</td><td>party / public / assigned</td><td>Evidence, assignment, ruling, or neutral timeout.</td></tr>
+          <tr><td><code>activateStaking</code></td><td>UnionStakingVaultV2</td><td>governance</td><td>One-way gate for AZL reward and Action Credit accrual.</td></tr>
+          <tr><td><code>stake / unstake / claim / bankCredits</code></td><td>UnionStakingVaultV2</td><td>staker</td><td>AZL principal, rewards, and Action Credit accrual.</td></tr>
+          <tr><td><code>creditsOf / creditsRemaining</code></td><td>UnionStakingVaultV2</td><td>public</td><td>Read banked plus pending credits and remaining lifetime issuance.</td></tr>
+          <tr><td><code>bond / scheduleWithdrawal / withdraw</code></td><td>VerifierBondVaultV2</td><td>verifier</td><td>AZL bond lifecycle and cooldown-protected exit.</td></tr>
+        </tbody></table></div>
+      `),
+      storage: section('storage', 'State and solvency invariants', 'These fields are the accounting core. The invariants below are enforced through exact balance deltas, liability counters, reservation latches, and terminal state checks.', `
+        <div class="storage">
+          <div class="field"><code>deposits[account]</code><span>uint256 · AZL</span><p>Ledger balance credited by gateway and debited by fees / withdrawals.</p></div>
+          <div class="field"><code>reserved[account]</code><span>uint256 · AZL</span><p>Aggregate fixed live-task reserves held from withdrawals.</p></div>
+          <div class="field"><code>taskReservations[taskId][account]</code><span>TaskReservation</span><p>Latched reserve, exit compensation, and protocol share.</p></div>
+          <div class="field"><code>escrows[taskId]</code><span>Escrow</span><p>Poster, worker, deposited, released, and escrow state.</p></div>
+          <div class="field"><code>taskAmountUsd6[taskId]</code><span>uint256 · USD6</span><p>Par-value cap latch, deleted only when task becomes terminal.</p></div>
+          <div class="field"><code>disputes[taskId]</code><span>Dispute</span><p>Evidence, assigned verifier, windows, outcome, and timeout slash tracking.</p></div>
+          <div class="field"><code>pendingPayouts[account]</code><span>uint256 · AZL</span><p>Liability retained when a transfer safely defers instead of succeeding.</p></div>
+          <div class="field"><code>referenceTick</code><span>int24</span><p>Delayed TWAP checkpoint; stale references make fresh quoting fail closed.</p></div>
+          <div class="field"><code>bankedCredits[account]</code><span>uint256 · credit wei</span><p>Settled whole Action Credits. <code>creditsOf(account)</code> also adds real-time pending accrual.</p></div>
+          <div class="field"><code>taskPosterCredit[taskId]</code><span>bool</span><p>Records that a post used one task-bound credit, settled exactly once on a terminal route.</p></div>
+          <div class="field"><code>taskWorkerCredit[taskId]</code><span>bool</span><p>Records that a claim used a separate task-bound worker credit, settled independently from the poster slot.</p></div>
+          <div class="field"><code>posterOpenTaskTotalUsd6[poster]</code><span>uint256 · USD6</span><p>Tracks each poster's funded open-task exposure against the configured poster cap percentage.</p></div>
+        </div>
+        <h3>Core invariants</h3>
+        <div class="rule"><b>Deposit solvency.</b> Deposit-vault AZL balance must cover <code>totalDeposits + totalPendingPayouts</code>.</div>
+        <div class="rule"><b>Escrow solvency.</b> Escrow AZL balance must cover tracked escrow and deferred-payout liabilities.</div>
+        <div class="rule"><b>One reservation per party per task.</b> A reservation latches once and can only be released / consumed once.</div>
+        <div class="rule"><b>Open-task cap conservation.</b> Funding increments global and poster exposure; terminal paths delete the task’s USD6 latch and decrement both counters once. Fully releasing escrow also frees the latch before terminal completion.</div>
+        <div class="rule"><b>Credit settlement conservation.</b> A task-bound post credit is spent once, then exactly once returned, transferred to the worker on a worker win, or consumed for normal completion.</div>
+      `),
+      release: section('release', 'Deployment and activation gate', 'The V2 factory performs atomic construction and wiring; it does not prove external market conditions are safe. Intake stays deliberately paused until governance completes operational activation.', `
+        <div class="callout"><b>In simple words.</b> Deployment is not launch. The factory wires the contracts together, but governance must separately warm the oracle, activate staking, ensure verifiers are ready, and finally open payment intake.</div>
+        <div class="diagram svg-diagram compact-diagram" id="release-diagram" aria-label="Deployment and governance activation arrow diagram"></div>
+        <div class="grid two">
+          <div class="card"><h3>Factory transaction</h3><div class="stack">
+            <div class="step"><i>1</i><div><b>Validate Base constants</b><p>Chain ID, immutable external addresses, production PoolKey, and dependency code must match.</p></div></div>
+            <div class="step"><i>2</i><div><b>CREATE2 all 16 components</b><p>Init code is deployed in a deterministic component order; graph edges are wired only after code exists.</p></div></div>
+            <div class="step"><i>3</i><div><b>Validate reciprocal graph links</b><p>Factory checks oracle stack, route, custody, task, arbitration, treasury, and staking relationships.</p></div></div>
+            <div class="step"><i>4</i><div><b>Propose governance ownership</b><p>Owned components—including the delayed-reference adapter—require Safe acceptance.</p></div></div>
+          </div></div>
+          <div class="card"><h3>Governance activation checklist</h3><div class="stack">
+            <div class="step"><i>✓</i><div><b>Manifest and deployed graph validated</b><p>Write and independently verify the V2 manifest from the emitted deployment event and deployed code.</p></div></div>
+            <div class="step"><i>✓</i><div><b>Oracle epoch warmed</b><p>Continuous observations cover the configured two-hour TWAP window.</p></div></div>
+            <div class="step"><i>✓</i><div><b>Reference activated</b><p>Stage → wait 24 hours → activate while live TWAP and liquidity checks remain valid.</p></div></div>
+            <div class="step"><i>✓</i><div><b>Bonded panel operational</b><p>At least one authorized non-party verifier is actually eligible before task intake is opened.</p></div></div>
+            <div class="step"><i>✓</i><div><b>Activate staking deliberately</b><p><code>activateStaking()</code> begins rewards and Action Credit mining; it is independent of payment-gateway intake.</p></div></div>
+            <div class="step"><i>✓</i><div><b>Explicitly unpause gateway</b><p><code>setIntakePaused(false)</code> is a deliberate governance action, never an automatic factory side effect.</p></div></div>
+          </div></div>
+        </div>
+        <div class="callout warning"><b>Activation is separate from deployment.</b> The finalized manifest identifies the deployed graph. Oracle readiness, bonded verifier availability, staking activation, and payment-intake governance remain independent live checks.</div>
+      `)
+    };
+
+    sections.forEach(([id, label]) => {
+      const button = document.createElement('button');
+      button.textContent = label; button.dataset.target = id;
+      button.addEventListener('click', () => activate(id));
+      nav.appendChild(button);
+    });
+    app.innerHTML = Object.values(pages).join('');
+
+    // ---------- section transition ----------
+    function activate(id) {
+      const target = document.querySelector(`#${id}`);
+      const current = document.querySelector('section.active');
+      const navBtn = document.querySelector(`[data-target="${id}"]`);
+      if (current === target) return;
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function finish() {
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        if (navBtn) navBtn.classList.add('active');
+        history.replaceState(null, '', `#${id}`);
+      }
+      if (current && !reduced) {
+        current.classList.add('leaving');
+        setTimeout(() => {
+          current.classList.remove('active', 'leaving');
+          target.classList.add('active', 'entering');
+          finish();
+          redrawGraphsIn(target);
+          requestAnimationFrame(() => target.classList.remove('entering'));
+        }, 150);
+      } else {
+        document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+        target.classList.add('active');
+        finish();
+        redrawGraphsIn(target);
+      }
+    }
+    // Diagrams built while their section was display:none measure as 0×0, so
+    // their arrows redraw once the section is actually visible again.
+    function redrawGraphsIn(target) {
+      const graphs = allGraphs.filter(g => g && target.contains(g.container));
+      requestAnimationFrame(() => {
+        graphs.forEach(g => g.redraw());
+        setTimeout(() => graphs.forEach(g => g.redraw()), 60);
+      });
+    }
+
+    function buildSvgDiagram(container, config) {
+      const ns = 'http://www.w3.org/2000/svg';
+      container.innerHTML = `<svg class="links" aria-hidden="true"><defs>
+        <marker id="v2-arrow-operations" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#39ff88"/></marker>
+        <marker id="v2-arrow-money" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#33e0c8"/></marker>
+        <marker id="v2-arrow-oracle" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#ffcf5c"/></marker>
+        <marker id="v2-arrow-arbitration" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#ff3df0"/></marker>
+        <marker id="v2-arrow-credits" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#5ec8ff"/></marker>
+        <marker id="v2-arrow-factory" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#8aa79b"/></marker>
+      </defs></svg>`;
+      const svg = container.querySelector('svg');
+      const nodes = {};
+      const renderedEdges = [];
+      config.nodes.forEach(item => {
+        const el = document.createElement('button');
+        el.type = 'button'; el.className = 'svg-node'; el.style.left = item.x + '%'; el.style.top = item.y + 'px';
+        el.innerHTML = `<b>${item.label}</b><small>${item.sub}</small>`;
+        container.appendChild(el); nodes[item.id] = el;
+        el.addEventListener('click', () => setFocus(active, item.id));
+      });
+      function draw() {
+        svg.querySelectorAll('path[data-edge],text[data-edge]').forEach(el => el.remove());
+        renderedEdges.length = 0;
+        const box = container.getBoundingClientRect();
+        const rects = Object.fromEntries(Object.entries(nodes).map(([id, el]) => {
+          const r = el.getBoundingClientRect(); return [id, { x:r.left-box.left, y:r.top-box.top, w:r.width, h:r.height, cx:r.left-box.left+r.width/2, cy:r.top-box.top+r.height/2 }];
+        }));
+        config.edges.forEach(edge => {
+          const from=rects[edge.from], to=rects[edge.to]; if(!from || !to) return;
+          const down = to.cy >= from.cy, sx=from.cx, sy=down ? from.y+from.h : from.y, tx=to.cx, ty=down ? to.y : to.y+to.h;
+          const mid=(sy+ty)/2 + (edge.offset || 0);
+          const p=document.createElementNS(ns,'path');
+          p.setAttribute('d', `M ${sx} ${sy} L ${sx} ${mid} L ${tx} ${mid} L ${tx} ${ty}`);
+          const colors = {operations:'#39ff88', money:'#33e0c8', oracle:'#ffcf5c', arbitration:'#ff3df0', credits:'#5ec8ff', factory:'#8aa79b'};
+          p.setAttribute('data-edge',''); p.setAttribute('class','svg-edge'); p.setAttribute('fill','none'); p.setAttribute('stroke', colors[edge.group] || colors.operations);
+          p.setAttribute('stroke-width',edge.group==='factory' ? '1.1' : '1.8'); p.setAttribute('marker-end',`url(#v2-arrow-${edge.group || 'operations'})`); p.dataset.group=edge.group; p.dataset.from=edge.from; p.dataset.to=edge.to;
+          if(edge.group === 'factory') p.setAttribute('stroke-dasharray','5 4');
+          svg.appendChild(p); renderedEdges.push(p);
+          if(edge.label) {
+            const text=document.createElementNS(ns,'text'); text.setAttribute('data-edge',''); text.textContent=edge.label; text.setAttribute('x',(sx+tx)/2); text.setAttribute('y',mid-5); text.setAttribute('text-anchor','middle'); text.setAttribute('class','svg-edge-label'); text.dataset.group=edge.group; text.dataset.from=edge.from; text.dataset.to=edge.to; svg.appendChild(text); renderedEdges.push(text);
+          }
+        });
+        setFocus(active, selectedNode);
+      }
+      let active=config.defaultFocus || 'all';
+      let selectedNode;
+      const descriptions = {
+        gateway:'AzlPaymentGateway: only payer entry point. It stays paused until governance separately enables intake.',
+        executor:'BaseAzlExactInputExecutor: immutable fixed route, exact delta checks, and independent oracle-deviation guard.',
+        observer:'AzlV4ObservationOracle: permissionless tick accumulator; only a contiguous, fresh epoch may be quoted.',
+        adapter:'AzlEthTwapAdapter: delayed reference, active-liquidity floor, slot0 validation, and fixed deviation constraints.',
+        usd:'AzlUsdOracle: guarded AZL/USD quote composing the adapter with a validated Chainlink ETH/USD round.',
+        policy:'AzlPricingPolicy: converts fixed USD policy targets into AZL at liability creation; existing AZL obligations are not repriced.',
+        deposit:'AgentDepositVaultV2: AZL deposit ledger, fixed per-task reservation, access-fee debit, and deferred payout liabilities.',
+        escrow:'EscrowVaultV2: isolated AZL task-funding ledger; only Registry and Arbitration control settlement transitions.',
+        registry:'TaskRegistryV2: task FSM, par-value cap, access-fee/credit selection, and terminal credit settlement.',
+        scope:'TaskScopeRegistryV2: one immutable bounded scope publication by the recorded task poster.',
+        reputation:'ReputationRegistryV2: task outcome record; tied outcomes are neutral.',
+        bonds:'VerifierBondVaultV2: AZL verifier bonds, assignment tracking, withdrawal cooldown, and bounded slashing.',
+        arbitration:'ArbitrationModuleV2: non-party panel scan, bounded evidence/ruling windows, fallback assignment, and timeout settlement.',
+        treasury:'TreasuryRouterV2: routes backed AZL protocol revenue to staking and burn destinations.',
+        staking:'UnionStakingVaultV2: activated AZL rewards and capped Action Credit mining; registry alone can spend credits.',
+        factory:'AzzleSuiteV2Factory: CREATE2 deployment, one-shot wiring, reciprocal validation, and two-step governance proposal.'
+      };
+      function setFocus(layer, selected) {
+        active=layer;
+        selectedNode=selected;
+        const relevant = new Set();
+        const visible = new Set();
+        config.edges.forEach(edge => {
+          const matchesLayer = !!selected || edge.group === layer || layer === 'all';
+          const matchesSelection = !selected || edge.from === selected || edge.to === selected;
+          if (matchesLayer && matchesSelection) { relevant.add(`${edge.from}:${edge.to}:${edge.group}`); visible.add(edge.from); visible.add(edge.to); }
+        });
+        Object.entries(nodes).forEach(([id,node]) => {
+          node.classList.toggle('selected', selected===id);
+          node.classList.toggle('connected', !!selected && visible.has(id) && id!==selected);
+          node.classList.toggle('muted', !!selected && !visible.has(id));
+        });
+        renderedEdges.forEach(edge => {
+          const key=`${edge.dataset.from}:${edge.dataset.to}:${edge.dataset.group}`;
+          const isRelevant=relevant.has(key);
+          edge.style.opacity = isRelevant ? '1' : selected ? '.04' : layer === 'all' ? '.68' : '.14';
+          edge.classList.toggle('edge-related', isRelevant && !!selected && edge.tagName === 'path');
+        });
+        const detail=document.querySelector('#architecture-detail');
+        if (detail && container.id === 'v2-architecture') {
+          if(selected) detail.innerHTML=`<b>${config.nodes.find(n=>n.id===selected).label}</b><br>${descriptions[selected] || 'This step is highlighted with every directly connected arrow.'}`;
+          else detail.innerHTML=`<b>${layer} layer</b><br>Showing ${layer} arrows. Select a node to highlight every direct connection.`;
+        }
+      }
+      requestAnimationFrame(() => { draw(); setTimeout(draw, 80); });
+      window.addEventListener('resize', draw);
+      setFocus(active);
+      return { setFocus, nodes, nodeIds: config.nodes.map(n => n.id), redraw: draw, container };
+    }
+    const architecture = buildSvgDiagram(document.querySelector('#v2-architecture'), {
+      defaultFocus:'operations',
+      nodes: [
+        {id:'factory',label:'Factory',sub:'CREATE2 / governance',x:3,y:24},{id:'observer',label:'Observation Oracle',sub:'continuous V4 epoch',x:25,y:24},{id:'adapter',label:'TWAP Adapter',sub:'reference + liquidity',x:47,y:24},{id:'usd',label:'USD Oracle',sub:'TWAP × Chainlink',x:69,y:24},
+        {id:'policy',label:'Pricing Policy',sub:'USD tiers → AZL',x:3,y:150},{id:'gateway',label:'Payment Gateway',sub:'USDC / ETH entry',x:25,y:150},{id:'executor',label:'Exact Input Executor',sub:'fixed swap route',x:47,y:150},{id:'deposit',label:'Deposit Vault',sub:'AZL liabilities',x:69,y:150},
+        {id:'registry',label:'Task Registry',sub:'task FSM + credits',x:3,y:276},{id:'escrow',label:'Escrow Vault',sub:'funded AZL tasks',x:25,y:276},{id:'scope',label:'Scope Registry',sub:'immutable scope',x:47,y:276},{id:'reputation',label:'Reputation',sub:'outcome ledger',x:69,y:276},
+      {id:'arbitration',label:'Arbitration',sub:'panel-scan rulings',x:3,y:402},{id:'bonds',label:'Bond Vault',sub:'AZL verifier bond',x:25,y:402},{id:'treasury',label:'Treasury Router',sub:'backed revenue',x:47,y:402},{id:'staking',label:'Staking Vault',sub:'rewards + credits',x:69,y:402}
+      ],
+      edges: [
+        {from:'observer',to:'adapter',label:'epoch tick',group:'oracle',offset:-16},{from:'adapter',to:'usd',label:'AZL / ETH',group:'oracle',offset:16},{from:'usd',to:'policy',label:'AZL quote',group:'oracle',offset:8},{from:'usd',to:'gateway',label:'execution guard',group:'oracle',offset:-22},
+        {from:'gateway',to:'executor',label:'exact input',group:'operations',offset:-18},{from:'executor',to:'deposit',label:'measured AZL',group:'money',offset:18},{from:'policy',to:'deposit',label:'policy tiers',group:'operations',offset:-18},
+        {from:'deposit',to:'registry',label:'fees / reserves',group:'money',offset:18},{from:'registry',to:'escrow',label:'fund / settle',group:'operations',offset:-18},{from:'registry',to:'scope',label:'task parties',group:'operations',offset:18},{from:'registry',to:'reputation',label:'terminal result',group:'operations',offset:38},
+        {from:'registry',to:'arbitration',label:'open dispute',group:'arbitration',offset:-26},{from:'arbitration',to:'bonds',label:'assign / slash',group:'arbitration',offset:-16},{from:'arbitration',to:'escrow',label:'freeze / settle',group:'arbitration',offset:22},
+        {from:'deposit',to:'treasury',label:'access / exit AZL',group:'money',offset:38},{from:'treasury',to:'staking',label:'AZL rewards',group:'money',offset:-20},{from:'staking',to:'registry',label:'Action Credit',group:'credits',offset:-38},
+        {from:'factory',to:'registry',label:'wire',group:'factory',offset:-50},{from:'factory',to:'gateway',label:'wire',group:'factory',offset:-32},{from:'factory',to:'staking',label:'wire',group:'factory',offset:46}
+      ]
+    });
+    function setArchitectureLayerButton(layer) {
+      document.querySelectorAll('#architecture-controls button').forEach(b => b.classList.toggle('active', b.dataset.focus === layer));
+    }
+    document.querySelectorAll('#architecture-controls button').forEach(button => button.addEventListener('click', () => {
+      setArchitectureLayerButton(button.dataset.focus); architecture.setFocus(button.dataset.focus);
+    }));
+    const compact = (id, nodes, edges, explanations) => {
+      const element = document.querySelector(id);
+      const panel = document.createElement('div');
+      panel.className = 'diagram-detail';
+      panel.innerHTML = '<b>Click a step.</b> Its direct arrows will highlight and this box will explain what the step does in plain language.';
+      element.insertAdjacentElement('afterend', panel);
+      const graph = buildSvgDiagram(element, { nodes, edges, defaultFocus:'all' });
+      const original = graph.setFocus;
+      graph.setFocus = (layer, selected) => {
+        original(layer, selected);
+        if (!selected) {
+          panel.innerHTML = '<b>Full path.</b> Every arrow is visible. Click any card to isolate the direct path through that step.';
+          return;
+        }
+        const node = nodes.find(item => item.id === selected);
+        panel.innerHTML = `<button type="button">Reset</button><b>${node.label}</b><br>${explanations[selected]}`;
+        panel.querySelector('button').addEventListener('click', () => graph.setFocus('all'));
+      };
+      Object.entries(graph.nodes || {}).forEach(([nodeId, node]) => node.addEventListener('click', () => graph.setFocus('all', nodeId)));
+      return graph;
+    };
+    const oracleGraph = compact('#oracle-diagram', [
+      {id:'epoch',label:'Observation epoch',sub:'fresh V4 ticks',x:4,y:72},{id:'reference',label:'24h reference',sub:'stage → activate',x:29,y:72},{id:'checks',label:'Safety checks',sub:'liquidity / slot0 / deviation',x:54,y:72},{id:'intake',label:'Gateway intake',sub:'open or paused',x:79,y:72}
+    ], [
+      {from:'epoch',to:'reference',label:'TWAP ready',group:'oracle'},{from:'reference',to:'checks',label:'fresh reference',group:'oracle'},{from:'checks',to:'intake',label:'healthy quote',group:'oracle'}
+    ], {epoch:'The observer records pool prices over time. A gap means the old history cannot be trusted, so a new observation period must build first.',reference:'Governance first proposes a reference price, then waits 24 hours. The wait prevents a one-block price move from becoming trusted immediately.',checks:'The adapter checks that the pool is deep enough, the current price is close to its average, and the price still agrees with the delayed reference.',intake:'The gateway has a separate pause switch. Even a healthy oracle does not automatically open the payment door.'});
+    const lifecycleGraph = compact('#lifecycle-diagram', [
+      {id:'posted',label:'POSTED',sub:'poster creates',x:3,y:34},{id:'claimed',label:'CLAIMED',sub:'worker joins',x:27,y:34},{id:'active',label:'ACTIVE',sub:'AZL funded',x:51,y:34},{id:'completed',label:'COMPLETED',sub:'normal finish',x:75,y:34},
+      {id:'disputed',label:'DISPUTED',sub:'funds frozen',x:27,y:138},{id:'resolved',label:'RESOLVED',sub:'ruling / timeout',x:51,y:138},{id:'cancelled',label:'CANCELLED',sub:'cancel / expiry',x:75,y:138}
+    ], [
+      {from:'posted',to:'claimed',label:'claim',group:'operations'},{from:'claimed',to:'active',label:'fund + activate',group:'money'},{from:'active',to:'completed',label:'complete',group:'operations'},
+      {from:'claimed',to:'disputed',label:'dispute',group:'arbitration'},{from:'active',to:'disputed',label:'dispute',group:'arbitration'},{from:'disputed',to:'resolved',label:'settle',group:'arbitration'},{from:'posted',to:'cancelled',label:'cancel / expire',group:'operations'}
+    ], {posted:'The poster creates a fixed-AZL task. The registry records its open-task cap allocation and settles the poster’s fee or Action Credit path.',claimed:'A non-poster worker joins. The worker receives their own reservation and pays their own fee or uses their own credit.',active:'The poster has funded escrow and activated the task. AZL can now be released to the worker or frozen for a dispute.',completed:'The normal happy ending: remaining escrow goes to the worker and the poster’s task-bound credit is consumed.',disputed:'Escrow is frozen and a non-party bonded verifier is assigned. Neither party can move the frozen balance directly.',resolved:'Arbitration settled the escrow. The poster credit returns, transfers to the worker, or is consumed depending on the ruling.',cancelled:'The task ended before normal completion. Escrow is refunded when applicable and the poster credit returns.'});
+    const custodyGraph = compact('#custody-diagram', [
+      {id:'payer',label:'Payer',sub:'owns AZL deposit',x:4,y:72},{id:'deposit',label:'Deposit Vault',sub:'entry / reserve / fee',x:29,y:72},{id:'escrow',label:'Task Escrow',sub:'funded job AZL',x:54,y:72},{id:'recipient',label:'Worker or poster',sub:'payout / refund',x:79,y:72}
+    ], [
+      {from:'payer',to:'deposit',label:'AZL credit',group:'money'},{from:'deposit',to:'escrow',label:'task funding',group:'money'},{from:'escrow',to:'recipient',label:'release / refund',group:'money'}
+    ], {payer:'The payer owns a deposit ledger balance. Funding a task does not give the worker access to the rest of that deposit.',deposit:'This ledger holds entry collateral, access fees, and task reserves. It is not the job payment itself.',escrow:'This is the isolated AZL pot for one task. It only grows from poster funding and only moves through registry/arbitration settlement.',recipient:'A worker receives released work payment. A poster receives a refund for unreleased AZL when a task ends without fully paying out.'});
+    const arbitrationGraph = compact('#arbitration-diagram', [
+      {id:'party',label:'Task party',sub:'opens dispute',x:4,y:72},{id:'module',label:'Arbitration',sub:'panel scan / fallback',x:29,y:72},{id:'verifier',label:'Eligible verifier',sub:'bonded + non-party',x:54,y:72},{id:'outcome',label:'Settlement',sub:'ruling or timeout',x:79,y:72}
+    ], [
+      {from:'party',to:'module',label:'evidence hash',group:'arbitration'},{from:'module',to:'verifier',label:'assignment',group:'arbitration'},{from:'verifier',to:'outcome',label:'rule / silence',group:'arbitration'}
+    ], {party:'A poster or worker submits a nonzero evidence hash. This begins the onchain case; no owner decision is needed to select the verifier.',module:'The module derives a start index from blockhash, caller, and cursor, then scans past parties, zeroed slots, unauthorized accounts, and unavailable verifiers. An unassigned dispute can be filled during its fallback window.',verifier:'The selected verifier has an AZL bond. They must rule by the deadline or anyone can trigger neutral timeout settlement and a bounded slash.',outcome:'The system pays the defined escrow result. A worker win transfers the poster’s task-bound Action Credit to the worker; non-default expiry returns the poster credit.'});
+    const creditsGraph = compact('#credits-diagram', [
+      {id:'stake',label:'Stake AZL',sub:'after activation',x:4,y:72},{id:'mine',label:'Live credit accrual',sub:'updated every block',x:29,y:72},{id:'fee',label:'post / claim',sub:'credit first',x:54,y:72},{id:'terminal',label:'Terminal result',sub:'return / transfer / consume',x:79,y:72}
+    ], [
+      {from:'stake',to:'mine',label:'pro-rata time',group:'credits'},{from:'mine',to:'fee',label:'creditsOf() live total',group:'credits'},{from:'fee',to:'terminal',label:'post-credit latch',group:'credits'}
+    ], {stake:'After governance activates staking, AZL stake starts earning a proportional share of credits each block. Small stakes accrue fractional carry.',mine:'creditsOf() reports banked credits plus this live pending accrual. The staker does not need to manually bank before using a whole credit.',fee:'On post or claim, the registry tries to spend one whole credit first. If none is available, it debits the normal AZL access fee instead.',terminal:'A posting credit stays linked to its task: return for cancellation/neutral routes, transfer to worker on worker win, consume on completion.'});
+    const releaseGraph = compact('#release-diagram', [
+      {id:'deploy',label:'Factory deploy',sub:'16 components wired',x:4,y:72},{id:'oracleReady',label:'Warm oracle',sub:'epoch + reference',x:29,y:72},{id:'operate',label:'Prepare operation',sub:'panel + staking',x:54,y:72},{id:'launch',label:'Open intake',sub:'separate governance call',x:79,y:72}
+    ], [
+      {from:'deploy',to:'oracleReady',label:'after ownership',group:'factory'},{from:'oracleReady',to:'operate',label:'oracle valid',group:'factory'},{from:'operate',to:'launch',label:'governance decision',group:'factory'}
+    ], {deploy:'The factory deploys and wires all 16 components atomically. This prevents a half-configured dependency graph.',oracleReady:'The live observation window must be filled, and a proposed reference must survive the 24-hour delay before the quote can be trusted.',operate:'Governance prepares the human-operated prerequisites: accepted ownership, an eligible bonded verifier, and optional staking activation.',launch:'Opening the gateway is a separate deliberate governance action. Deployment alone can never start payment intake.'});
+    const allGraphs = [architecture, oracleGraph, lifecycleGraph, custodyGraph, arbitrationGraph, creditsGraph, releaseGraph];
+    const nodeDetails = {
+      "USDC / ETH": "External payment inputs are only accepted at the exact-input gateway boundary; V2 does not retain either asset.",
+      "Payment Gateway": "Governance-controlled intake gate. It uses fixed routes, caller slippage bounds, balance-delta verification, and an oracle-deviation guard.",
+      "Agent Deposit Vault": "AZL liability ledger. The registry alone may debit access fees or create/release the fixed per-task reservation.",
+      "Task Registry + Escrow": "Task RegistryV2 owns task transitions and commands EscrowVaultV2. Escrow tracks only funded AZL and deferred payout liabilities.",
+      "V4 Observer + ETH/USD": "The observer provides the contiguous AZL/WETH tick epoch; Chainlink provides validated ETH/USD. Neither source alone authorizes intake.",
+      "Delayed TWAP Adapter": "A mature proposed reference waits 24 hours before activation, expires after seven days, and is guarded by pool liquidity plus spot/TWAP deviation limits.",
+      "Treasury + Staking": "Treasury distributes recorded AZL revenue to the staking vault. Activated staking streams rewards and mines capped Action Credits.",
+      "Arbitration + Bonds": "Arbitration scans for an eligible non-party verifier from a derived start position; AZL bonds support timeout slashing and withdrawal cooldowns.",
+      "AZL principal + time": "Action Credits mine only after governance staking activation. Fractional accrual is retained until at least one whole credit is available.",
+      "post / claim": "The registry attempts an Action Credit first. On failure it atomically debits the AZL access fee while retaining entry-floor and reserve requirements.",
+      "Task-bound credit": "Only a post credit is task-bound. It can be returned only once during the terminal task transition; a claim credit is immediately final.",
+      "Return, transfer, or consume": "Post credits return on cancellation, expiry, poster win, split, or mutual resolution. A worker win transfers the credit to the worker. Normal completion permanently consumes it."
+    };
+    document.querySelectorAll('.node').forEach(node => {
+      node.tabIndex = 0;
+      node.setAttribute('role', 'button');
+      const show = () => {
+        document.querySelectorAll('.node').forEach(other => other.classList.remove('selected'));
+        node.classList.add('selected');
+        let panel = node.closest('.diagram').querySelector('.focus-panel');
+        if (!panel) {
+          panel = document.createElement('div');
+          panel.className = 'focus-panel';
+          node.closest('.diagram').appendChild(panel);
+        }
+        const title = node.querySelector('b')?.textContent || 'Component';
+        panel.innerHTML = `<b>${title}</b><br>${nodeDetails[title] || 'Select a component to inspect its role, authority, and safety boundary.'}`;
+      };
+      node.addEventListener('click', show);
+      node.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); show(); } });
+    });
+    document.querySelector('#function-search').addEventListener('input', e => {
+      const query = e.target.value.toLowerCase();
+      document.querySelectorAll('#function-table tbody tr').forEach(row => row.hidden = !row.textContent.toLowerCase().includes(query));
+    });
+
+    // ---------- guided walkthrough (tour mode) ----------
+    const tourIds = sections.map(s => s[0]);
+    const tourLabels = {
+      overview: 'mapping the 16-component graph',
+      oracle: 'tracing the oracle readiness gate',
+      lifecycle: 'stepping through the task state machine',
+      custody: 'auditing the AZL custody split',
+      arbitration: 'walking the dispute + bond flow',
+      economics: 'reading policy tiers and credit mining',
+      permissions: 'checking the role matrix',
+      reference: 'scanning the function surface',
+      storage: 'verifying solvency invariants',
+      release: 'confirming the deployment gate'
+    };
+    const tour = { active: false, playing: false, index: 0, timers: [] };
+    const tourReadout = document.querySelector('#tourReadout');
+    const tourProgressFill = document.querySelector('#tourProgressFill');
+    const tourBar = document.querySelector('#tourBar');
+    const tourToggleBtn = document.querySelector('#tourToggle');
+
+    function clearTourTimers() { tour.timers.forEach(t => clearTimeout(t)); tour.timers = []; }
+    function tourSetReadout(text) { tourReadout.textContent = text; }
+    function tourSetProgress(frac) { tourProgressFill.style.width = `${Math.max(0, Math.min(1, frac)) * 100}%`; }
+
+    function microTourFor(id) {
+      switch (id) {
+        case 'overview': return { kind: 'layers', graph: architecture, items: ['operations', 'money', 'oracle', 'arbitration', 'credits', 'factory'] };
+        case 'oracle': return { kind: 'nodes', graph: oracleGraph, items: oracleGraph.nodeIds };
+        case 'lifecycle': return { kind: 'nodes', graph: lifecycleGraph, items: lifecycleGraph.nodeIds };
+        case 'custody': return { kind: 'nodes', graph: custodyGraph, items: custodyGraph.nodeIds };
+        case 'arbitration': return { kind: 'nodes', graph: arbitrationGraph, items: arbitrationGraph.nodeIds };
+        case 'economics': return { kind: 'nodes', graph: creditsGraph, items: creditsGraph.nodeIds };
+        case 'release': return { kind: 'nodes', graph: releaseGraph, items: releaseGraph.nodeIds };
+        default: return null;
+      }
+    }
+
+    function playSection(index) {
+      if (!tour.playing) return;
+      tour.index = index;
+      const id = tourIds[index];
+      activate(id);
+      const label = tourLabels[id] || id;
+      const micro = microTourFor(id);
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const beatDuration = reduced ? 60 : 1150;
+      const tailDuration = reduced ? 900 : 1700;
+      const beats = [];
+      if (micro && !reduced) {
+        beats.push(() => { if (micro.kind === 'layers') { setArchitectureLayerButton('all'); architecture.setFocus('all'); } else { micro.graph.setFocus('all'); } });
+        micro.items.forEach(itemId => beats.push(() => {
+          if (micro.kind === 'layers') { setArchitectureLayerButton(itemId); architecture.setFocus(itemId); }
+          else { micro.graph.setFocus('all', itemId); }
+          tourSetReadout(`root@azzle:~$ tour [${index + 1}/${tourIds.length}] ${id} :: focus → ${itemId}`);
+        }));
+        beats.push(() => { if (micro.kind === 'layers') { setArchitectureLayerButton('operations'); architecture.setFocus('operations'); } else { micro.graph.setFocus('all'); } });
+      } else if (micro) {
+        beats.push(() => { if (micro.kind === 'layers') { setArchitectureLayerButton('operations'); architecture.setFocus('operations'); } else { micro.graph.setFocus('all'); } });
+      } else {
+        beats.push(() => {});
+      }
+      tourSetReadout(`root@azzle:~$ tour [${index + 1}/${tourIds.length}] ${id} :: ${label}`);
+      let cursor = 0;
+      const totalBeats = Math.max(beats.length, 1);
+      (function step() {
+        if (!tour.playing) return;
+        if (cursor >= beats.length) {
+          const t = setTimeout(() => {
+            if (!tour.playing) return;
+            if (index === tourIds.length - 1) { stopTour(); return; }
+            playSection(index + 1);
+          }, tailDuration);
+          tour.timers.push(t);
+          return;
+        }
+        beats[cursor]();
+        tourSetProgress((index + (cursor + 1) / totalBeats) / tourIds.length);
+        cursor++;
+        const t = setTimeout(step, beatDuration);
+        tour.timers.push(t);
+      })();
+    }
+
+    function startTour() {
+      tour.active = true; tour.playing = true;
+      tourBar.classList.add('active');
+      tourToggleBtn.textContent = '⏸ Pause';
+      tourToggleBtn.setAttribute('aria-label', 'Pause walkthrough');
+      playSection(0);
+    }
+    function pauseTour() {
+      tour.playing = false; clearTourTimers();
+      tourToggleBtn.textContent = '▶ Resume';
+      tourToggleBtn.setAttribute('aria-label', 'Resume walkthrough');
+      tourSetReadout(`root@azzle:~$ tour paused [${tour.index + 1}/${tourIds.length}]`);
+    }
+    function resumeTour() {
+      tour.playing = true;
+      tourToggleBtn.textContent = '⏸ Pause';
+      tourToggleBtn.setAttribute('aria-label', 'Pause walkthrough');
+      playSection(tour.index);
+    }
+    function stopTour() {
+      if (!tour.active) return;
+      tour.active = false; tour.playing = false; clearTourTimers();
+      tourBar.classList.remove('active');
+      tourToggleBtn.textContent = '▶ Run walkthrough';
+      tourToggleBtn.setAttribute('aria-label', 'Run guided walkthrough');
+      tourSetReadout('root@azzle:~$ idle');
+      tourSetProgress(0);
+      setArchitectureLayerButton('operations'); architecture.setFocus('operations');
+      [oracleGraph, lifecycleGraph, custodyGraph, arbitrationGraph, creditsGraph, releaseGraph].forEach(g => g && g.setFocus('all'));
+    }
+    function tourToggleHandler() {
+      if (!tour.active) startTour();
+      else if (tour.playing) pauseTour();
+      else resumeTour();
+    }
+    function tourJump(delta) {
+      clearTourTimers();
+      const current = document.querySelector('section.active');
+      let idx = tourIds.indexOf(current ? current.id : 'overview');
+      idx = (idx + delta + tourIds.length) % tourIds.length;
+      if (tour.active && tour.playing) { playSection(idx); }
+      else {
+        tour.index = idx; activate(tourIds[idx]);
+        if (tour.active) tourSetReadout(`root@azzle:~$ tour paused [${idx + 1}/${tourIds.length}]`);
+      }
+    }
+    tourToggleBtn.addEventListener('click', tourToggleHandler);
+    document.querySelector('#tourPrev').addEventListener('click', () => tourJump(-1));
+    document.querySelector('#tourNext').addEventListener('click', () => tourJump(1));
+    document.querySelector('#tourStop').addEventListener('click', stopTour);
+    document.addEventListener('keydown', e => {
+      if (document.activeElement && document.activeElement.id === 'function-search') return;
+      if (e.code === 'Space') { e.preventDefault(); tourToggleHandler(); }
+      else if (e.key === 'ArrowRight') { tourJump(1); }
+      else if (e.key === 'ArrowLeft') { tourJump(-1); }
+      else if (e.key === 'Escape' && tour.active) { stopTour(); }
+    });
+    document.addEventListener('click', e => {
+      if (tour.active && !e.target.closest('#tourBar')) stopTour();
+    }, true);
+
+    activate(location.hash.slice(1) in pages ? location.hash.slice(1) : 'overview');
+  </script>
+</body>
+</html>

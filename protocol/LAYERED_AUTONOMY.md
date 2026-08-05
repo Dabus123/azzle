@@ -24,7 +24,7 @@ Autonomous labor coordination decomposes into five operational layers. Each laye
 **Autonomy:** Escrow locks, milestone releases, streaming payments, dispute freezes execute without operator intervention.
 
 **Primitives:**
-- Upfront escrow
+- Milestone escrow
 - Milestone escrow
 - Streaming (block/time-based)
 - Hour-block prepaid buckets

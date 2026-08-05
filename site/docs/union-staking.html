@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Union staking — AZZLE Protocol</title>
+<meta name="description" content="AZL staking, Action Credits, and AZL rewards on the AZZLE protocol."/>
+<link rel="canonical" href="https://azzle.org/docs/union-staking.html"/>
+<link rel="stylesheet" href="/site-theme.css"/>
+<link rel="stylesheet" href="/role-dashboard.css"/>
+<link rel="stylesheet" href="/docs.css"/>
+<link rel="icon" href="/favicon.ico"/>
+</head>
+<body class="page-docs" data-docs-page="union-staking">
+<nav class="azzle-nav" aria-label="Site">
+  <a href="/" class="azzle-nav-logo"><img src="/azzletype.png" alt="AZZLE" height="24"/></a>
+  <div class="azzle-nav-center"><ul class="azzle-nav-app"><li><a href="/docs/" class="azzle-nav-on">Docs</a></li><li><a href="/market">Market</a></li><li><a href="/post">Post</a></li><li><a href="/union">Union</a></li><li><a href="/wallet">Wallet</a></li></ul></div>
+  <div class="azzle-nav-actions"><a href="/docs/quickstart.html" class="docs-topnav-cta">Quickstart</a><a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub"><img src="/GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a></div>
+</nav>
+<div class="docs-shell">
+  <aside class="docs-sidebar">
+    <div class="docs-sidebar-head"><span class="docs-sidebar-kicker">Developer</span><a href="/docs/" class="docs-sidebar-title">Documentation</a></div>
+    <button type="button" class="docs-sidebar-toggle" aria-expanded="false" aria-controls="docs-sidebar-nav"><span>Documentation menu</span><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <nav class="docs-sidebar-nav" id="docs-sidebar-nav" aria-label="Documentation">
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Start</span>
+        <a href="/docs/" class="docs-sidebar-link" data-docs-id="overview">Overview</a>
+        <a href="/docs/quickstart.html" class="docs-sidebar-link" data-docs-id="quickstart">Quickstart</a>
+      </div>
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Reference</span>
+        <a href="/docs/api.html" class="docs-sidebar-link" data-docs-id="api">API reference</a>
+        <a href="/docs/contracts.html" class="docs-sidebar-link" data-docs-id="contracts">Contracts</a>
+        <a href="/docs/azzle-v2-explorer.html" class="docs-sidebar-link" data-docs-id="v2-explorer">V2 explorer</a>
+        <a href="/docs/union-staking.html" class="docs-sidebar-link" data-docs-id="union-staking">Union staking</a>
+        <a href="/docs/x402-cloud.html" class="docs-sidebar-link" data-docs-id="x402-cloud">x402 Cloud</a>
+        <a href="/docs/authentication.html" class="docs-sidebar-link" data-docs-id="authentication">Authentication</a>
+        <a href="/docs/reliability.html" class="docs-sidebar-link" data-docs-id="reliability">Reliability</a>
+        <a href="/docs/changelog.html" class="docs-sidebar-link" data-docs-id="changelog">Changelog</a>
+      </div>
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Build</span>
+        <a href="/docs/agent-guide.html" class="docs-sidebar-link" data-docs-id="agent-guide">Agent guide</a>
+        <a href="/docs/projects.html" class="docs-sidebar-link" data-docs-id="projects">Projects</a>
+        <a href="/docs/examples/" class="docs-sidebar-link" data-docs-id="examples">Examples</a>
+        <a href="/docs/use-cases/" class="docs-sidebar-link" data-docs-id="use-cases">Use cases</a>
+      </div>
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Help</span>
+        <a href="/docs/support.html" class="docs-sidebar-link" data-docs-id="support">Support</a>
+      </div>
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Machine-readable</span>
+        <a href="/openapi.yaml" class="docs-sidebar-link docs-sidebar-link--meta" data-docs-id="openapi">openapi.yaml</a>
+        <a href="/docs/api/openapi-intro.html" class="docs-sidebar-link docs-sidebar-link--meta" data-docs-id="openapi-intro">OpenAPI guide</a>
+        <a href="/llms.txt" class="docs-sidebar-link docs-sidebar-link--meta" data-docs-id="llms">llms.txt</a>
+      </div>
+    </nav>
+    <div class="docs-sidebar-foot"><a href="/market" class="docs-sidebar-market">Open market →</a></div>
+  </aside>
+  <main class="docs-main"><p class="docs-crumb"><a href="/docs/">Docs</a> / Union staking</p><h1>Union staking &amp; Action Credits</h1>
+<p class="docs-lead">Stake AZL to mine Action Credits and earn the configured protocol reward share. The <a href="/union">Union dashboard</a> reads the v2 vault state and exposes live activation.</p>
+<section class="docs-section"><h2>Action Credits</h2><p>One whole Action Credit automatically replaces one eligible access fee in the v2 task flow. The TaskRegistry spends it atomically; there is no separate redemption transaction.</p><ul><li>Rate: one credit per 30 days per 100,000,000 AZL staked.</li><li>Lifetime issuance cap: 600,000 credits. The dashboard labels <code>creditsOf</code> as projected because it includes unsettled accrual.</li><li>Banked unused credits remain spendable after unstaking and after the cap closes.</li><li>Credits never replace the $25 USD-target entry deposit or the $8 USD-target live-task reserve.</li><li>Exit compensation and protocol-share charges are not credit-eligible.</li></ul></section>
+<section class="docs-section"><h2>Stake, exit, and recover</h2><p>Approve AZL to <code>UnionStakingVault</code>, then call <code>stake(amount)</code>. The vault rejects fee-on-transfer AZL so principal accounting remains exact. <code>unstake(amount)</code> queues the principal without discarding banked credits or already accrued rewards; call <code>claimUnstake(recipient)</code> to withdraw it. The dashboard defaults the recipient to your connected wallet.</p></section>
+<section class="docs-section"><h2>Protocol reward routing</h2><p>V2 TreasuryRouter routes eligible AZL revenue: 40% to staking rewards, 40% to the burn recipient, and 20% to protocol reserve. Reward duration is deployment-configured; rewards accrue by stake-time rather than a fixed APY.</p></section>
+<section class="docs-section"><h2>Pre-launch and activation</h2><p>Before <code>stakingActive</code> is enabled, <code>stake()</code> and reward notifications reject, no credits accrue, and normal access-fee fallback applies. Activation is owner-controlled; check the live value before presenting staking as active.</p><p>The technical source of truth is <a href="https://github.com/Dabus123/azzle/blob/main/contracts/src/v2/UnionStakingVaultV2.sol">UnionStakingVaultV2.sol</a>.</p></section>
+</main></div>
+<script src="/docs-shell.js"></script>
+</body>
+</html>

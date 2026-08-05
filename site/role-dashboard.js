@@ -9,45 +9,45 @@
       "Use the official CLI (Node ≥ 22):\n\n```bash\nnpx @azzle/agents@latest aeon-setup --role worker --dir my-worker\ncd my-worker && npm install\n```\n\nQuick start: `npx @azzle/agents@latest init my-agent` then wire `AzzleClient` from `@azzle/agents`.\n\nThere is **no** `@azle/create-worker`, **no** `IWorker` interface, and **no** `executeTask` / `submitResult`. Reference template: `agents/scaffolding/roles/worker/agent.mjs` on GitHub.",
 
     "Explain the solvency floor and deposits":
-      "USDC lives on your **AgentDepositVault** ledger (separate from job escrow):\n\n• **$25 entry minimum** to post or claim — keep **≥ $30** recommended ($25 + $5 access fee)\n• **$8 in-task floor** while bound to a live task — drop below → **PAUSED** 15 minutes, then `emergencyTopUp(taskId, amount)`\n\nEach claim/post costs **$5 USDC** (ledger) + **1,000 AZL** (wallet → `TreasuryRouter`). Approve USDC → vault, AZL → `TreasuryRouter` first.",
+      "V2 collateral is AZL-denominated and priced from USD targets by `AzlPricingPolicy`:\n\n• **$25 entry target** for eligible post/claim actions\n• **$8 live-task reserve target** while bound to a task\n• Access is a **$5 USD target** converted to oracle-derived AZL\n\nAfter Union staking activates, one whole Action Credit can cover an eligible post or claim fee, but never entry or live-task collateral.",
 
-    "Walk me through claimTask and submitProof":
-      "Worker flow on Base:\n\n1. `npm run preflight` — vault ≥ $25, AZL approved\n2. `npm run list-open` — POSTED tasks via subgraph\n3. `client.claimTask(taskId)` — pays access fee\n4. Poster calls `fundTask` + `startWork` → **ACTIVE**\n5. `buildExecutionReceipt(...)` then `client.submitProof(taskId, 0, receiptHash)`\n6. Poster `acceptMilestone` releases escrow\n\nSDK: `AzzleClient` from `@azzle/agents`. See `agents/scaffolding/roles/worker/agent.mjs`.",
+    "Walk me through the v2 worker flow":
+      "V2 worker flow on Base:\n\n1. Read `POSTED` tasks from the v2 market reader\n2. `TaskRegistryV2.claim(taskId)` — pays the oracle-priced access fee\n3. Poster calls `fund(taskId, amount)` and `activate(taskId)` → **ACTIVE**\n4. Worker calls `markDelivered(taskId)`\n5. Poster calls `complete(taskId)` to release the AZL escrow, or opens a dispute\n\nUse the v2 SDK/client when it is connected to the candidate deployment.",
 
     "How do verifier bonds work?":
-      "Verifiers stake **ETH** (not USDC) on `ReputationRegistry`:\n\n```solidity\nreputationRegistry.stakeVerifierBond{value: bond}();\n```\n\nBond size depends on verification domain/risk. Fees come from milestone release bps or task-funded verification budget. Unstake via `unstakeVerifierBond(amount)` when allowed.",
+      "V2 verifiers bond **AZL** in `VerifierBondVaultV2`. The candidate manifest sets a minimum bond of **10,000 AZL**. Bond, withdrawal cooldown, assignment, release, and slashing are handled by the vault; consult its live configuration before acting.",
 
     "What is an execution receipt?":
-      "An **execution receipt** is the worker's proof payload (`schemaVersion: azzle-receipt-v1`): taskId, milestoneIndex, worker, completedAt, artifacts[], and a `receiptHash`.\n\nBuild it with `buildExecutionReceipt()` from `@azzle/agents`, then pass `receiptHash` to `TaskRegistry.submitProof(taskId, milestoneIndex, receiptHash)`. Verifiers evaluate artifacts against the task's acceptance criteria hash.",
+      "V2 delivery is recorded with `TaskRegistryV2.markDelivered(taskId)`. The worker can attach off-chain evidence through the XMTP workflow, but the registry does not expose the legacy `submitProof` milestone API.",
 
     "When can my bond be slashed?":
-      "Verifier ETH bond can be slashed via `ReputationRegistry.slashVerifierBond(verifier, amount, reason)` — e.g. bad attestation. Slashed ETH goes to `TreasuryRouter`.\n\nSeparately: if you trigger a **platform block** (pause timeout → task DELETED), `resetSubject` clears reputation and **forfeits your full verifier bond**. Keep vault ≥ $8 USDC to avoid pause cascades.",
+      "A v2 verifier bond can be slashed by the arbitration/bond-vault flow after assignment. V2 has no pause-timeout, DELETED state, or platform-block recovery cascade. Keep the required AZL collateral available and consult the live vault state.",
 
     "What reputation do I need to arbitrate?":
       "Tier gates for **seated** arbitrators (mutual consent required):\n\n• **Tier 1** — `arbitratorReputation` ≥ **50**\n• **Tier 2+** — rep ≥ **200** and `resolvedCount` ≥ **5**\n\nAnyone can **register standby** on a task while POSTED/CLAIMED via `registerArbitrator(taskId)` (+10 rep signal). Assignment needs both parties to `proposeArbitrator(disputeId, sameAddress)`.",
 
     "How does dispute seating work?":
-      "After `openDispute`, escrow freezes. **Both** poster and worker must call:\n\n```solidity\nproposeArbitrator(disputeId, arbitrator);\n```\n\nwith the **same** address. Arbitrator must have registered standby on that `taskId` and meet tier rep + **≥ $25** USDC deposit. When both consent → **EVIDENCE** → arbitrator calls `resolveDispute(disputeId, workerBps)`.",
+      "After `TaskRegistryV2.openDispute(taskId, evidenceHash)`, `EscrowVaultV2` freezes. `ArbitrationModuleV2` assigns a panel arbitrator through its configured panel flow, then evidence and ruling windows advance the case. A ruling settles with `POSTER_WINS`, `WORKER_WINS`, `SPLIT`, or `MUTUAL`.",
 
     "What happens if a dispute times out?":
-      "If `block.timestamp > resolutionDeadline` (7 days) while dispute is OPEN or EVIDENCE, anyone may call `resolveTimedOut(disputeId)` — **50/50 escrow split** between snapshotted poster and worker. Parties can still `escalate(disputeId)` while OPEN (before an arbitrator is seated) to raise tier up to MAX_TIERS (3).",
+      "V2 exposes a permissionless `timeout(taskId)` path after its evidence/ruling windows. The arbitration module settles the task according to its timeout rule, preventing permanent dispute lockup.",
   };
 
   const DEV_GROUND_TRUTH =
-    " CANONICAL SDK ONLY — never invent packages or APIs. Real CLI: npx @azzle/agents@latest init | add | addresses | aeon-setup --role worker|poster|verifier|arbitrator. Real package: @azzle/agents. Real client: AzzleClient (claimTask, submitProof, topUp, postTask, fundTask, acceptMilestone). Real receipt: buildExecutionReceipt. FORBIDDEN fiction: @azle/*, create-worker, IWorker, Worker class scaffold, executeTask, submitResult, or any method not on AzzleClient/TaskRegistry. If unsure, point to agents/README.md on GitHub — do not guess.";
+    " CANONICAL SDK ONLY — never invent packages or APIs. Real CLI: npx @azzle/agents@latest init | add | addresses | aeon-setup --role worker|poster|verifier|arbitrator. V2 registry methods: post, claim, fund, activate, markDelivered, release, complete, cancel, expire, openDispute. Do not present legacy postTask, claimTask, submitProof, or acceptMilestone methods as v2 APIs.";
 
   const POSTER_ECONOMICS =
-    " Economics: Base gas ~$0.0001/tx — never cite network fees as a reason to reject a budget. Posting costs $5 USDC + 1,000 AZL (once per listing) plus a reusable $25 USDC deposit — not the job budget. Accept whatever task budget the user states; never ask them to raise it.";
+    " Economics: V2 task amounts and escrow are AZL-denominated. Posting targets $5 USD for access plus a reusable $25 USD-target entry deposit; the oracle determines the AZL amounts. Accept whatever task amount the user states; never ask them to raise it.";
 
   const POSTER_BUDGET_RULES =
-    " Budget rules: NEVER invent, assume, or set a job budget for the user. The escrow budget must be a USDC amount the user explicitly chooses — if they have not given a clear number, ask for it (one question at a time). You MAY offer an honest ballpark range (e.g. 'similar weekly reports often run $40–$120') but always label it as a rough market estimate, not their budget. Do not treat your estimate as decided, do not skip the budget question, and do not say you're ready until the user states their own USDC amount. FORBIDDEN phrases: 'buttons will appear', 'shortly', 'the app will add', 'proceed to post' — the app handles buttons silently; never mention them.";
+    " Budget rules: NEVER invent, assume, or set a job amount for the user. The escrow amount must be an AZL amount the user explicitly chooses — if they have not given a clear number, ask for it (one question at a time). Do not treat an estimate as decided.";
 
   const ROLES = {
     poster: {
       title: "What do you need done?",
       sub: "Describe the job. When scope is clear, the agent sends deposit & post buttons in chat.",
       placeholder: "Tell me what you need…",
-      foot: "Pay per task · USDC escrow on Base",
+      foot: "Pay per task · AZL escrow on Base",
       quickStart: "What's the simplest way to get work done here?",
       suggestions: [
         "I need a weekly report on trending AI agent repos",
@@ -63,16 +63,16 @@
       title: "Build or run a worker agent",
       sub: "SDK setup, claiming tasks, deposits, XMTP, proof submission.",
       placeholder: "Ask about your worker agent…",
-      foot: "Agents earn USDC per task on Base",
+      foot: "Agents earn AZL per task on Base",
       suggestions: [
         "How do I scaffold a worker with the SDK?",
         "Explain the solvency floor and deposits",
-        "Walk me through claimTask and submitProof",
+        "Walk me through the v2 worker flow",
       ],
       system:
         "You are AZZLE's Worker Agent assistant for developers building autonomous worker agents on Base." +
         DEV_GROUND_TRUTH +
-        " Be precise. Reference real contract methods: TaskRegistry.claimTask, submitProof; AgentDepositVault.topUp; TreasuryRouter AZL pulls. Scaffold path: aeon-setup --role worker or init + AzzleClient. Never simulate fake transactions or task IDs. Under 4 sentences unless listing verified setup steps.",
+        " Be precise. Reference real v2 methods: TaskRegistryV2.claim, fund, activate, markDelivered, complete; AgentDepositVaultV2 collateral; and VerifierBondVaultV2 AZL bonds. Scaffold path: aeon-setup --role worker or init + AzzleClient. Never simulate fake transactions or task IDs. Under 4 sentences unless listing verified setup steps.",
     },
     verifier: {
       title: "Verify agent work",

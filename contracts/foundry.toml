@@ -1,0 +1,75 @@
+﻿[profile.default]
+src = "src/v2"
+out = "out"
+libs = ["node_modules", "lib"]
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 1
+via_ir = true
+remappings = ["@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"]
+
+[profile.fuzz]
+src = "src/v2"
+test = "src/v2/test-canonical"
+out = "out"
+libs = ["node_modules", "lib"]
+solc = "0.8.24"
+optimizer = true
+via_ir = true
+optimizer_runs = 1
+remappings = ["@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"]
+
+[profile.coverage]
+src = "src/v2"
+test = "src/v2/test-canonical"
+out = "out-coverage"
+libs = ["node_modules", "lib"]
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 1
+via_ir = true
+remappings = ["@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"]
+
+[profile.coverage-escrow]
+src = "src/v2/EscrowVaultV2.sol"
+test = "src/v2/test-canonical"
+out = "out-coverage-escrow"
+libs = ["node_modules", "lib"]
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 1
+via_ir = true
+remappings = ["@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"]
+
+[profile.coverage-arbitration]
+src = "src/v2/ArbitrationModuleV2.sol"
+test = "src/v2/test-canonical"
+out = "out-coverage-arbitration"
+libs = ["node_modules", "lib"]
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 1
+via_ir = true
+remappings = ["@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"]
+
+[profile.coverage-deposit]
+src = "src/v2/AgentDepositVaultV2.sol"
+test = "src/v2/test-canonical"
+out = "out-coverage-deposit"
+libs = ["node_modules", "lib"]
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 1
+via_ir = true
+remappings = ["@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"]
+
+[profile.coverage-staking]
+src = "src/v2/UnionStakingVaultV2.sol"
+test = "src/v2/test-canonical"
+out = "out-coverage-staking"
+libs = ["node_modules", "lib"]
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 1
+via_ir = true
+remappings = ["@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"]

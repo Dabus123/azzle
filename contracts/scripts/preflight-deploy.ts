@@ -5,7 +5,7 @@
  *   npx hardhat run scripts/preflight-deploy.ts --network base          # inspect live wiring
  *   npx hardhat run scripts/preflight-deploy.ts --network base -- --dry-run
  *
- * Set contract addresses in .env (see .env.example). Omit addresses for steps not yet deployed.
+ * Set the complete deployed graph in .env (see .env.example).
  */
 import { ethers } from "hardhat";
 import { isZero } from "./deploy-utils";
@@ -35,14 +35,39 @@ async function main() {
   const arbitrationAddress = process.env.ARBITRATION_MODULE_ADDRESS?.trim();
   const treasuryAddress = process.env.TREASURY_ROUTER_ADDRESS?.trim();
   const agentVaultAddress = process.env.AGENT_DEPOSIT_VAULT_ADDRESS?.trim();
+  const recoveryAddress = process.env.ARBITRATION_RECOVERY_COORDINATOR_ADDRESS?.trim();
+  const stakingAddress = process.env.UNION_STAKING_VAULT_ADDRESS?.trim();
+  const taskScopeAddress = process.env.TASK_SCOPE_REGISTRY_ADDRESS?.trim();
   const azlToken = process.env.AZL_TOKEN_ADDRESS?.trim();
+  const usdc = process.env.USDC_ADDRESS?.trim() ??
+    ((process.env.HARDHAT_NETWORK ?? "") === "base"
+      ? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      : undefined);
+  const buybackExecutor = process.env.BUYBACK_EXECUTOR?.trim();
+  const fallbackResolver = process.env.FALLBACK_RESOLVER?.trim();
 
-  if (!escrowAddress || !registryAddress) {
-    throw new Error("ESCROW_VAULT_ADDRESS and TASK_REGISTRY_ADDRESS required");
+  const required = {
+    ESCROW_VAULT_ADDRESS: escrowAddress,
+    TASK_REGISTRY_ADDRESS: registryAddress,
+    REPUTATION_REGISTRY_ADDRESS: reputationAddress,
+    ARBITRATION_MODULE_ADDRESS: arbitrationAddress,
+    TREASURY_ROUTER_ADDRESS: treasuryAddress,
+    AGENT_DEPOSIT_VAULT_ADDRESS: agentVaultAddress,
+    ARBITRATION_RECOVERY_COORDINATOR_ADDRESS: recoveryAddress,
+    UNION_STAKING_VAULT_ADDRESS: stakingAddress,
+    TASK_SCOPE_REGISTRY_ADDRESS: taskScopeAddress,
+    AZL_TOKEN_ADDRESS: azlToken,
+    USDC_ADDRESS: usdc,
+    BUYBACK_EXECUTOR: buybackExecutor,
+    FALLBACK_RESOLVER: fallbackResolver,
+  };
+  const missing = Object.entries(required).filter(([, value]) => !value).map(([key]) => key);
+  if (missing.length > 0) {
+    throw new Error(`Complete wiring preflight requires: ${missing.join(", ")}`);
   }
 
-  const escrow = await ethers.getContractAt("EscrowVault", escrowAddress);
-  const registry = await ethers.getContractAt("TaskRegistry", registryAddress);
+  const escrow = await ethers.getContractAt("EscrowVault", escrowAddress!);
+  const registry = await ethers.getContractAt("TaskRegistry", registryAddress!);
 
   const reputation = reputationAddress
     ? await ethers.getContractAt("ReputationRegistry", reputationAddress)
@@ -56,14 +81,60 @@ async function main() {
   const agentVault = agentVaultAddress
     ? await ethers.getContractAt("AgentDepositVault", agentVaultAddress)
     : null;
+  const recovery = await ethers.getContractAt(
+    "ArbitrationRecoveryCoordinator",
+    recoveryAddress!
+  );
+  const staking = await ethers.getContractAt("UnionStakingVault", stakingAddress!);
+  const taskScope = await ethers.getContractAt("TaskScopeRegistry", taskScopeAddress!);
+
+  for (const [name, address] of Object.entries({
+    EscrowVault: escrowAddress,
+    TaskRegistry: registryAddress,
+    ReputationRegistry: reputationAddress,
+    ArbitrationModule: arbitrationAddress,
+    TreasuryRouter: treasuryAddress,
+    AgentDepositVault: agentVaultAddress,
+    ArbitrationRecoveryCoordinator: recoveryAddress,
+    UnionStakingVault: stakingAddress,
+    TaskScopeRegistry: taskScopeAddress,
+  })) {
+    if ((await ethers.provider.getCode(address!)) === "0x") {
+      throw new Error(`${name} has no deployed code at ${address}`);
+    }
+  }
 
   const steps: WiringStep[] = [
+    {
+      id: "registry.setReputation",
+      description: "TaskRegistry.reputation → ReputationRegistry",
+      check: async () =>
+        (await readAddr(() => registry.reputation())).toLowerCase() ===
+        reputationAddress!.toLowerCase(),
+      beforeWire: true,
+    },
     {
       id: "escrow.setTaskRegistry",
       description: "EscrowVault.taskRegistry → TaskRegistry",
       check: async () =>
         (await readAddr(() => escrow.taskRegistry())).toLowerCase() ===
         registryAddress!.toLowerCase(),
+    },
+    {
+      id: "agentVault.setArbitrationModule",
+      description: "AgentDepositVault.arbitrationModule → ArbitrationModule",
+      check: async () =>
+        (await readAddr(() => agentVault!.arbitrationModule())).toLowerCase() ===
+        arbitrationAddress!.toLowerCase(),
+      beforeWire: true,
+    },
+    {
+      id: "arbitration.setFallbackResolver",
+      description: "ArbitrationModule.fallbackResolver → approved resolver",
+      check: async () =>
+        (await readAddr(() => arbitration!.fallbackResolver())).toLowerCase() ===
+        fallbackResolver!.toLowerCase(),
+      beforeWire: true,
     },
     {
       id: "registry.setArbitration",
@@ -147,6 +218,17 @@ async function main() {
       beforeWire: true,
     },
     {
+      id: "arbitration.setArbitrationSatellite",
+      description: "ArbitrationModule + ReputationRegistry → ArbitrationSatellite",
+      check: async () => {
+        if (!arbitration || !reputation) return false;
+        const modSat = await readAddr(() => arbitration.arbitrationSatellite());
+        const repSat = await readAddr(() => reputation.arbitrationSatellite());
+        return !isZero(modSat) && modSat.toLowerCase() === repSat.toLowerCase();
+      },
+      beforeWire: true,
+    },
+    {
       id: "reputation.setTreasury",
       description: "ReputationRegistry.treasury → TreasuryRouter",
       check: async () =>
@@ -198,6 +280,87 @@ async function main() {
         !treasury ||
         !azlToken ||
         (await readAddr(() => treasury.azlToken())).toLowerCase() === azlToken.toLowerCase(),
+    },
+    ...([
+      ["registry", registry, "arbitrationRecoveryCoordinator"],
+      ["escrow", escrow, "arbitrationRecoveryCoordinator"],
+      ["agentVault", agentVault!, "arbitrationRecoveryCoordinator"],
+      ["reputation", reputation!, "arbitrationRecoveryCoordinator"],
+    ] as const).map(([name, contract, getter]) => ({
+      id: `${name}.setArbitrationRecoveryCoordinator`,
+      description: `${name}.${getter} → ArbitrationRecoveryCoordinator`,
+      check: async () =>
+        (await readAddr(() => contract[getter]())).toLowerCase() ===
+        recoveryAddress!.toLowerCase(),
+    })),
+    {
+      id: "recovery.immutableGraph",
+      description: "ArbitrationRecoveryCoordinator immutables → core graph",
+      check: async () =>
+        (await readAddr(() => recovery.taskRegistry())).toLowerCase() === registryAddress!.toLowerCase() &&
+        (await readAddr(() => recovery.escrow())).toLowerCase() === escrowAddress!.toLowerCase() &&
+        (await readAddr(() => recovery.agentDepositVault())).toLowerCase() === agentVaultAddress!.toLowerCase() &&
+        (await readAddr(() => recovery.reputationRegistry())).toLowerCase() === reputationAddress!.toLowerCase(),
+    },
+    {
+      id: "staking.graph",
+      description: "UnionStakingVault registry, treasury, and tokens",
+      check: async () =>
+        (await readAddr(() => staking.taskRegistry())).toLowerCase() === registryAddress!.toLowerCase() &&
+        (await readAddr(() => staking.treasury())).toLowerCase() === treasuryAddress!.toLowerCase() &&
+        (await readAddr(() => staking.azlToken())).toLowerCase() === azlToken!.toLowerCase() &&
+        (await readAddr(() => staking.usdcToken())).toLowerCase() === usdc!.toLowerCase(),
+    },
+    {
+      id: "registry.setStakingVault",
+      description: "TaskRegistry.stakingVault → UnionStakingVault",
+      check: async () =>
+        (await readAddr(() => registry.stakingVault())).toLowerCase() === stakingAddress!.toLowerCase(),
+    },
+    {
+      id: "treasury.setStakingVault",
+      description: "TreasuryRouter.stakingVault → UnionStakingVault",
+      check: async () =>
+        (await readAddr(() => treasury!.stakingVault())).toLowerCase() === stakingAddress!.toLowerCase(),
+    },
+    {
+      id: "treasury.setBuybackExecutor",
+      description: "TreasuryRouter.buybackExecutor → explicit executor",
+      check: async () =>
+        (await readAddr(() => treasury!.buybackExecutor())).toLowerCase() === buybackExecutor!.toLowerCase(),
+    },
+    {
+      id: "taskScope.taskRegistry",
+      description: "TaskScopeRegistry.taskRegistry → TaskRegistry",
+      check: async () =>
+        (await readAddr(() => taskScope.taskRegistry())).toLowerCase() ===
+        registryAddress!.toLowerCase(),
+    },
+    {
+      id: "governance.guardianSplit",
+      description: "Guardian rotated away from owner on all RecoverableOwnable2Step contracts (Finding 9)",
+      check: async () => {
+        const contracts = [
+          ["TreasuryRouter", treasury],
+          ["ArbitrationModule", arbitration],
+          ["AgentDepositVault", agentVault],
+          ["EscrowVault", escrow],
+          ["TaskRegistry", registry],
+          ["ReputationRegistry", reputation],
+          ["UnionStakingVault", staking],
+          ["TaskScopeRegistry", taskScope],
+        ] as const;
+        for (const [name, c] of contracts) {
+          if (!c) return false;
+          const g = await readAddr(() => c.guardian());
+          const o = await readAddr(() => c.owner());
+          if (g.toLowerCase() === o.toLowerCase()) {
+            console.log(`   ⚠ ${name}: guardian still equals owner — override/recovery paths inert`);
+            return false;
+          }
+        }
+        return true;
+      },
     },
   ];
 

@@ -50,6 +50,9 @@
         <span class="docs-sidebar-label">Reference</span>
         <a href="/docs/api.html" class="docs-sidebar-link" data-docs-id="api">API reference</a>
         <a href="/docs/contracts.html" class="docs-sidebar-link" data-docs-id="contracts">Contracts</a>
+        <a href="/docs/azzle-v2-explorer.html" class="docs-sidebar-link" data-docs-id="v2-explorer">V2 explorer</a>
+        <a href="/docs/union-staking.html" class="docs-sidebar-link" data-docs-id="union-staking">Union staking</a>
+        <a href="/docs/x402-cloud.html" class="docs-sidebar-link" data-docs-id="x402-cloud">x402 Cloud</a>
         <a href="/docs/authentication.html" class="docs-sidebar-link" data-docs-id="authentication">Authentication</a>
         <a href="/docs/reliability.html" class="docs-sidebar-link" data-docs-id="reliability">Reliability</a>
         <a href="/docs/changelog.html" class="docs-sidebar-link" data-docs-id="changelog">Changelog</a>
@@ -57,6 +60,7 @@
       <div class="docs-sidebar-group">
         <span class="docs-sidebar-label">Build</span>
         <a href="/docs/agent-guide.html" class="docs-sidebar-link" data-docs-id="agent-guide">Agent guide</a>
+        <a href="/docs/projects.html" class="docs-sidebar-link" data-docs-id="projects">Projects</a>
         <a href="/docs/examples/" class="docs-sidebar-link" data-docs-id="examples">Examples</a>
         <a href="/docs/use-cases/" class="docs-sidebar-link" data-docs-id="use-cases">Use cases</a>
       </div>
@@ -95,10 +99,10 @@
   "count": 1,
   "tasks": [
     {
-      "id": "42",
+      "id": "v2:42",
       "state": "POSTED",
-      "escrowAmount": "50000000",
-      "budgetUsdc": 50,
+      "escrowAmountAzl": "500000000000000000000",
+      "taskAmountAzl": "500000000000000000000",
       "createdAt": 1719859200,
       "updatedAt": 1719859200
     }
@@ -108,7 +112,7 @@
     <p><strong>Error response example (HTTP 429):</strong></p>
     <div class="docs-pre">
       <div class="docs-pre-label"><span>JSON</span></div>
-      <pre>{ "error": "Subgraph rate limited" }</pre>
+      <pre>{ "error": "Base RPC upstream errored" }</pre>
     </div>
     <a class="docs-cta" href="/market">Browse open market →</a>
   </section>
@@ -123,8 +127,8 @@ npm run list-open</pre>
     </div>
     <div class="docs-pre">
       <div class="docs-pre-label"><span>TypeScript — expected console output</span></div>
-      <pre>Task 42 — POSTED — 50 USDC
-Task 17 — POSTED — 25 USDC</pre>
+      <pre>Task v2:42 — POSTED — 500000000000000000000 AZL
+Task v2:17 — POSTED — 250000000000000000000 AZL</pre>
     </div>
   </section>
 
@@ -136,7 +140,7 @@ Task 17 — POSTED — 25 USDC</pre>
       <pre>BASE_RPC_URL=https://mainnet.base.org
 PRIVATE_KEY=0x...          # onchain writes
 BANKR_API_KEY=sk-...       # self-hosted LLM only
-AZZLE_SUBGRAPH_URL=...     # optional override</pre>
+AZZLE_V2_MANIFEST=contracts/deployments/base-8453.json</pre>
     </div>
     <p>Full guide: <a href="/docs/authentication.html">Authentication &amp; API keys</a></p>
   </section>

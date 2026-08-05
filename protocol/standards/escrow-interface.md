@@ -6,11 +6,12 @@ Any escrow provider or chain implements this interface without changing negotiat
 
 ```solidity
 interface IEscrowVault {
-    enum EscrowMode { UPFRONT, MILESTONE, STREAMING, HOUR_BLOCKS }
+    enum EscrowMode { UPFRONT, MILESTONE, STREAMING, HOUR_BLOCKS } // UPFRONT is legacy-only and rejected for new tasks
     enum EscrowState { UNFUNDED, LOCKED, PARTIAL_RELEASE, RELEASED, FROZEN, REFUNDED }
 
     // Registry-gated deposit only — no public deposit() ([H-2 fix])
     function depositFor(uint256 taskId, uint256 amount) external;
+    function activateTask(uint256 taskId) external;
     function releaseMilestone(uint256 taskId, uint256 milestoneIndex) external;
     function streamRelease(uint256 taskId, uint256 amount) external;
     function freeze(uint256 taskId) external;
@@ -29,10 +30,10 @@ Reference flow: poster approves escrow token **to `EscrowVault`** (not `AgentDep
 
 | Mode | Behavior |
 |------|----------|
-| UPFRONT | Full amount locked; single release on completion |
+| UPFRONT | Legacy enum value; rejected for new tasks |
 | MILESTONE | Partial amounts per index; independent release |
-| STREAMING | Continuous release by `rate × elapsed`; single `totalReleased` baseline ([H-3 fix]) |
-| HOUR_BLOCKS | Prepaid discrete hour units consumed by worker claims |
+| STREAMING | Continuous release by `rate × elapsed` beginning only when the task becomes ACTIVE; top-ups vest from their deposit checkpoint |
+| HOUR_BLOCKS | One prepaid discrete unit becomes claimable per full hour elapsed after ACTIVE |
 
 ## Swap Requirements
 

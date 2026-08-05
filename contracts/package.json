@@ -4,17 +4,35 @@
   "description": "AZZLE protocol EVM primitives",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test",
+    "size:check": "hardhat run scripts/check-contract-size.ts",
+    "test": "hardhat test --config hardhat.config.ts src/v2/test-canonical",
+    "test:canonical": "hardhat test --config hardhat.config.ts src/v2/test-canonical",
+    "test:v2": "hardhat test --config hardhat.config.ts",
     "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
-    "deploy:mainnet": "hardhat run scripts/deploy-mainnet.ts --network mainnet",
-    "deploy:base": "hardhat run scripts/deploy-mainnet.ts --network base",
-    "deploy:base:resume": "hardhat run scripts/deploy-mainnet-resume.ts --network base",
-    "deploy:base:finish": "hardhat run scripts/deploy-mainnet-finish.ts --network base",
+    "deploy:base:v2:preflight": "set V2_PHASE=preflight&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:stage": "set V2_PHASE=stage&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:deploy-a": "set V2_PHASE=deploy-a&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:deploy-b": "set V2_PHASE=deploy-b&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:bond-check": "set V2_PHASE=bond-check&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:verify-deployed": "set V2_PHASE=verify-deployed&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:deploy-c": "set V2_PHASE=deploy-c&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:finalize": "set V2_PHASE=finalize&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:handoff-artifact": "set V2_PHASE=handoff-artifact&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:launch-artifact": "set V2_PHASE=launch-artifact&& hardhat run scripts/deploy-v2.ts --network base",
+    "deploy:base:v2:promote": "if not defined BASE_RPC_URL (echo Set BASE_RPC_URL in contracts/.env before promotion && exit /b 1) else (set V2_PHASE=promote&& hardhat run scripts/deploy-v2.ts --network base)",
+    "deploy:base:v2:record-observation": "hardhat run scripts/record-v2-observation.ts --network base",
+    "deploy:base:v2:record-observations": "npx ts-node scripts/record-v2-observations-loop.ts",
+    "deploy:wire:satellite": "hardhat run scripts/wire-arbitration-satellite.ts --network base",
+    "ownership:transfer": "hardhat run scripts/transfer-protocol-ownership.ts",
+    "ownership:check": "hardhat run scripts/transfer-protocol-ownership.ts --network base -- --check",
     "deploy:inspect": "hardhat run scripts/inspect-wiring.ts --network base",
     "deploy:preflight": "hardhat run scripts/preflight-deploy.ts --network base -- --dry-run",
-    "fork:check": "npx ts-node scripts/fork-manifest-check.ts",
+    "fork:check": "hardhat run scripts/check-v2-manifest.ts --network base",
     "deploy:list-contracts": "hardhat run scripts/list-deployer-contracts.ts --network base",
     "verify:base": "hardhat run scripts/verify-base.ts --network base",
+    "manifest:promote:dry": "hardhat run scripts/promote-manifest.ts --network base",
+    "manifest:promote": "set MANIFEST_PROMOTE_APPLY=1&& set MANIFEST_PROMOTE_YES=1&& hardhat run scripts/promote-manifest.ts --network base",
+    "typecheck": "tsc -p scripts/tsconfig.json",
     "demo:lifecycle": "hardhat run scripts/lifecycle-local.ts"
   },
   "devDependencies": {
@@ -25,6 +43,10 @@
     "typescript": "^5.4.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.0"
+    "@openzeppelin/contracts": "^5.0.0",
+    "@uniswap/universal-router": "^2.1.0",
+    "@uniswap/v4-core": "^1.0.2",
+    "@uniswap/v4-periphery": "^1.0.3",
+    "forge-std": "^1.1.2"
   }
 }

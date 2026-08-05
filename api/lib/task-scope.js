@@ -18,7 +18,7 @@ const SCOPE_ABI = [
 export function taskScopeRegistryAddress() {
   const fromEnv = process.env.NEXT_TASK_SCOPE_ADDRESS?.trim();
   if (fromEnv) return fromEnv;
-  return MANIFEST.TaskScopeRegistry?.trim() || null;
+  return MANIFEST.taskScopeRegistry?.trim() || null;
 }
 
 export async function readOnchainTaskScope(taskId) {

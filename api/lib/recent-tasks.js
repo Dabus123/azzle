@@ -1,6 +1,6 @@
-/** Recent tasks across all states directly from the Base TaskRegistry. */
-import { listRecentTaskRows } from "./base-tasks.js";
+/** Recent tasks across all states from the authoritative Base RPC reader. */
+import { listTasks } from "./tasks-rpc.js";
 
 export async function getRecentTasks(limit = 50) {
-  return listRecentTaskRows(limit);
+  return (await listTasks({ limit })).tasks;
 }

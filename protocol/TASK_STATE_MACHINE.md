@@ -1,4 +1,9 @@
-# Task State Machine
+# Task State Machine (V2)
+
+Active clients use the V2 `taskRegistry` through Base RPC. Task and escrow
+amounts are AZL wei. The lifecycle methods are `post`, `claim`, `fund`,
+`activate`, `markDelivered`, `release`, `complete`, `cancel`, `expire`, and
+`openDispute`.
 
 ## Search market + direct hire
 
@@ -10,7 +15,13 @@ POSTED ──claim──► CLAIMED ──fundTask──► (escrow locked) ─�
                                                 └── fundTask also valid here ──┘   └── dispute ──► DISPUTED ──► RESOLVED
 ```
 
-Direct hire (`createTask`) skips `POSTED`/`CLAIMED` and starts at **ACTIVE**.
+Direct hire (`createTask`) creates a worker-addressed invitation in **CLAIMED**.
+The worker must call `acceptDirectHire` before it becomes **ACTIVE**; posters
+cannot bind an unconsenting worker to live-task collateral or failure reputation.
+The invited worker may call `declineDirectHire`; this refunds any escrow and
+terminates the invitation as **EXPIRED** without a worker fee, binding, or
+failure signal. A poster dismissal or worker leave during a direct-hire
+invitation has the same terminal outcome. Re-inviting requires a new task id.
 
 ## States
 
@@ -30,14 +41,12 @@ Direct hire (`createTask`) skips `POSTED`/`CLAIMED` and starts at **ACTIVE**.
          │         └──────┬───────┘         │
          │                │ proof           │ deadline
          ▼                ▼                 ▼
-  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-  │   PAUSED     │   │ IN_REVIEW    │   │   EXPIRED    │
-  └──────┬───────┘   └──────┬───────┘   └──────────────┘
-         │ timeout          │
-         ▼                  ├── accept ──► ACTIVE
-  ┌──────────────┐          ├── dispute ──► DISPUTED ──► RESOLVED
-  │   DELETED    │          └── complete ──► COMPLETED
-  └──────────────┘
+                      ┌──────────────┐   ┌──────────────┐
+                      │ IN_REVIEW    │   │   EXPIRED    │
+                      └──────┬───────┘   └──────────────┘
+                             ├── accept ──► ACTIVE
+                             ├── dispute ──► DISPUTED ──► RESOLVED
+                             └── complete ──► COMPLETED
 ```
 
 ## State Definitions
@@ -46,14 +55,14 @@ Direct hire (`createTask`) skips `POSTED`/`CLAIMED` and starts at **ACTIVE**.
 |-------|----------|-------------|
 | `POSTED` | Yes | Search listing; no worker — scope may be **open** (`TaskScopeRegistry`) or **private** (XMTP); see [`TASK_DISCOVERY.md`](TASK_DISCOVERY.md) |
 | `CLAIMED` | Yes | Worker assigned; work not started |
-| `ACTIVE` | Yes | Poster called `startWork`; work in progress — **escrow may still be unfunded** if `startWork` ran before `fundTask` (see [Funding](#funding-escrow)) |
+| `ACTIVE` | Yes | Search task: poster called `startWork`; direct hire: invited worker called `acceptDirectHire` |
 | `IN_REVIEW` | Yes | Proof submitted, acceptance window open |
 | `COMPLETED` | Yes | Task closed; remaining escrow released to worker |
 | `EXPIRED` | Yes | Deadline passed; escrow refunded to poster |
 | `DISPUTED` | Yes | Funds frozen, arbitration started |
 | `RESOLVED` | Yes | Arbitration payout executed |
-| `PAUSED` | Yes | Deposit below $8 — 15m to emergency top-up ([`AGENT_DEPOSITS.md`](AGENT_DEPOSITS.md)) |
-| `DELETED` | Yes | Pause timeout — task removed, culprit blocked 1 week |
+| `PAUSED` | Deprecated slot | Reserved enum index 11; no current client transition |
+| `DELETED` | Deprecated slot | Reserved enum index 12; no current client transition |
 
 Legacy `REPLACING` / `requestReplacement` / `assignReplacementWorker` are **removed** — use `dismissWorker` / `leaveTask` in `CLAIMED` only.
 
@@ -64,16 +73,19 @@ Legacy `REPLACING` / `requestReplacement` / `assignReplacementWorker` are **remo
 | POSTED | `claimTask` | CLAIMED | Worker |
 | CLAIMED or ACTIVE | `fundTask` | (escrow locked; task state unchanged) | **Poster only** |
 | CLAIMED | `startWork` | ACTIVE | Poster |
-| CLAIMED | `dismissWorker` / `leaveTask` | POSTED | Poster / Worker |
+| CLAIMED direct hire | `acceptDirectHire` | ACTIVE | Invited worker |
+| CLAIMED market task | `dismissWorker` / `leaveTask` | POSTED | Poster / Worker |
+| CLAIMED direct hire | `dismissWorker` / `leaveTask` / `declineDirectHire` | EXPIRED | Poster / Invited worker |
 | ACTIVE | `ProofSubmitted` | IN_REVIEW | Worker |
 | IN_REVIEW | `acceptMilestone` | ACTIVE | Poster |
 | IN_REVIEW | `completeTask` | COMPLETED | Poster |
 | IN_REVIEW / ACTIVE | `openDispute` | DISPUTED | Poster or Worker |
 | DISPUTED | `resolveDispute` / `resolveTimedOut` | RESOLVED | Arbitrator / anyone |
 | POSTED / CLAIMED / ACTIVE | `expireTask` (after deadline) | EXPIRED | Anyone |
-| Monitored states | balance < $8 | PAUSED | Protocol (crank) |
-| PAUSED | emergency top-up + healthy | resume prior | Party |
-| PAUSED | 15m timeout | DELETED | Protocol (crank) |
+
+On a poster-caused timeout from `IN_REVIEW`, every pending, fully funded proven
+milestone is released to the worker before the unproven remainder is refunded
+to the poster. Other timeout paths refund the remaining escrow to the poster.
 
 ## Escrow Sub-States (Orthogonal)
 
@@ -85,6 +97,17 @@ Escrow tracks parallel state:
 - `refundRemainingToPoster` **reverts** while `FROZEN`
 
 Funding path: `TaskRegistry.fundTask` → `EscrowVault.depositFor` only.
+Milestone escrows may be topped up after partial or complete release, allowing
+incremental fund → release → top-up cycles. A task may contain at most 64 milestones.
+Funding is accepted only while the task is `POSTED`, `CLAIMED`, `ACTIVE`, or
+`IN_REVIEW`; terminal tasks cannot receive funds that no longer have a reachable
+settlement path.
+
+Streaming workers call `claimStream(taskId, maxAmount)` and hour-block workers
+call `claimHourBlock(taskId)` through `TaskRegistry`; the escrow remains
+registry-gated. Both payment clocks begin at the transition to **ACTIVE**, not
+when escrow is first funded. Streaming top-ups are checkpointed before deposit,
+and hour-block mode permits at most one claim per full elapsed hour.
 
 ## Funding escrow
 
@@ -101,8 +124,8 @@ Funding path: `TaskRegistry.fundTask` → `EscrowVault.depositFor` only.
 | 5 | `COMPLETED` |
 | 7 | `EXPIRED` |
 | 8 | `DISPUTED` |
-| 11 | `PAUSED` |
-| 12 | `DELETED` |
+| 11 | `PAUSED` (deprecated reserved slot) |
+| 12 | `DELETED` (deprecated reserved slot) |
 
 **`ACTIVE` (index 3) is not terminal** and does **not** block `fundTask`.
 
@@ -122,16 +145,25 @@ Before `fundTask`, the **poster must `approve` USDC for **`EscrowVault`** (spend
 | Check | Revert |
 |-------|--------|
 | `msg.sender != poster` | `TaskRegistry: not poster` |
-| Task `DELETED` | `TaskRegistry: deleted` |
-| Task `PAUSED` | `TaskRegistry: paused` |
+| Deprecated slot encountered | Integration should treat it as unsupported legacy state and inspect the deployed contract |
+| Block timestamp after committed deadline | `TaskRegistry: deadline passed` |
+| Cumulative funding above `Task.totalAmount` | `TaskRegistry: funding exceeds total` |
+| State outside `POSTED`, `CLAIMED`, `ACTIVE`, `IN_REVIEW` | `TaskRegistry: not fundable` |
 | Escrow `FROZEN` (dispute) | `EscrowVault: bad state for deposit` |
 | Insufficient USDC allowance / balance | ERC20 transfer failure |
 
-**Not checked:** task state (`CLAIMED` vs `ACTIVE`), deadline. A past deadline does **not** block `fundTask`; it enables `expireTask` by anyone.
+Funding is permitted in `POSTED`, `CLAIMED`, `ACTIVE`, and `IN_REVIEW` only,
+and only through the committed deadline. After the deadline, anyone should call
+`expireTask` to run the mode-aware expiry settlement.
 
 ### `totalAmount` vs escrow balance
 
-`Task.totalAmount` is the **budget** set at post/create time. It is **not** vault balance. Read **`EscrowVault.lockedBalance(taskId)`** to see funded USDC.
+`Task.totalAmount` is the immutable positive **funding commitment/cap** set at
+post/create time. It is not the current vault balance: partial funding remains
+valid, but cumulative `fundTask` deposits can never exceed it. Milestone
+schedules must contain nonzero entries that sum exactly to this commitment. Read
+**`EscrowVault.lockedBalance(taskId)`** to see funded USDC. Every payout is bounded
+by that task's own locked balance.
 
 ### Early `startWork` (ACTIVE, unfunded)
 

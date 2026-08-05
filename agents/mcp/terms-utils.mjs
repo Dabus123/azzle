@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { buildSettlementDigest } from "../dist/sdk/settlement.js";
 
-export const ESCROW_MODE = { upfront: 0, milestone: 1, streaming: 2, hour_blocks: 3 };
+export const ESCROW_MODE = { milestone: 1, streaming: 2, hour_blocks: 3 };
 
 export function resolveCriteriaHash(flags, fail) {
   if (flags.criteria_text) {
@@ -35,7 +35,9 @@ export function parseTaskTerms(from, flags, manifest, { requireWorker = false, f
   const deadline = Number(flags.deadline ?? fail("--deadline required (unix seconds)"));
   const acceptanceCriteriaHash = resolveCriteriaHash(flags, fail);
   const escrowMode = flags.escrow_mode ?? "milestone";
-  const replacementAllowed = flags.replacement_allowed === "true";
+  if (!(escrowMode in ESCROW_MODE)) {
+    fail("--escrow-mode must be milestone, streaming, or hour_blocks");
+  }
   const milestoneAmounts = parseMilestoneAmounts(flags, totalAmount, fail);
   const { streamRate, hourBlockSize } = parseStreamParams(flags, escrowMode);
 
@@ -65,14 +67,16 @@ export function parseTaskTerms(from, flags, manifest, { requireWorker = false, f
   const terms = {
     poster: from,
     worker,
-    token: manifest.usdc,
+    token: manifest.external.usdc,
     totalAmount,
     escrowMode,
     milestoneAmounts,
+    streamRate,
+    hourBlockSize,
     deadline,
     acceptanceCriteriaHash,
-    replacementAllowed,
-    feeBps: Number(flags.fee_bps ?? "100"),
+    chainId: BigInt(flags.chain_id ?? "8453"),
+    registryAddress: manifest.taskRegistry,
   };
 
   const digest = buildSettlementDigest(terms);
@@ -96,7 +100,9 @@ export function serializeTerms(terms) {
     milestoneAmounts: terms.milestoneAmounts.map((m) => m.toString()),
     deadline: terms.deadline,
     acceptanceCriteriaHash: terms.acceptanceCriteriaHash,
-    replacementAllowed: terms.replacementAllowed,
-    feeBps: terms.feeBps,
+    streamRate: terms.streamRate.toString(),
+    hourBlockSize: terms.hourBlockSize.toString(),
+    chainId: terms.chainId.toString(),
+    registryAddress: terms.registryAddress,
   };
 }

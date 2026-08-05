@@ -6,7 +6,7 @@
   "required": ["type", "task", "settlementDigestPreview"],
   "properties": {
     "type": { "const": "azzle/TaskProposal" },
-    "task": { "$ref": "https://azzle.protocol/standards/task-schema/v1" },
+    "task": { "$ref": "https://azzle.protocol/standards/task-schema/v2" },
     "settlementDigestPreview": { "type": "string" },
     "expiresAt": { "type": "string", "format": "date-time" }
   }

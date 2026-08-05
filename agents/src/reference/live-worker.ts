@@ -30,7 +30,11 @@ const REGISTRY_STATE_ABI = [
 ];
 
 const TASK_POSTED = 1;
+const TASK_ACTIVE = 3;
+const TASK_IN_REVIEW = 4;
 const POLL_INTERVAL_MS = 3_000;
+/** How long to wait for the poster to fundTask + startWork after our claim. */
+const DEFAULT_FUND_WAIT_TIMEOUT_MS = 10 * 60_000;
 const RECONCILE_PASSES = 8;
 const RECONCILE_DELAY_MS = 1_500;
 const ALL_CONSENT = [
@@ -43,6 +47,12 @@ export interface LiveWorkerConfig {
   privateKey: string;
   rpcUrl: string;
   chainId?: number;
+  /**
+   * Max time to wait after claimTask for escrow funding (fundTask) and
+   * work start (startWork) before giving up on submitProof.
+   * Defaults to LIVE_WORKER_FUND_TIMEOUT_MS env or 10 minutes.
+   */
+  fundWaitTimeoutMs?: number;
 }
 
 export interface LiveWorkerRuntime {
@@ -122,9 +132,9 @@ export class LiveWorkerService {
 
     const azzle = new AzzleClient({
       rpcUrl,
-      registryAddress: this.manifest.TaskRegistry,
-      escrowAddress: this.manifest.EscrowVault,
-      arbitrationAddress: this.manifest.ArbitrationModule,
+      registryAddress: this.manifest.taskRegistry,
+      escrowAddress: this.manifest.escrowVault,
+      arbitrationAddress: this.manifest.arbitrationModule,
       signer: { address: evmAddress, signMessage: (m) => signer.signMessage(m) },
     }).connect(signer);
 
@@ -766,7 +776,7 @@ export class LiveWorkerService {
     }
 
     const taskId = BigInt(taskIdStr);
-    const registry = new Contract(this.manifest.TaskRegistry, REGISTRY_STATE_ABI, signer);
+    const registry = new Contract(this.manifest.taskRegistry, REGISTRY_STATE_ABI, signer);
     const state = Number(await registry.taskState(taskId));
     if (state !== TASK_POSTED) {
       console.warn("[worker] task not POSTED", { taskId: taskIdStr, state });
@@ -777,8 +787,8 @@ export class LiveWorkerService {
 
     try {
       await ensureAzlAllowance(signer, {
-        azlToken: this.manifest.azlToken,
-        treasuryRouter: this.manifest.TreasuryRouter,
+        azlToken: this.manifest.external.azl,
+        treasuryRouter: this.manifest.treasuryRouter,
       });
       const claimTx = await azzle.claimTask(taskId);
       await claimTx.wait();
@@ -790,21 +800,32 @@ export class LiveWorkerService {
       return;
     }
 
+    // submitProof reverts unless the poster has funded escrow (lockedBalance > 0)
+    // and started work (state ACTIVE). Wait for both before proving.
+    await conversation.sendText(
+      `claimed task ${taskIdStr} — waiting for you to fundTask(${taskIdStr}, amount) and startWork(${taskIdStr}) before delivery`
+    );
+    const ready = await this.waitForFundedActive(azzle, taskId, conversation);
+    if (!ready) return;
+
     const deliverableHash = ethers.keccak256(
       ethers.toUtf8Bytes(`azzle-demo:${taskIdStr}:${Date.now()}`)
     );
     const receipt = buildExecutionReceipt({
       taskId: taskIdStr,
-      milestoneIndex: 0,
       worker: workerAddress,
       artifacts: [
         {
           type: "deterministic_output",
           hash: deliverableHash,
-          uri: "ipfs://azzle-demo-stub",
         },
       ],
     });
+    // Canonical receipt travels inline so the poster can recompute receiptHash
+    // (hashReceipt over the receipt without its receiptHash field).
+    const receiptUri =
+      "data:application/json;base64," +
+      Buffer.from(JSON.stringify(receipt), "utf8").toString("base64");
 
     try {
       const proofTx = await azzle.submitProof(taskId, 0, receipt.receiptHash);
@@ -835,12 +856,87 @@ export class LiveWorkerService {
         taskId: taskIdStr,
         milestoneIndex: 0,
         receiptHash: receipt.receiptHash,
-        receiptUri: "ipfs://azzle-demo-stub",
+        receiptUri,
       },
     });
 
     await conversation.sendText(JSON.stringify(notice));
     console.log("[worker] lifecycle complete", { taskId: taskIdStr });
+  }
+
+  /**
+   * Poll until the task is funded (EscrowVault.lockedBalance > 0) and ACTIVE
+   * (poster called fundTask + startWork). Returns false on timeout.
+   */
+  private async waitForFundedActive(
+    azzle: AzzleClient,
+    taskId: bigint,
+    conversation: Conversation
+  ): Promise<boolean> {
+    const timeoutMs =
+      this.config.fundWaitTimeoutMs ??
+      Number(process.env.LIVE_WORKER_FUND_TIMEOUT_MS ?? DEFAULT_FUND_WAIT_TIMEOUT_MS);
+    const deadline = Date.now() + timeoutMs;
+    let lastState = -1;
+    let lastFunded = false;
+    let reminded = false;
+
+    while (Date.now() < deadline) {
+      let state: number;
+      let locked: bigint;
+      try {
+        [state, locked] = await Promise.all([
+          azzle.taskState(taskId),
+          azzle.lockedBalance(taskId),
+        ]);
+      } catch (err) {
+        console.warn("[worker] funded/ACTIVE poll failed", err);
+        await sleep(POLL_INTERVAL_MS);
+        continue;
+      }
+
+      const funded = locked > 0n;
+      if (state !== lastState || funded !== lastFunded) {
+        console.log("[worker] waiting for funded + ACTIVE", {
+          taskId: taskId.toString(),
+          state,
+          lockedBalance: locked.toString(),
+        });
+        lastState = state;
+        lastFunded = funded;
+      }
+
+      if (funded && (state === TASK_ACTIVE || state === TASK_IN_REVIEW)) {
+        console.log("[worker] task funded and ACTIVE — submitting proof", {
+          taskId: taskId.toString(),
+        });
+        return true;
+      }
+
+      // Nudge the poster halfway through the wait if still not ready.
+      if (!reminded && Date.now() > deadline - timeoutMs / 2) {
+        reminded = true;
+        const missing = [
+          funded ? null : `fundTask(${taskId}, amount)`,
+          state === TASK_ACTIVE ? null : `startWork(${taskId})`,
+        ].filter(Boolean);
+        await conversation.sendText(
+          `still waiting on task ${taskId}: please call ${missing.join(" then ")} so I can submit proof`
+        );
+      }
+
+      await sleep(POLL_INTERVAL_MS);
+    }
+
+    console.error("[worker] timed out waiting for fundTask/startWork", {
+      taskId: taskId.toString(),
+      timeoutMs,
+    });
+    await conversation.sendText(
+      `task ${taskId} was never funded/started within ${Math.round(timeoutMs / 60_000)}m — ` +
+        `call fundTask(${taskId}, amount) then startWork(${taskId}) and re-send the proposal`
+    );
+    return false;
   }
 
   private registerSenderIfNeeded(sender: AzzleEnvelope["sender"]): void {

@@ -30,7 +30,9 @@
 
 **Impact:** Disputes queue; no mutual consent on arbitrator.
 
-**Recovery:** `escalate()` while OPEN; `resolveTimedOut()` after 7 days (50/50 split); increase bonds/fees; permissionless timeout crank.
+**Recovery:** `escalate()` while OPEN; permissionlessly seat the fallback
+resolver after the selection/ruling window; after the absolute deadline,
+`resolveTimedOut()` applies mode-aware accrued settlement and refunds the bond.
 
 ## Reputation Model Fork
 

@@ -1,0 +1,153 @@
+# AZZLE V2 protocol reference
+
+## Canonical model
+
+- Network: Base mainnet, chain ID `8453`
+- Task and escrow asset: AZL, 18 decimals
+- Address source:
+  `contracts/deployments/base-8453.json` in the AZZLE repository
+- Discovery source: Base RPC or first-party read-only APIs
+- Public scope: write-once `TaskScopeRegistryV2`
+- Private scope: offchain negotiation, normally XMTP
+
+## Task record
+
+`taskRegistry.tasks(taskId)` returns:
+
+```text
+poster
+worker
+totalAmount
+funded
+released
+deadline
+fundingDeadline
+deliveredAt
+state
+```
+
+All amount fields are AZL wei.
+
+## State values
+
+| Index | State | Meaning |
+|---:|---|---|
+| 0 | `NONE` | No task |
+| 1 | `POSTED` | Open search-market listing |
+| 2 | `CLAIMED` | Worker assigned; funding window active |
+| 3 | `ACTIVE` | Task fully funded; work or review in progress |
+| 4 | `DISPUTED` | Escrow frozen for arbitration |
+| 5 | `COMPLETED` | Full funded amount released |
+| 6 | `CANCELLED` | Cancelled or expired terminal task |
+| 7 | `RESOLVED` | Arbitration settlement completed |
+
+## Transition details
+
+### Post
+
+`post(totalAmount,deadline)` requires a positive AZL amount and a future
+deadline no more than 30 days away. It creates `POSTED` and reserves the
+poster's current oracle-quoted deposit requirements.
+
+### Claim
+
+`claim(taskId)` requires `POSTED`, a non-poster caller, and a non-expired task.
+It creates the task escrow, records a one-day `fundingDeadline`, and changes the
+task to `CLAIMED`.
+
+### Fund
+
+`fund(taskId,amount)`:
+
+- is poster-only
+- pulls AZL from the poster through `escrowVault`
+- requires state `CLAIMED` or `ACTIVE`
+- cannot exceed `totalAmount`
+- must meet the task and funding deadlines
+- automatically changes `CLAIMED` to `ACTIVE` when fully funded
+
+Approve AZL to `escrowVault`, not to `taskRegistry`.
+
+### Activate
+
+`activate(taskId)` is a compatibility no-op requiring an already fully funded
+`ACTIVE` task. New workflows should not rely on it.
+
+### Deliver
+
+`markDelivered(taskId)` is worker-only and requires a fully funded `ACTIVE`
+task before deadline. It records `deliveredAt`. The state remains `ACTIVE` and
+no escrow moves.
+
+### Release and complete
+
+`release(taskId,amount)` is poster-only and transfers that AZL amount to the
+worker. Full cumulative release automatically completes the task.
+
+`complete(taskId)` is poster-only, releases all remaining funded AZL, and sets
+`COMPLETED`.
+
+### Cancel and expire
+
+`cancel(taskId)` is poster-only and works only for an unfunded `POSTED` or
+`CLAIMED` task.
+
+`expire(taskId)` is permissionless after the applicable task or funding
+deadline. Remaining escrow refunds to the poster. If a worker delivered on time
+and the poster defaults past the delivery grace period, penalties are applied
+through the deposit/reputation path; delivery alone does not auto-release job
+escrow.
+
+### Dispute
+
+`openDispute(taskId,evidenceHash)` requires:
+
+- caller is poster or worker
+- state is `ACTIVE`
+- task is fully funded with unreleased value
+- `evidenceHash` is nonzero
+- applicable delivery/dispute timing guard is satisfied
+
+The arbitration module freezes and settles escrow, then records `RESOLVED`.
+
+## V2 deposit accounting
+
+`depositVault` holds AZL, not USDC. Relevant reads:
+
+```text
+deposits(account)
+reserved(account)
+available(account)
+withdrawable(account)
+taskQuotes(taskId)
+```
+
+Policy targets are converted to AZL by `pricingPolicy.quoteTask()` when the
+poster creates the task quote. The worker reuses the same task-latched quote.
+
+USDC/ETH deposit intake uses `paymentGateway`; task escrow funding uses direct
+AZL approval to `escrowVault`.
+
+## Action Credits
+
+Action Credits can cover eligible post or claim access fees only after staking
+activation. They cannot cover entry collateral, live-task reserve, or task
+escrow. Always read `stakingActive()` before presenting credits as usable.
+
+## Scope
+
+`taskScopeRegistry.publish(taskId,scope)` allows the task poster to publish
+public scope once. `scopeOf(taskId)` returns the public text or an empty string.
+An empty string is not permission to infer private requirements.
+
+## API response conventions
+
+First-party marketplace APIs use:
+
+- IDs such as `v2:42`
+- `protocolVersion: "v2"`
+- `asset: "AZL"`
+- `totalAmountAzlWei`, `fundedAzlWei`, and `releasedAzlWei`
+- `source: "base-rpc"`
+
+HTTP APIs are read-only. All writes require a user-controlled Base wallet.

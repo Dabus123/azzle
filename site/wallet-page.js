@@ -48,37 +48,37 @@
   function renderBalances(b) {
     balances = b;
     $("rd-bal-usdc-wallet").textContent = fmtUsdc(b.usdcWallet);
-    $("rd-bal-usdc-vault").textContent = fmtUsdc(b.usdcVault);
+    $("rd-bal-usdc-vault").textContent = fmtAzl(b.usdcVault);
     $("rd-bal-azl").textContent = fmtAzl(b.azlWallet);
     $("rd-bal-eth").textContent = fmtEth(b.eth);
 
     const hint = $("rd-usdc-vault-hint");
     if (hint) {
-      const floor = "$" + b.taskFloorMin + " in-task floor while live";
+      const floor = b.taskFloorMin + " AZL live-task reserve target";
       if (b.canPost) {
-        hint.textContent = "Ready to list · " + floor + " · max withdraw $" + b.maxVaultWithdraw;
+        hint.textContent = "Ready to list · " + floor + " · max withdraw " + b.maxVaultWithdraw + " AZL";
       } else if (b.needsPostTopUp) {
         hint.textContent =
-          "Add $" +
+          "Add " +
           b.listingFeeUsdc +
-          " for listing fee · " +
+          " AZL access fee reserve · " +
           floor +
-          " · max withdraw $" +
+          " · max withdraw " +
           b.maxVaultWithdraw;
       } else {
         hint.textContent =
-          "Deposit $" +
+          "Fund " +
           b.entryDepositMin +
-          " entry minimum · " +
+          " AZL entry target · " +
           floor +
-          " · max withdraw $" +
+          " · max withdraw " +
           b.maxVaultWithdraw;
       }
     }
 
     const withdrawInput = $("rd-usdc-withdraw-amt");
     if (withdrawInput && !withdrawInput.value) {
-      withdrawInput.placeholder = "Max " + b.maxVaultWithdraw;
+        withdrawInput.placeholder = "Max " + b.maxVaultWithdraw + " AZL";
     }
 
     const reqApprove = requestedApproveAmount();
@@ -88,7 +88,7 @@
     const approveBtn = $("rd-usdc-approve-btn");
     if (allowanceHint) {
       allowanceHint.textContent =
-        "Allowance: $" +
+        "USDC gateway allowance: $" +
         b.usdcVaultAllowance +
         (needsMoreAllowance
           ? " — approve at least $" + reqApprove
@@ -207,18 +207,43 @@
       if (e.key === "Escape" && !$("rd-wallet-qr-modal")?.hidden) closeQrModal();
     });
 
+    const depositCurrencyNotes = {
+      usdc: "USDC converts to AZL through AzlPaymentGatewayV2.",
+      eth: "ETH → AZL conversion is available through the public gateway route when enabled.",
+      azl: "AZL collateral is already the protocol asset."
+    };
+    document.querySelectorAll("[data-deposit-currency]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const currency = button.dataset.depositCurrency || "usdc";
+        document.querySelectorAll("[data-deposit-currency]").forEach((tab) => {
+          const selected = tab === button;
+          tab.classList.toggle("is-selected", selected);
+          tab.setAttribute("aria-pressed", selected ? "true" : "false");
+        });
+        const note = $("rd-wallet-currency-note");
+        if (note) note.textContent = depositCurrencyNotes[currency] || depositCurrencyNotes.usdc;
+        const depositButton = $("rd-usdc-deposit-btn");
+        if (depositButton) {
+          depositButton.textContent = currency === "usdc" ? "Fund collateral" : `Fund with ${currency.toUpperCase()}`;
+          depositButton.disabled = currency !== "usdc";
+        }
+        const approveButton = $("rd-usdc-approve-btn");
+        if (approveButton) approveButton.disabled = currency !== "usdc";
+      });
+    });
+
     $("rd-usdc-approve-amt")?.addEventListener("input", () => {
       if (balances) renderBalances(balances);
     });
 
     $("rd-usdc-approve-btn")?.addEventListener("click", () => {
       const amt = requestedApproveAmount();
-      runAction((p, onProgress) => p.approveUsdcVault(amt, onProgress));
+      runAction((p, onProgress) => p.approveUsdcGateway(amt, onProgress));
     });
 
     $("rd-usdc-deposit-btn")?.addEventListener("click", () => {
       const amt = parseFloat($("rd-usdc-deposit-amt")?.value ?? "0");
-      runAction((p, onProgress) => p.depositToVault(amt, onProgress));
+      runAction((p, onProgress) => p.fundCollateral(amt, onProgress));
     });
 
     $("rd-usdc-withdraw-max")?.addEventListener("click", () => {
@@ -229,7 +254,7 @@
 
     $("rd-usdc-withdraw-btn")?.addEventListener("click", () => {
       const amt = parseFloat($("rd-usdc-withdraw-amt")?.value ?? "0");
-      runAction((p, onProgress) => p.withdrawFromVault(amt, onProgress));
+      runAction((p, onProgress) => p.withdrawCollateral(amt, onProgress));
     });
 
     $("rd-usdc-send-btn")?.addEventListener("click", () => {

@@ -16,10 +16,6 @@ import {
 } from "viem";
 import { base } from "viem/chains";
 
-const ENTRY_DEPOSIT = 20_000_000n; // $20 USDC entry minimum (6 decimals)
-const TASK_FLOOR_USDC = 8_000_000n; // $8 USDC in-task floor while live (6 decimals)
-const ACCESS_FEE_USDC = 5_000_000n; // $5 USDC listing/claim fee (6 decimals)
-const LISTING_DEPOSIT = ENTRY_DEPOSIT + ACCESS_FEE_USDC; // $20 entry + $5 fee at list/claim time
 const AZL_PER_ACTION = 1000n * 10n ** 18n;
 const MIN_ETH_WEI = 50_000_000_000_000n; // ~0.00005 ETH for gas buffer
 
@@ -42,11 +38,11 @@ function formatTxError(err) {
   ) {
     return "Transaction cancelled — nothing was charged.";
   }
-  if (lower.includes("below min+fee")) {
-    return "Add $5 USDC to your protocol deposit for the listing fee ($20 entry on file).";
+  if (lower.includes("ad v2: collateral") || lower.includes("below min+fee")) {
+    return "Not enough AZL collateral for this V2 action. Fund your protocol collateral first.";
   }
   if (lower.includes("exceeds balance") || lower.includes("erc20: transfer amount")) {
-    return "Not enough USDC in your wallet. You need $20 USDC on Base (plus a little ETH for gas).";
+    return "Not enough collateral in your wallet. You need AZL on Base (plus a little ETH for gas).";
   }
   if (lower.includes("insufficient funds")) {
     return "Not enough ETH on Base for gas — add a small amount of ETH, then try again.";
@@ -55,28 +51,6 @@ function formatTxError(err) {
     return "Transaction failed onchain — check you have $20 USDC and ETH for gas on Base.";
   }
   return msg.length > 140 ? msg.slice(0, 140) + "…" : msg;
-}
-
-async function assertDepositFunds(publicClient, address, usdcAddress) {
-  const usdc = await publicClient.readContract({
-    address: usdcAddress,
-    abi: ERC20_ABI,
-    functionName: "balanceOf",
-    args: [address],
-  });
-  if (usdc < ENTRY_DEPOSIT) {
-    throw new Error(
-      "Not enough USDC — you have $" +
-        formatUnits(usdc, 6) +
-        ", need $20 on Base (plus a little ETH for gas)."
-    );
-  }
-  const eth = await publicClient.getBalance({ address });
-  if (eth < MIN_ETH_WEI) {
-    throw new Error(
-      "Not enough ETH on Base for gas — add a small amount of ETH, then try deposit again."
-    );
-  }
 }
 
 function parseEthAddress(addr) {
@@ -145,25 +119,77 @@ const ERC20_ABI = [
 const VAULT_ABI = [
   {
     type: "function",
-    name: "topUp",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "amount", type: "uint256" }],
-    outputs: [],
+    name: "deposits",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256" }],
   },
   {
     type: "function",
-    name: "balanceOf",
+    name: "withdrawable",
     stateMutability: "view",
-    inputs: [{ name: "agent", type: "address" }],
+    inputs: [{ name: "account", type: "address" }],
     outputs: [{ type: "uint256" }],
   },
   {
     type: "function",
     name: "withdraw",
     stateMutability: "nonpayable",
-    inputs: [{ name: "amount", type: "uint256" }],
+    inputs: [{ name: "amount", type: "uint256" }, { name: "recipient", type: "address" }],
     outputs: [],
   },
+  {
+    type: "function",
+    name: "available",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+];
+
+const PAYMENT_GATEWAY_ABI = [
+  {
+    type: "function",
+    name: "fundWithUsdc",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "exactUsdcIn", type: "uint256" },
+      { name: "minAzlOut", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+];
+
+const PRICING_POLICY_ABI = [
+  {
+    type: "function",
+    name: "quoteTask",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{
+      type: "tuple",
+      components: [
+        { name: "entryDeposit", type: "uint256" },
+        { name: "liveTaskReserve", type: "uint256" },
+        { name: "accessFee", type: "uint256" },
+        { name: "exitCompensation", type: "uint256" },
+        { name: "exitProtocolShare", type: "uint256" },
+      ],
+    }],
+  },
+];
+
+const STAKING_ABI = [
+  { type: "function", name: "stakingActive", stateMutability: "view", inputs: [], outputs: [{ type: "bool" }] },
+  { type: "function", name: "stakeOf", stateMutability: "view", inputs: [{ name: "account", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "creditsOf", stateMutability: "view", inputs: [{ name: "account", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "creditsRemaining", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "pendingPayouts", stateMutability: "view", inputs: [{ name: "account", type: "address" }], outputs: [{ type: "uint256" }] },
+  { type: "function", name: "stake", stateMutability: "nonpayable", inputs: [{ name: "amount", type: "uint256" }], outputs: [] },
+  { type: "function", name: "unstake", stateMutability: "nonpayable", inputs: [{ name: "amount", type: "uint256" }, { name: "recipient", type: "address" }], outputs: [] },
+  { type: "function", name: "bankCredits", stateMutability: "nonpayable", inputs: [], outputs: [] },
+  { type: "function", name: "claim", stateMutability: "nonpayable", inputs: [{ name: "recipient", type: "address" }], outputs: [] },
 ];
 
 const REGISTRY_ABI = [
@@ -176,23 +202,17 @@ const REGISTRY_ABI = [
   },
   {
     type: "function",
-    name: "postTask",
+    name: "post",
     stateMutability: "nonpayable",
     inputs: [
-      { name: "token", type: "address" },
       { name: "totalAmount", type: "uint256" },
-      { name: "escrowMode", type: "uint8" },
-      { name: "settlementDigest", type: "bytes32" },
       { name: "deadline", type: "uint256" },
-      { name: "milestoneAmounts", type: "uint256[]" },
-      { name: "streamRate", type: "uint256" },
-      { name: "hourBlockSize", type: "uint256" },
     ],
     outputs: [{ type: "uint256" }],
   },
   {
     type: "function",
-    name: "fundTask",
+    name: "fund",
     stateMutability: "nonpayable",
     inputs: [
       { name: "taskId", type: "uint256" },
@@ -202,19 +222,16 @@ const REGISTRY_ABI = [
   },
   {
     type: "function",
-    name: "startWork",
+    name: "activate",
     stateMutability: "nonpayable",
     inputs: [{ name: "taskId", type: "uint256" }],
     outputs: [],
   },
   {
     type: "function",
-    name: "acceptMilestone",
+    name: "complete",
     stateMutability: "nonpayable",
-    inputs: [
-      { name: "taskId", type: "uint256" },
-      { name: "milestoneIndex", type: "uint256" },
-    ],
+    inputs: [{ name: "taskId", type: "uint256" }],
     outputs: [],
   },
   {
@@ -223,20 +240,13 @@ const REGISTRY_ABI = [
     stateMutability: "nonpayable",
     inputs: [
       { name: "taskId", type: "uint256" },
-      { name: "evidenceHash", type: "bytes" },
+      { name: "evidenceHash", type: "bytes32" },
     ],
     outputs: [],
   },
   {
     type: "function",
-    name: "maxWithdrawableDeposit",
-    stateMutability: "view",
-    inputs: [{ name: "agent", type: "address" }],
-    outputs: [{ type: "uint256" }],
-  },
-  {
-    type: "function",
-    name: "getTask",
+    name: "tasks",
     stateMutability: "view",
     inputs: [{ name: "taskId", type: "uint256" }],
     outputs: [
@@ -246,15 +256,13 @@ const REGISTRY_ABI = [
         components: [
           { name: "poster", type: "address" },
           { name: "worker", type: "address" },
-          { name: "token", type: "address" },
           { name: "totalAmount", type: "uint256" },
-          { name: "escrowMode", type: "uint8" },
-          { name: "settlementDigest", type: "bytes32" },
+          { name: "funded", type: "uint256" },
+          { name: "released", type: "uint256" },
           { name: "state", type: "uint8" },
           { name: "deadline", type: "uint256" },
-          { name: "createdAt", type: "uint256" },
-          { name: "replacementAllowed", type: "bool" },
-          { name: "parentTaskId", type: "uint256" },
+          { name: "fundingDeadline", type: "uint256" },
+          { name: "deliveredAt", type: "uint256" },
         ],
       },
     ],
@@ -265,7 +273,9 @@ const REGISTRY_ABI = [
     inputs: [
       { name: "taskId", type: "uint256", indexed: true },
       { name: "poster", type: "address", indexed: true },
-      { name: "settlementDigest", type: "bytes32", indexed: false },
+      { name: "totalAmount", type: "uint256", indexed: false },
+      { name: "amountUsd6", type: "uint256", indexed: false },
+      { name: "deadline", type: "uint64", indexed: false },
     ],
   },
 ];
@@ -273,10 +283,19 @@ const REGISTRY_ABI = [
 const ESCROW_ABI = [
   {
     type: "function",
-    name: "lockedBalance",
+    name: "escrows",
     stateMutability: "view",
     inputs: [{ name: "taskId", type: "uint256" }],
-    outputs: [{ type: "uint256" }],
+    outputs: [{
+      type: "tuple",
+      components: [
+        { name: "poster", type: "address" },
+        { name: "worker", type: "address" },
+        { name: "deposited", type: "uint256" },
+        { name: "released", type: "uint256" },
+        { name: "state", type: "uint8" },
+      ],
+    }],
   },
 ];
 
@@ -308,19 +327,14 @@ const SCOPE_REGISTRY_ABI = [
 ];
 
 const TASK_STATE = [
-  "DRAFT",
+  "NONE",
   "POSTED",
   "CLAIMED",
   "ACTIVE",
-  "IN_REVIEW",
+  "DISPUTED",
   "COMPLETED",
   "CANCELLED",
-  "EXPIRED",
-  "DISPUTED",
   "RESOLVED",
-  "REPLACING",
-  "PAUSED",
-  "DELETED",
 ];
 
 let siteConfig = null;
@@ -331,40 +345,6 @@ export async function loadSiteConfig() {
   if (!res.ok) throw new Error("Could not load site config");
   siteConfig = await res.json();
   return siteConfig;
-}
-
-export function buildSettlementDigest(terms) {
-  const milestoneAmounts = terms.milestoneAmounts ?? [terms.totalAmount];
-  return keccak256(
-    encodeAbiParameters(
-      [
-        { type: "bytes32" },
-        { type: "address" },
-        { type: "address" },
-        { type: "address" },
-        { type: "uint256" },
-        { type: "uint8" },
-        { type: "uint256[]" },
-        { type: "uint256" },
-        { type: "bytes32" },
-        { type: "bool" },
-        { type: "uint16" },
-      ],
-      [
-        keccak256(stringToBytes("azzle-task-v1")),
-        terms.poster,
-        terms.worker,
-        terms.token,
-        terms.totalAmount,
-        terms.escrowMode,
-        milestoneAmounts,
-        terms.deadline,
-        terms.acceptanceCriteriaHash,
-        terms.replacementAllowed,
-        terms.feeBps ?? 100,
-      ]
-    )
-  );
 }
 
 function scopeHash(description) {
@@ -401,13 +381,13 @@ async function writeSetScope(walletClient, publicClient, scopeRegistry, taskId, 
   return receipt;
 }
 
-/** Batch setScope immediately after postTask when wallet supports wallet_sendCalls. */
+/** Batch setScope immediately after post when wallet supports wallet_sendCalls. */
 async function tryPostWithOpenScopeBatch(wallet, walletClient, publicClient, cfg, postArgs, scope, onProgress) {
   const c = cfg.contracts;
-  if (!c.TaskScopeRegistry) return null;
+  if (!c.taskScopeRegistry) return null;
 
   const taskCount = await publicClient.readContract({
-    address: c.TaskRegistry,
+    address: c.taskRegistry,
     abi: REGISTRY_ABI,
     functionName: "taskCount",
   });
@@ -415,7 +395,7 @@ async function tryPostWithOpenScopeBatch(wallet, walletClient, publicClient, cfg
 
   const postData = encodeFunctionData({
     abi: REGISTRY_ABI,
-    functionName: "postTask",
+    functionName: "post",
     args: postArgs,
   });
   const scopeData = encodeFunctionData({
@@ -438,8 +418,8 @@ async function tryPostWithOpenScopeBatch(wallet, walletClient, publicClient, cfg
           chainId,
           from,
           calls: [
-            { to: c.TaskRegistry, data: postData, value: "0x0" },
-            { to: c.TaskScopeRegistry, data: scopeData, value: "0x0" },
+            { to: c.taskRegistry, data: postData, value: "0x0" },
+            { to: c.taskScopeRegistry, data: scopeData, value: "0x0" },
           ],
         },
       ],
@@ -512,10 +492,10 @@ export function createPosterApi({ ready, authenticated, wallet }) {
     async deposit() {
       throw new Error("Sign in first");
     },
-    async postTask() {
+    async postV2() {
       throw new Error("Sign in first");
     },
-    async fundEscrow() {
+    async fundV2() {
       throw new Error("Sign in first");
     },
   };
@@ -534,66 +514,69 @@ export function createPosterApi({ ready, authenticated, wallet }) {
     async getStatus() {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
-      if (!c?.TaskRegistry) return { signedIn: true, configured: false };
+      if (!c?.taskRegistry) return { signedIn: true, configured: false };
 
       const publicClient = getPublicClient(cfg);
-      const [usdcBal, depositBal, azlBal, usdcAllowVault, azlAllowTreasury] =
+      const [usdcBal, depositBal, azlBal, usdcAllowGateway, quote] =
         await publicClient.multicall({
           contracts: [
             { address: c.usdc, abi: ERC20_ABI, functionName: "balanceOf", args: [address] },
-            { address: c.AgentDepositVault, abi: VAULT_ABI, functionName: "balanceOf", args: [address] },
+            { address: c.depositVault, abi: VAULT_ABI, functionName: "deposits", args: [address] },
             { address: c.azlToken, abi: ERC20_ABI, functionName: "balanceOf", args: [address] },
-            { address: c.usdc, abi: ERC20_ABI, functionName: "allowance", args: [address, c.AgentDepositVault] },
-            { address: c.azlToken, abi: ERC20_ABI, functionName: "allowance", args: [address, c.TreasuryRouter] },
+            { address: c.usdc, abi: ERC20_ABI, functionName: "allowance", args: [address, c.paymentGateway] },
+            { address: c.pricingPolicy, abi: PRICING_POLICY_ABI, functionName: "quoteTask" },
           ],
         });
 
       const deposit = depositBal.result ?? 0n;
       const usdc = usdcBal.result ?? 0n;
-      const needsDeposit = deposit < ENTRY_DEPOSIT;
-      const needsPostTopUp = deposit >= ENTRY_DEPOSIT && deposit < LISTING_DEPOSIT;
-      const needsUsdcApprove = (usdcAllowVault.result ?? 0n) < ENTRY_DEPOSIT;
-      const needsAzlApprove = (azlAllowTreasury.result ?? 0n) < AZL_PER_ACTION;
+      const entryDeposit = quote.result?.entryDeposit ?? 0n;
+      const liveTaskReserve = quote.result?.liveTaskReserve ?? 0n;
+      const accessFee = quote.result?.accessFee ?? 0n;
+      const needsDeposit = deposit < entryDeposit;
+      const needsPostTopUp = deposit < entryDeposit + liveTaskReserve + accessFee;
+      const needsUsdcApprove = (usdcAllowGateway.result ?? 0n) === 0n;
 
       return {
         signedIn: true,
         configured: true,
         usdcWallet: formatUnits(usdc, 6),
-        depositUsdc: formatUnits(deposit, 6),
+        depositAzl: formatUnits(deposit, 18),
         azlWallet: formatUnits(azlBal.result ?? 0n, 18),
         needsDeposit,
         needsPostTopUp,
         needsUsdcApprove,
-        needsAzlApprove,
         depositReady: !needsDeposit,
-        canDeposit: usdc >= ENTRY_DEPOSIT,
+        canDeposit: usdc > 0n,
         canPost:
-          deposit >= LISTING_DEPOSIT && (azlBal.result ?? 0n) >= AZL_PER_ACTION,
-        taskFloorMin: formatUnits(TASK_FLOOR_USDC, 6),
-        listingFeeUsdc: formatUnits(ACCESS_FEE_USDC, 6),
+          deposit >= entryDeposit + liveTaskReserve + accessFee &&
+          (azlBal.result ?? 0n) >= AZL_PER_ACTION,
+        taskFloorMin: formatUnits(liveTaskReserve, 18),
+        listingFeeUsdc: formatUnits(accessFee, 18),
+        entryDepositMin: formatUnits(entryDeposit, 18),
       };
     },
 
     async getWalletBalances() {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
-      if (!c?.TaskRegistry) return { signedIn: true, configured: false };
+      if (!c?.taskRegistry) return { signedIn: true, configured: false };
 
       const publicClient = getPublicClient(cfg);
       const eth = await publicClient.getBalance({ address });
-      const [usdc, azl, vault, maxW, usdcAllowVault] = await publicClient.multicall({
+      const [usdc, azl, vault, maxW, usdcAllowGateway] = await publicClient.multicall({
         contracts: [
           { address: c.usdc, abi: ERC20_ABI, functionName: "balanceOf", args: [address] },
           { address: c.azlToken, abi: ERC20_ABI, functionName: "balanceOf", args: [address] },
-          { address: c.AgentDepositVault, abi: VAULT_ABI, functionName: "balanceOf", args: [address] },
-          { address: c.TaskRegistry, abi: REGISTRY_ABI, functionName: "maxWithdrawableDeposit", args: [address] },
-          { address: c.usdc, abi: ERC20_ABI, functionName: "allowance", args: [address, c.AgentDepositVault] },
+          { address: c.depositVault, abi: VAULT_ABI, functionName: "deposits", args: [address] },
+          { address: c.depositVault, abi: VAULT_ABI, functionName: "withdrawable", args: [address] },
+          { address: c.usdc, abi: ERC20_ABI, functionName: "allowance", args: [address, c.paymentGateway] },
         ],
       });
 
       const vaultAmt = vault.result ?? 0n;
       const maxWithdrawAmt = maxW.result ?? 0n;
-      const usdcAllowance = usdcAllowVault.result ?? 0n;
+      const usdcAllowance = usdcAllowGateway.result ?? 0n;
 
       return {
         signedIn: true,
@@ -601,21 +584,21 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         address,
         eth: formatUnits(eth, 18),
         usdcWallet: formatUnits(usdc.result ?? 0n, 6),
-        usdcVault: formatUnits(vaultAmt, 6),
+        usdcVault: formatUnits(vaultAmt, 18),
         usdcVaultAllowance: formatUnits(usdcAllowance, 6),
-        needsUsdcApprove: usdcAllowance < ENTRY_DEPOSIT,
-        maxVaultWithdraw: formatUnits(maxWithdrawAmt, 6),
+        needsUsdcApprove: usdcAllowance === 0n,
+        maxVaultWithdraw: formatUnits(maxWithdrawAmt, 18),
         azlWallet: formatUnits(azl.result ?? 0n, 18),
-        entryDepositMin: formatUnits(ENTRY_DEPOSIT, 6),
-        taskFloorMin: formatUnits(TASK_FLOOR_USDC, 6),
-        listingFeeUsdc: formatUnits(ACCESS_FEE_USDC, 6),
-        depositReady: vaultAmt >= ENTRY_DEPOSIT,
-        canPost: vaultAmt >= LISTING_DEPOSIT,
-        needsPostTopUp: vaultAmt >= ENTRY_DEPOSIT && vaultAmt < LISTING_DEPOSIT,
+        entryDepositMin: "oracle-priced AZL",
+        taskFloorMin: "oracle-priced AZL",
+        listingFeeUsdc: "oracle-priced AZL",
+        depositReady: vaultAmt > 0n,
+        canPost: vaultAmt > 0n,
+        needsPostTopUp: false,
       };
     },
 
-    async approveUsdcVault(amountUsdc, onProgress) {
+    async approveUsdcGateway(amountUsdc, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
       const walletClient = await getWalletClient(wallet, cfg);
@@ -627,7 +610,7 @@ export function createPosterApi({ ready, authenticated, wallet }) {
         address: c.usdc,
         abi: ERC20_ABI,
         functionName: "allowance",
-        args: [address, c.AgentDepositVault],
+        args: [address, c.paymentGateway],
       });
       if (allowance >= amount) {
         throw new Error(
@@ -648,14 +631,14 @@ export function createPosterApi({ ready, authenticated, wallet }) {
           address: c.usdc,
           abi: ERC20_ABI,
           functionName: "approve",
-          args: [c.AgentDepositVault, amount],
+          args: [c.paymentGateway, amount],
         });
         return publicClient.waitForTransactionReceipt({ hash });
       }, onProgress);
       return { hash: receipt.transactionHash };
     },
 
-    async depositToVault(amountUsdc, onProgress) {
+    async fundCollateral(amountUsdc, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
       const walletClient = await getWalletClient(wallet, cfg);
@@ -680,50 +663,50 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       }
 
       onProgress?.("Approve USDC for protocol deposit…");
-      await ensureUsdcAllowance(walletClient, publicClient, c.usdc, address, c.AgentDepositVault, amount);
+      await ensureUsdcAllowance(walletClient, publicClient, c.usdc, address, c.paymentGateway, amount);
 
-      onProgress?.("Depositing $" + amountUsdc + " USDC to protocol…");
-      const receipt = await runTx("topUp", async () => {
+      onProgress?.("Converting USDC to AZL collateral…");
+      const receipt = await runTx("fundWithUsdc", async () => {
         const hash = await walletClient.writeContract({
-          address: c.AgentDepositVault,
-          abi: VAULT_ABI,
-          functionName: "topUp",
-          args: [amount],
+          address: c.paymentGateway,
+          abi: PAYMENT_GATEWAY_ABI,
+          functionName: "fundWithUsdc",
+          args: [amount, 1n, BigInt(Math.floor(Date.now() / 1000) + 600)],
         });
         return publicClient.waitForTransactionReceipt({ hash });
       }, onProgress);
       return { hash: receipt.transactionHash };
     },
 
-    async withdrawFromVault(amountUsdc, onProgress) {
+    async withdrawCollateral(amountAzl, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
       const walletClient = await getWalletClient(wallet, cfg);
       const publicClient = getPublicClient(cfg);
 
       const maxW = await publicClient.readContract({
-        address: c.TaskRegistry,
-        abi: REGISTRY_ABI,
-        functionName: "maxWithdrawableDeposit",
+        address: c.depositVault,
+        abi: VAULT_ABI,
+        functionName: "withdrawable",
         args: [address],
       });
-      const amount = parseUnits(String(amountUsdc), 6);
-      if (amount <= 0n) throw new Error("Enter a valid USDC amount");
+      const amount = parseUnits(String(amountAzl), 18);
+      if (amount <= 0n) throw new Error("Enter a valid AZL amount");
       if (amount > maxW) {
         throw new Error(
-          "Max withdrawable now is $" +
-            formatUnits(maxW, 6) +
-            " (keep $8 while a task is live)."
+          "Max withdrawable now is " +
+            formatUnits(maxW, 18) +
+            " AZL."
         );
       }
 
-      onProgress?.("Withdrawing $" + amountUsdc + " USDC…");
+      onProgress?.("Withdrawing " + amountAzl + " AZL collateral…");
       const receipt = await runTx("withdraw", async () => {
         const hash = await walletClient.writeContract({
-          address: c.AgentDepositVault,
+          address: c.depositVault,
           abi: VAULT_ABI,
           functionName: "withdraw",
-          args: [amount],
+          args: [amount, address],
         });
         return publicClient.waitForTransactionReceipt({ hash });
       }, onProgress);
@@ -794,17 +777,10 @@ export function createPosterApi({ ready, authenticated, wallet }) {
     },
 
     async deposit(onProgress) {
-      const status = await this.getStatus();
-      if (status.needsPostTopUp) {
-        return this.depositToVault(5, onProgress);
-      }
-      if (status.depositReady) {
-        return { hash: null, alreadyDeposited: true };
-      }
-      return this.depositToVault(Number(formatUnits(ENTRY_DEPOSIT, 6)), onProgress);
+      return this.fundCollateral(25, onProgress);
     },
 
-    async postTask({ description, budgetUsdc, deadlineDays, discoveryOpen = true }, onProgress) {
+    async postV2({ description, taskAmountAzl, deadlineDays, discoveryOpen = true }, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
       const walletClient = await getWalletClient(wallet, cfg);
@@ -812,54 +788,13 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       const status = await this.getStatus();
       const openDiscovery = discoveryOpen !== false;
 
-      if (status.needsDeposit) {
-        throw new Error("Deposit $20 USDC first — /wallet");
-      }
-      if (status.needsPostTopUp) {
-        onProgress?.("Topping up $5 USDC for listing fee…");
-        await this.depositToVault(5, onProgress);
-      }
-      if ((await publicClient.readContract({
-        address: c.azlToken,
-        abi: ERC20_ABI,
-        functionName: "balanceOf",
-        args: [address],
-      })) < AZL_PER_ACTION) {
-        throw new Error("You need at least 1,000 AZL in your wallet to post");
-      }
+      if (status.needsDeposit) throw new Error("Fund AZL collateral first — /wallet");
 
-      if (status.needsAzlApprove) {
-        onProgress?.("Approve AZL for listing fee…");
-        await runTx("approveAzl", async () => {
-          const hash = await walletClient.writeContract({
-            address: c.azlToken,
-            abi: ERC20_ABI,
-            functionName: "approve",
-            args: [c.TreasuryRouter, parseUnits("100000", 18)],
-          });
-          await publicClient.waitForTransactionReceipt({ hash });
-        }, onProgress);
-      }
-
-      const totalAmount = parseUnits(String(budgetUsdc), 6);
+      const totalAmount = parseUnits(String(taskAmountAzl), 18);
       const deadline = BigInt(Math.floor(Date.now() / 1000) + deadlineDays * 86400);
-      const acceptanceCriteriaHash = scopeHash(description);
-      const digest = buildSettlementDigest({
-        poster: address,
-        worker: zeroAddress,
-        token: c.usdc,
-        totalAmount,
-        escrowMode: 1,
-        milestoneAmounts: [totalAmount],
-        deadline,
-        acceptanceCriteriaHash,
-        replacementAllowed: false,
-        feeBps: 100,
-      });
+      const postArgs = [totalAmount, deadline];
 
-      const postArgs = [c.usdc, totalAmount, 1, digest, deadline, [totalAmount], 0n, 0n];
-
-      if (openDiscovery && c.TaskScopeRegistry) {
+      if (openDiscovery && c.taskScopeRegistry) {
         const batched = await tryPostWithOpenScopeBatch(
           wallet,
           walletClient,
@@ -873,22 +808,22 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       }
 
       onProgress?.("Posting to the market…");
-      const receipt = await runTx("postTask", async () => {
+      const receipt = await runTx("post", async () => {
         const hash = await walletClient.writeContract({
-          address: c.TaskRegistry,
+          address: c.taskRegistry,
           abi: REGISTRY_ABI,
-          functionName: "postTask",
+          functionName: "post",
           args: postArgs,
         });
         return publicClient.waitForTransactionReceipt({ hash });
       }, onProgress);
-      const taskId = taskIdFromReceipt(receipt, c.TaskRegistry);
+      const taskId = taskIdFromReceipt(receipt, c.taskRegistry);
 
-      if (openDiscovery && c.TaskScopeRegistry) {
+      if (openDiscovery && c.taskScopeRegistry) {
         await writeSetScope(
           walletClient,
           publicClient,
-          c.TaskScopeRegistry,
+          c.taskScopeRegistry,
           taskId,
           description,
           onProgress
@@ -912,7 +847,7 @@ export function createPosterApi({ ready, authenticated, wallet }) {
     async setTaskScope(taskId, scope, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
-      if (!c.TaskScopeRegistry) {
+      if (!c.taskScopeRegistry) {
         throw new Error("Task scope registry not configured");
       }
       const text = String(scope ?? "").trim();
@@ -924,7 +859,7 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       const receipt = await writeSetScope(
         walletClient,
         publicClient,
-        c.TaskScopeRegistry,
+        c.taskScopeRegistry,
         taskId,
         text,
         onProgress
@@ -1012,18 +947,18 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       return { hash: receipt.transactionHash, tier: tierId, payWith: "usdc" };
     },
 
-    async fundEscrow(taskId, budgetUsdc, onProgress) {
+    async fundV2(taskId, amountAzl, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
       const walletClient = await getWalletClient(wallet, cfg);
       const publicClient = getPublicClient(cfg);
-      const amount = parseUnits(String(budgetUsdc), 6);
+      const amount = parseUnits(String(amountAzl), 18);
 
       const allowance = await publicClient.readContract({
         address: c.usdc,
         abi: ERC20_ABI,
         functionName: "allowance",
-        args: [address, c.EscrowVault],
+        args: [address, c.escrowVault],
       });
       if (allowance < amount) {
         onProgress?.("Approve USDC for escrow…");
@@ -1031,16 +966,16 @@ export function createPosterApi({ ready, authenticated, wallet }) {
           address: c.usdc,
           abi: ERC20_ABI,
           functionName: "approve",
-          args: [c.EscrowVault, parseUnits("1000000", 6)],
+          args: [c.escrowVault, parseUnits("1000000", 18)],
         });
         await publicClient.waitForTransactionReceipt({ hash });
       }
 
       onProgress?.("Locking payment in escrow…");
       const hash = await walletClient.writeContract({
-        address: c.TaskRegistry,
+        address: c.taskRegistry,
         abi: REGISTRY_ABI,
-        functionName: "fundTask",
+        functionName: "fund",
         args: [BigInt(taskId), amount],
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -1054,39 +989,41 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       const id = BigInt(taskId);
       const [task, locked] = await publicClient.multicall({
         contracts: [
-          { address: c.TaskRegistry, abi: REGISTRY_ABI, functionName: "getTask", args: [id] },
-          { address: c.EscrowVault, abi: ESCROW_ABI, functionName: "lockedBalance", args: [id] },
+          { address: c.taskRegistry, abi: REGISTRY_ABI, functionName: "tasks", args: [id] },
+          { address: c.escrowVault, abi: ESCROW_ABI, functionName: "escrows", args: [id] },
         ],
       });
       const row = task.result;
       const stateName = TASK_STATE[Number(row.state)] ?? "UNKNOWN";
       const totalAmount = row.totalAmount;
-      const lockedBal = locked.result ?? 0n;
-      const scope = await readOnchainScope(publicClient, c.TaskScopeRegistry, taskId);
+      const lockedBal = locked.result
+        ? locked.result.deposited - locked.result.released
+        : 0n;
+      const scope = await readOnchainScope(publicClient, c.taskScopeRegistry, taskId);
       return {
         taskId: String(taskId),
         state: stateName,
         worker: row.worker === zeroAddress ? null : row.worker,
-        budgetUsdc: formatUnits(totalAmount, 6),
-        lockedUsdc: formatUnits(lockedBal, 6),
-        funded: lockedBal >= totalAmount && totalAmount > 0n,
+        budgetAzl: formatUnits(totalAmount, 18),
+        lockedAzl: formatUnits(lockedBal, 18),
+        funded: row.funded >= totalAmount && totalAmount > 0n,
         deadline: Number(row.deadline),
         scope,
         discoveryOpen: Boolean(scope),
       };
     },
 
-    async startWork(taskId, onProgress) {
+    async activateV2(taskId, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
       const walletClient = await getWalletClient(wallet, cfg);
       const publicClient = getPublicClient(cfg);
-      onProgress?.("Starting work…");
-      const receipt = await runTx("startWork", async () => {
+      onProgress?.("Activating task…");
+      const receipt = await runTx("activate", async () => {
         const hash = await walletClient.writeContract({
-          address: c.TaskRegistry,
+        address: c.taskRegistry,
           abi: REGISTRY_ABI,
-          functionName: "startWork",
+        functionName: "activate",
           args: [BigInt(taskId)],
         });
         return publicClient.waitForTransactionReceipt({ hash });
@@ -1094,18 +1031,18 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       return { hash: receipt.transactionHash };
     },
 
-    async acceptWork(taskId, onProgress) {
+    async completeV2(taskId, onProgress) {
       const cfg = await loadSiteConfig();
       const c = cfg.contracts;
       const walletClient = await getWalletClient(wallet, cfg);
       const publicClient = getPublicClient(cfg);
       onProgress?.("Accepting delivery — releasing escrow…");
-      const receipt = await runTx("acceptMilestone", async () => {
+      const receipt = await runTx("complete", async () => {
         const hash = await walletClient.writeContract({
-          address: c.TaskRegistry,
+        address: c.taskRegistry,
           abi: REGISTRY_ABI,
-          functionName: "acceptMilestone",
-          args: [BigInt(taskId), 0n],
+        functionName: "complete",
+        args: [BigInt(taskId)],
         });
         return publicClient.waitForTransactionReceipt({ hash });
       }, onProgress);
@@ -1121,7 +1058,7 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       onProgress?.("Opening dispute — escrow frozen…");
       const receipt = await runTx("openDispute", async () => {
         const hash = await walletClient.writeContract({
-          address: c.TaskRegistry,
+        address: c.taskRegistry,
           abi: REGISTRY_ABI,
           functionName: "openDispute",
           args: [BigInt(taskId), evidenceHash],
@@ -1131,12 +1068,87 @@ export function createPosterApi({ ready, authenticated, wallet }) {
       return { hash: receipt.transactionHash };
     },
 
-    async fundAndStart(taskId, budgetUsdc, onProgress) {
+    async getUnionPosition() {
+      const cfg = await loadSiteConfig();
+      const c = cfg.contracts;
+      const publicClient = getPublicClient(cfg);
+      const [active, walletAzl, staked, credits, remaining, pending] = await publicClient.multicall({
+        contracts: [
+          { address: c.stakingVault, abi: STAKING_ABI, functionName: "stakingActive" },
+          { address: c.azlToken, abi: ERC20_ABI, functionName: "balanceOf", args: [address] },
+          { address: c.stakingVault, abi: STAKING_ABI, functionName: "stakeOf", args: [address] },
+          { address: c.stakingVault, abi: STAKING_ABI, functionName: "creditsOf", args: [address] },
+          { address: c.stakingVault, abi: STAKING_ABI, functionName: "creditsRemaining" },
+          { address: c.stakingVault, abi: STAKING_ABI, functionName: "pendingPayouts", args: [address] },
+        ],
+      });
+      return {
+        signedIn: true,
+        active: Boolean(active.result),
+        walletAzl: formatUnits(walletAzl.result ?? 0n, 18),
+        stakedAzl: formatUnits(staked.result ?? 0n, 18),
+        credits: formatUnits(credits.result ?? 0n, 18),
+        wholeCredits: formatUnits(credits.result ?? 0n, 18),
+        creditsRemaining: formatUnits(remaining.result ?? 0n, 18),
+        claimableAzl: formatUnits(pending.result ?? 0n, 18),
+      };
+    },
+
+    async unionTx(action, value, onProgress) {
+      const cfg = await loadSiteConfig();
+      const c = cfg.contracts;
+      const walletClient = await getWalletClient(wallet, cfg);
+      const publicClient = getPublicClient(cfg);
+      const amount = value == null || value === "" || /^0x/i.test(String(value))
+        ? 0n
+        : parseUnits(String(value), 18);
+      const stakeAmount = action === "claimUnstakeTo"
+        ? await publicClient.readContract({
+            address: c.stakingVault,
+            abi: STAKING_ABI,
+            functionName: "stakeOf",
+            args: [address],
+          })
+        : amount;
+      if (action === "stake") {
+        const allowance = await publicClient.readContract({
+          address: c.azlToken,
+          abi: ERC20_ABI,
+          functionName: "allowance",
+          args: [address, c.stakingVault],
+        });
+        if (allowance < amount) {
+          const approval = await walletClient.writeContract({
+            address: c.azlToken,
+            abi: ERC20_ABI,
+            functionName: "approve",
+            args: [c.stakingVault, amount],
+          });
+          await publicClient.waitForTransactionReceipt({ hash: approval });
+        }
+      }
+      const args = action === "stake" ? [amount] :
+        action === "unstake" || action === "claimUnstakeTo" ? [stakeAmount, address] :
+        action === "claimRewards" ? [address] : [];
+      const functionName = action === "claimUnstakeTo" ? "unstake" :
+        action === "claimRewards" ? "claim" : action;
+      onProgress?.("Submitting Union transaction…");
+      const hash = await walletClient.writeContract({
+        address: c.stakingVault,
+        abi: STAKING_ABI,
+        functionName,
+        args,
+      });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      return { hash: receipt.transactionHash };
+    },
+
+    async fundAndActivate(taskId, amountAzl, onProgress) {
       const detail = await this.getTaskDetail(taskId);
       if (!detail.funded) {
-        await this.fundEscrow(taskId, budgetUsdc, onProgress);
+        await this.fundV2(taskId, amountAzl, onProgress);
       }
-      return this.startWork(taskId, onProgress);
+      return this.activateV2(taskId, onProgress);
     },
   };
 }

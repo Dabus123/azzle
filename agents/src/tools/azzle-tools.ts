@@ -2,14 +2,14 @@
  * Framework-agnostic tool definitions for LLM orchestrators (LangChain, Cursor, OpenAI tools, etc.).
  */
 
-import type { BaseRpcTask } from "../sdk/base-rpc-indexer.js";
+import type { RpcDiscoveryTask } from "../sdk/rpc-discovery.js";
 
 export interface AzzleToolDefinition {
   name: string;
   description: string;
   parameters: {
     type: "object";
-    properties: Record<string, { type: string; description: string }>;
+    properties: Record<string, { type: string; description: string; enum?: string[]; default?: string | number | boolean }>;
     required: string[];
   };
 }
@@ -22,6 +22,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         limit: {
           type: "number",
           description: "Max tasks to return (default 25)",
@@ -36,6 +37,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         taskId: { type: "string", description: "On-chain task id" },
       },
       required: ["taskId"],
@@ -47,6 +49,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         address: { type: "string", description: "EVM address (0x…)" },
       },
       required: ["address"],
@@ -56,7 +59,8 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     name: "azzle_onboarding_checklist",
     description:
       "Return the ordered AZZLE onboarding steps: wallet → acquire AZZLE → approve → topUp → post/claim.",
-    parameters: { type: "object", properties: {}, required: [] },
+    parameters: { type: "object", properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },}, required: [] },
   },
   {
     name: "azzle_list_tasks_by_poster",
@@ -64,6 +68,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         address: { type: "string", description: "Poster EVM address (0x…)" },
         limit: { type: "number", description: "Max tasks (default 25)" },
       },
@@ -76,6 +81,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         address: { type: "string", description: "Worker EVM address (0x…)" },
         limit: { type: "number", description: "Max tasks (default 25)" },
       },
@@ -88,6 +94,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         limit: { type: "number", description: "Max tasks (default 25)" },
       },
       required: [],
@@ -100,6 +107,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         taskId: { type: "string", description: "On-chain task id" },
       },
       required: ["taskId"],
@@ -112,18 +120,17 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         poster: { type: "string", description: "Poster EVM address (0x…)" },
         worker: { type: "string", description: "Worker address (direct hire; omit for search post)" },
         totalAmount: { type: "string", description: "Total USDC 6 decimals" },
         deadline: { type: "number", description: "Unix deadline" },
         criteriaText: { type: "string", description: "Acceptance criteria (hashed)" },
         acceptanceCriteriaHash: { type: "string", description: "bytes32 criteria hash" },
-        escrowMode: { type: "string", description: "milestone | upfront | streaming | hour_blocks" },
+        escrowMode: { type: "string", description: "milestone | streaming | hour_blocks" },
         milestoneAmounts: { type: "string", description: "Comma-separated milestone USDC amounts" },
         streamRate: { type: "string", description: "Streaming rate (USDC 6dp/sec)" },
         hourBlockSize: { type: "string", description: "Hour block size (USDC 6dp)" },
-        replacementAllowed: { type: "boolean", description: "Allow worker replacement" },
-        feeBps: { type: "number", description: "Fee basis points (default 100)" },
       },
       required: ["poster", "totalAmount", "deadline"],
     },
@@ -134,6 +141,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         poster: { type: "string", description: "Poster EVM address" },
         worker: { type: "string", description: "Intended worker (optional)" },
         totalAmount: { type: "string", description: "Total USDC 6 decimals" },
@@ -158,6 +166,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         poster: { type: "string", description: "Poster EVM address" },
         worker: { type: "string", description: "Worker EVM address" },
         totalAmount: { type: "string", description: "Total USDC 6 decimals" },
@@ -179,6 +188,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
     parameters: {
       type: "object",
       properties: {
+          protocolVersion: { type: "string", enum: ["v2"], default: "v2", description: "Canonical AZZLE V2 protocol." },
         poster: { type: "string", description: "Poster EVM address" },
         worker: { type: "string", description: "Worker address (zero/open if omitted)" },
         settlementDigest: { type: "string", description: "Expected bytes32 digest" },
@@ -196,7 +206,7 @@ export const AZZLE_TOOLS: AzzleToolDefinition[] = [
   },
 ];
 
-export function formatOpenTasksForAgent(tasks: BaseRpcTask[]): string {
+export function formatOpenTasksForAgent(tasks: RpcDiscoveryTask[]): string {
   if (!tasks.length) {
     return "No POSTED tasks on the search market. Check again later or post work via postTask.";
   }
@@ -204,13 +214,13 @@ export function formatOpenTasksForAgent(tasks: BaseRpcTask[]): string {
   return `${tasks.length} open task(s) — read scope via TaskScopeRegistry.scopeOf(id); empty scope → private listing (XMTP):\n${lines.join("\n")}`;
 }
 
-export function formatTaskLine(t: BaseRpcTask): string {
+export function formatTaskLine(t: RpcDiscoveryTask): string {
   const escrow = (Number(t.escrowAmount) / 1e6).toFixed(2);
   const worker = t.worker?.id ?? "none";
   return `task ${t.id} · ${t.state} · $${escrow} USDC · poster ${t.poster.id} · worker ${worker}`;
 }
 
-export function formatTaskListForAgent(tasks: BaseRpcTask[], label: string): string {
+export function formatTaskListForAgent(tasks: RpcDiscoveryTask[], label: string): string {
   if (!tasks.length) return `No tasks for ${label}.`;
   return `${tasks.length} task(s) (${label}):\n${tasks.map((t) => formatTaskLine(t)).join("\n")}`;
 }
@@ -222,9 +232,16 @@ const TASK_STATE_GUIDE: Record<string, { meaning: string; poster: string[]; work
     worker: ["claim-task ($5 USDC + 1k AZZLE)", "Check vault preflight first"],
   },
   CLAIMED: {
-    meaning: "Worker assigned; work not started.",
-    poster: ["fund-task (USDC approve → EscrowVault)", "start-work after fund", "dismiss-worker ($5 + 1k AZZLE)"],
-    worker: ["Wait for startWork", "leave-task ($5 + 1k AZZLE)"],
+    meaning: "Worker assigned or invited; work not started.",
+    poster: [
+      "fund-task (USDC approve → EscrowVault)",
+      "For market claims: start-work after fund",
+      "For direct hire: wait for worker accept-direct-hire",
+    ],
+    worker: [
+      "Market claim: wait for startWork or leave-task",
+      "Direct hire: accept-direct-hire or decline-direct-hire (terminal EXPIRED)",
+    ],
   },
   ACTIVE: {
     meaning: "Work started (on-chain state index 3). Escrow may still be empty if startWork ran before fund.",
@@ -234,7 +251,7 @@ const TASK_STATE_GUIDE: Record<string, { meaning: string; poster: string[]; work
   IN_REVIEW: {
     meaning: "Proof submitted; acceptance window open.",
     poster: ["accept-milestone", "complete-task (final close)", "open-dispute"],
-    worker: ["Wait for poster accept/complete"],
+    worker: ["Wait for poster accept/complete", "Any caller may resolve-stale-review after the review timeout"],
   },
   COMPLETED: {
     meaning: "Task closed; escrow released.",
@@ -246,14 +263,9 @@ const TASK_STATE_GUIDE: Record<string, { meaning: string; poster: string[]; work
     poster: ["propose-arbitrator", "escalate", "provide dispute evidence"],
     worker: ["propose-arbitrator", "escalate", "provide dispute evidence"],
   },
-  PAUSED: {
-    meaning: "Vault below $8 USDC — 15m to recover.",
-    poster: ["emergency-top-up"],
-    worker: ["emergency-top-up"],
-  },
 };
 
-export function formatTaskStateGuide(task: BaseRpcTask): string {
+export function formatTaskStateGuide(task: RpcDiscoveryTask): string {
   const guide = TASK_STATE_GUIDE[task.state] ?? {
     meaning: `State ${task.state}`,
     poster: ["See protocol/TASK_STATE_MACHINE.md"],

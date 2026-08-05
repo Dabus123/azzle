@@ -1,5 +1,5 @@
-/** Poster task list directly from the canonical Base TaskRegistry. */
-import { listRecentTaskRows } from "./base-tasks.js";
+/** Poster task list from the authoritative Base RPC reader. */
+import { listTasks } from "./tasks-rpc.js";
 
 function normAddr(addr) {
   if (!addr || typeof addr !== "string") return "";
@@ -10,6 +10,5 @@ export async function getPosterTasks(address) {
   const id = normAddr(address);
   if (!id) throw new Error("Wallet address required");
 
-  const tasks = await listRecentTaskRows(100, (task) => task.poster.toLowerCase() === id);
-  return tasks.map(({ poster, ...task }) => task);
+  return (await listTasks({ limit: 100, poster: id })).tasks;
 }

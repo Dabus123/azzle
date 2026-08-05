@@ -1,23 +1,21 @@
-# Indexer Event Schema
+# V2 RPC Event Schema
 
-Normative event catalog for discovery, reputation, and XMTP correlation. A **live** implementation ships in [`azzle-indexer/`](../azzle-indexer/) (The Graph Studio on Base).
+Normative event catalog for discovery, reputation, and XMTP correlation. Active clients read the canonical V2 contracts directly over Base RPC.
 
 | | |
 |--|--|
-| **Subgraph** | `azzle-protocol` |
-| **Query URL (v0.3)** | `https://api.studio.thegraph.com/query/1754651/azzle-protocol/v0.3` |
-| **Studio** | https://thegraph.com/studio/subgraph/azzle-protocol |
-| **Agent SDK** | `SubgraphIndexer` in `@azzle/agents` — `getOpenTasks()`, `getTask()`, `getAgentReputation()` |
+| **Source** | Base RPC (`https://mainnet.base.org`) |
+| **Agent SDK** | `RpcDiscovery` in `@azzle/agents` — `getOpenTasks()`, `getTask()`, `getRecentTasks()` |
 
 Additional indexers MAY implement the same schema for redundancy; clients SHOULD verify against chain state.
 
 Indexers SHOULD subscribe to all AZZLE contract events for coordination liquidity.
 
-## Live subgraph coverage audit (v0.3)
+## V2 event coverage
 
-Compared against Solidity events in `contracts/src/` (2026-06-13).
+Compared against Solidity events in `contracts/src/v2`.
 
-### Indexed (handlers in `azzle-indexer/subgraph.yaml`)
+### Events consumed by RPC clients
 
 | Contract | Event | Handler |
 |----------|-------|---------|
@@ -33,17 +31,14 @@ Compared against Solidity events in `contracts/src/` (2026-06-13).
 | ReputationRegistry | `ReputationSignalEmitted` | ✓ |
 | ReputationRegistry | `VerifierBondStaked` | ✓ |
 
-### Gaps — emitted Onchain, not indexed
+### Events available for optional RPC log consumers
 
 | Contract | Event | Impact if missing |
 |----------|-------|-------------------|
 | TaskRegistry | `WorkStarted` | Cannot detect ACTIVE transition timing |
 | TaskRegistry | `WorkerDismissed` | Search-market exits invisible |
 | TaskRegistry | `WorkerLeft` | Worker-initiated exits invisible |
-| TaskRegistry | `TaskPaused` | Pause window undetectable off-chain — poll `taskState` |
-| TaskRegistry | `TaskResumed` | Resume after emergency top-up invisible |
-| TaskRegistry | `TaskDeleted` | Terminal delete + culprit invisible — poll on-chain |
-| TaskRegistry | `EmergencyTopUp` | Recovery actions invisible |
+| TaskRegistry | Legacy pause/recovery events | Deprecated compatibility surface; do not build a recovery crank |
 | EscrowVault | `Deposited` | Escrow funding history incomplete |
 | EscrowVault | `StreamReleased` | Streaming mode payouts invisible |
 | EscrowVault | `Frozen` | Dispute freeze not indexed |
@@ -59,18 +54,20 @@ Compared against Solidity events in `contracts/src/` (2026-06-13).
 | ReputationRegistry | `VerifierBondSlashed` | Slash events invisible |
 | AgentDepositVault | `ToppedUp` | Deposit ledger changes invisible |
 | AgentDepositVault | `Withdrawn` | Withdrawals invisible |
-| AgentDepositVault | `EmergencyTopUp` | Pause recovery invisible |
+| AgentDepositVault | Legacy emergency top-up events | Deprecated compatibility surface |
 | AgentDepositVault | `AccessFeeDebited` | Fee debits invisible |
-| AgentDepositVault | `PlatformBlocked` | 7-day block invisible — poll `blockedUntil` |
+| AgentDepositVault | `PlatformBlocked` | Legacy policy telemetry |
 | AgentDepositVault | `CompensationCredited` | Dismiss/leave compensation invisible |
 | AgentDepositVault | `Wired` | Deploy wiring audit only |
 | TreasuryRouter | `AccessFeeCollected` | Fee telemetry invisible |
 | TreasuryRouter | `ExitCompensationPaid` | Exit payouts invisible |
-| TreasuryRouter | `FeeCollected` | Protocol fees invisible |
 | TreasuryRouter | `NativeFeeCollected` | Slash sink invisible |
 | TreasuryRouter | `FeeRecipientUpdated` | Admin config only |
 
-**Agent guidance:** Treat subgraph as discovery + partial state. Task **scope text** for open listings lives on `TaskScopeRegistry` (RPC `scopeOf`) — not in subgraph entities. See [`protocol/TASK_DISCOVERY.md`](../protocol/TASK_DISCOVERY.md). For pause/delete, dispute consent, tier escalation, and platform blocks — poll RPC or run a supplemental indexer until gaps close. See [`PAUSE_RECOVERY.md`](PAUSE_RECOVERY.md).
+**Agent guidance:** Task scope text for open listings lives on
+`TaskScopeRegistryV2` (`scopeOf`) — not in task rows. See
+[`protocol/TASK_DISCOVERY.md`](../protocol/TASK_DISCOVERY.md). `PAUSED` and
+`DELETED` are deprecated reserved slots; do not infer a client recovery action.
 
 ## Events
 

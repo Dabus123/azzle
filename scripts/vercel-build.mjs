@@ -3,7 +3,7 @@
  * Stages in .vercel-static first, then swaps in (avoids Vercel reading public/ mid-build).
  */
 import * as esbuild from "esbuild";
-import { access, cp, mkdir, rename, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, rename, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,6 +19,7 @@ const STATIC = [
   "post.html",
   "pricing.html",
   "market.html",
+  "union.html",
   "my-tasks.html",
   "wallet.html",
   "role-dashboard.css",
@@ -29,13 +30,13 @@ const STATIC = [
   "site-theme.css",
   "post-checkout.js",
   "market.js",
+  "union.js",
   "my-tasks.js",
   "wallet-page.js",
   "azzletype.png",
   "azzlelogo.png",
   "baselogo.png",
   "GitHub_Invertocat_White.png",
-  "stack_logos.png",
   "npm_logo.png",
   "favicon.ico",
   "og.png",
@@ -47,6 +48,8 @@ const STATIC = [
   "sitemap.xml",
   "robots.txt",
   "docs-shell.js",
+  "theme-init.js",
+  "theme-toggle.js",
 ];
 
 async function copyDirRecursive(srcDir, destDir) {
@@ -72,10 +75,33 @@ async function requireFile(name) {
   return src;
 }
 
+async function injectThemeScripts(dir) {
+  for (const name of await readdir(dir)) {
+    const path = join(dir, name);
+    if ((await stat(path)).isDirectory()) {
+      await injectThemeScripts(path);
+      continue;
+    }
+    if (!name.endsWith(".html")) continue;
+    let html = await readFile(path, "utf8");
+    if (!html.includes('src="/theme-init.js"')) {
+      html = html.replace("</head>", '  <script src="/theme-init.js"></script>\n</head>');
+    }
+    if (!html.includes('src="/theme-toggle.js"') && !html.includes('src="theme-toggle.js"')) {
+      html = html.replace("</body>", '  <script src="/theme-toggle.js"></script>\n</body>');
+    }
+    await writeFile(path, html, "utf8");
+  }
+}
+
 await rm(stage, { recursive: true, force: true });
 await mkdir(stage, { recursive: true });
 
+await import("./sync-manifest-surfaces.mjs");
+await import("./sync-site-contract-addresses.mjs");
 await import("./sync-docs-nav.mjs");
+await import("./verify-v2-site-config.mjs");
+await import("./verify-v2-docs.mjs");
 
 for (const name of STATIC) {
   const src = await requireFile(name);
@@ -100,6 +126,8 @@ await esbuild.build({
   target: ["es2022", "chrome109", "firefox109", "safari16"],
   logLevel: "warning",
 });
+
+await injectThemeScripts(stage);
 
 await esbuild.build({
   entryPoints: [join(root, "src", "wallet-qr.mjs")],

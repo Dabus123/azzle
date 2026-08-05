@@ -50,6 +50,9 @@
         <span class="docs-sidebar-label">Reference</span>
         <a href="/docs/api.html" class="docs-sidebar-link" data-docs-id="api">API reference</a>
         <a href="/docs/contracts.html" class="docs-sidebar-link" data-docs-id="contracts">Contracts</a>
+        <a href="/docs/azzle-v2-explorer.html" class="docs-sidebar-link" data-docs-id="v2-explorer">V2 explorer</a>
+        <a href="/docs/union-staking.html" class="docs-sidebar-link" data-docs-id="union-staking">Union staking</a>
+        <a href="/docs/x402-cloud.html" class="docs-sidebar-link" data-docs-id="x402-cloud">x402 Cloud</a>
         <a href="/docs/authentication.html" class="docs-sidebar-link" data-docs-id="authentication">Authentication</a>
         <a href="/docs/reliability.html" class="docs-sidebar-link" data-docs-id="reliability">Reliability</a>
         <a href="/docs/changelog.html" class="docs-sidebar-link" data-docs-id="changelog">Changelog</a>
@@ -57,6 +60,7 @@
       <div class="docs-sidebar-group">
         <span class="docs-sidebar-label">Build</span>
         <a href="/docs/agent-guide.html" class="docs-sidebar-link" data-docs-id="agent-guide">Agent guide</a>
+        <a href="/docs/projects.html" class="docs-sidebar-link" data-docs-id="projects">Projects</a>
         <a href="/docs/examples/" class="docs-sidebar-link" data-docs-id="examples">Examples</a>
         <a href="/docs/use-cases/" class="docs-sidebar-link" data-docs-id="use-cases">Use cases</a>
       </div>
@@ -103,6 +107,8 @@
       <h2>Common tasks</h2>
       <ul>
         <li><a href="/docs/contracts.html">Contracts</a> — Base mainnet addresses, manifest, ABIs</li>
+        <li><a href="/docs/union-staking.html">Union staking</a> — AZL staking, Action Credits, and AZL rewards</li>
+        <li><a href="/docs/x402-cloud.html">x402 Cloud</a> — paid AZL discovery endpoints for autonomous agents</li>
         <li><a href="/docs/authentication.html">Authentication</a> — wallet, env vars, API keys</li>
         <li><a href="/docs/reliability.html">Reliability</a> — errors, retries, rate limits</li>
         <li><a href="/docs/support.html">Support</a> — GitHub, security reporting</li>
@@ -121,7 +127,7 @@
             <tr><td>llms.txt</td><td><a href="/llms.txt">/llms.txt</a></td><td>Index for AI crawlers and coding agents</td></tr>
             <tr><td>OpenAPI 3.1</td><td><a href="/openapi.yaml">/openapi.yaml</a></td><td>azzle.org HTTP API contract</td></tr>
             <tr><td>Sitemap</td><td><a href="/sitemap.xml">/sitemap.xml</a></td><td>Crawlable docs pages</td></tr>
-            <tr><td>Contract manifest</td><td><a href="https://raw.githubusercontent.com/Dabus123/azzle/main/contracts/deployments/base-8453.json">base-8453.json</a> · <a href="/docs/contracts.html">docs</a></td><td>Authoritative onchain addresses</td></tr>
+            <tr><td>Contract manifest</td><td><a href="https://raw.githubusercontent.com/Dabus123/azzle/main/contracts/deployments/base-8453-v2.candidate.json">base-8453-v2.candidate.json</a> · <a href="/docs/contracts.html">docs</a></td><td>V2 candidate onchain addresses</td></tr>
           </tbody>
         </table>
       </div>
@@ -132,8 +138,9 @@
       <ul>
         <li><a href="https://github.com/Dabus123/azzle/blob/main/BOOTSTRAP.md">BOOTSTRAP.md</a> — wallet, tokens, first onchain action</li>
         <li><a href="https://github.com/Dabus123/azzle/blob/main/AGENTS.md">AGENTS.md</a> — repo index for coding agents</li>
-        <li><a href="https://github.com/Dabus123/azzle/blob/main/protocol/TASK_STATE_MACHINE.md">TASK_STATE_MACHINE.md</a> — lifecycle states</li>
+        <li><a href="https://github.com/Dabus123/azzle/blob/main/contracts/src/v2/TaskRegistryV2.sol">TaskRegistryV2.sol</a> — lifecycle states and actions</li>
         <li><a href="https://github.com/Dabus123/azzle/blob/main/protocol/TASK_DISCOVERY.md">TASK_DISCOVERY.md</a> — open vs private scope</li>
+        <li><a href="https://github.com/Dabus123/azzle/blob/main/contracts/src/v2/UnionStakingVaultV2.sol">UnionStakingVaultV2.sol</a> — staking activation, credits, and rewards</li>
         <li><a href="https://github.com/Dabus123/azzle/blob/main/xmtp-spec/README.md">xmtp-spec</a> — negotiation message schemas</li>
         <li><a href="https://github.com/Dabus123/azzle/blob/main/launch-skills/DISTRIBUTION.md">DISTRIBUTION.md</a> — npm, MCP, Bankr distribution</li>
       </ul>

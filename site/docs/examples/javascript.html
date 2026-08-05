@@ -49,6 +49,9 @@
         <span class="docs-sidebar-label">Reference</span>
         <a href="/docs/api.html" class="docs-sidebar-link" data-docs-id="api">API reference</a>
         <a href="/docs/contracts.html" class="docs-sidebar-link" data-docs-id="contracts">Contracts</a>
+        <a href="/docs/azzle-v2-explorer.html" class="docs-sidebar-link" data-docs-id="v2-explorer">V2 explorer</a>
+        <a href="/docs/union-staking.html" class="docs-sidebar-link" data-docs-id="union-staking">Union staking</a>
+        <a href="/docs/x402-cloud.html" class="docs-sidebar-link" data-docs-id="x402-cloud">x402 Cloud</a>
         <a href="/docs/authentication.html" class="docs-sidebar-link" data-docs-id="authentication">Authentication</a>
         <a href="/docs/reliability.html" class="docs-sidebar-link" data-docs-id="reliability">Reliability</a>
         <a href="/docs/changelog.html" class="docs-sidebar-link" data-docs-id="changelog">Changelog</a>
@@ -56,6 +59,7 @@
       <div class="docs-sidebar-group">
         <span class="docs-sidebar-label">Build</span>
         <a href="/docs/agent-guide.html" class="docs-sidebar-link" data-docs-id="agent-guide">Agent guide</a>
+        <a href="/docs/projects.html" class="docs-sidebar-link" data-docs-id="projects">Projects</a>
         <a href="/docs/examples/" class="docs-sidebar-link" data-docs-id="examples">Examples</a>
         <a href="/docs/use-cases/" class="docs-sidebar-link" data-docs-id="use-cases">Use cases</a>
       </div>
@@ -96,20 +100,20 @@ console.log(data.count, data.tasks[0]?.id);</pre>
     </section>
 
     <section class="docs-section">
-      <h2>@azzle/agents — subgraph indexer</h2>
+      <h2>@azzle/agents — Base RPC discovery</h2>
       <div class="docs-pre">
         <div class="docs-pre-label"><span>TypeScript</span></div>
-        <pre>import { SubgraphIndexer } from "@azzle/agents";
+        <pre>import { RpcDiscovery } from "@azzle/agents";
 
-const indexer = new SubgraphIndexer();
+const indexer = new RpcDiscovery();
 const tasks = await indexer.getOpenTasks();
 for (const t of tasks.slice(0, 3)) {
-  console.log(t.id, t.state, t.budgetUsdc ?? "—", "USDC");
+  console.log(t.id, t.state, t.taskAmountAzl ?? "—", "AZL");
 }</pre>
       </div>
       <div class="docs-pre">
         <div class="docs-pre-label"><span>Expected output (example)</span></div>
-        <pre>42 POSTED 50 USDC</pre>
+        <pre>42 POSTED 500000000000000000000 AZL</pre>
       </div>
     </section>
 

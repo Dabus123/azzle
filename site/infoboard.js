@@ -1,6 +1,29 @@
 (function () {
   "use strict";
 
+  const COUNTDOWN_END = 1786676400;
+
+  function startCountdown() {
+    const daysEl = document.querySelector("[data-countdown-days]");
+    const hoursEl = document.querySelector("[data-countdown-hours]");
+    const minutesEl = document.querySelector("[data-countdown-minutes]");
+    const secondsEl = document.querySelector("[data-countdown-seconds]");
+    if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+    const tick = () => {
+      const remaining = Math.max(0, COUNTDOWN_END - Math.floor(Date.now() / 1000));
+      const days = Math.floor(remaining / 86400);
+      const hours = Math.floor((remaining % 86400) / 3600);
+      const minutes = Math.floor((remaining % 3600) / 60);
+      const seconds = remaining % 60;
+      daysEl.textContent = String(days).padStart(2, "0");
+      hoursEl.textContent = String(hours).padStart(2, "0");
+      minutesEl.textContent = String(minutes).padStart(2, "0");
+      secondsEl.textContent = String(seconds).padStart(2, "0");
+    };
+    tick();
+    window.setInterval(tick, 1000);
+  }
+
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   function rollCell(cell) {
@@ -38,27 +61,33 @@
     const board = el.closest(".rd-infoboard");
     if (!board) return;
     el.style.setProperty("--flap-scale", "1");
-    board.style.minHeight = "";
+    el.style.height = "";
     requestAnimationFrame(() => {
-      const bw = board.clientWidth;
+      const styles = getComputedStyle(board);
+      const bw = board.clientWidth -
+        Number.parseFloat(styles.paddingLeft) -
+        Number.parseFloat(styles.paddingRight);
       const sw = el.scrollWidth;
-      if (bw < 1 || sw <= bw) return;
-      const scale = bw / sw;
-      el.style.setProperty("--flap-scale", String(scale));
-      board.style.minHeight = `${el.getBoundingClientRect().height}px`;
+      if (bw < 1) return;
+      if (sw > bw) {
+        const scale = Math.min(1, bw / sw);
+        el.style.setProperty("--flap-scale", String(scale));
+        el.style.height = `${el.scrollHeight * scale}px`;
+      }
     });
   }
 
-  function buildFlapLine(el) {
-    if (el.dataset.flapBuilt === "1") return;
-    const text = (el.dataset.flapLine || "").trim().toUpperCase();
+  function buildFlapLine(el, explicitText) {
+    const text = (explicitText ?? el.dataset.flapLine ?? "").trim().toUpperCase();
     if (!text) return;
 
+    if (el.dataset.flapBuilt === "1" && el.dataset.flapText === text) return;
     el.textContent = "";
     el.setAttribute("role", "text");
     el.setAttribute("aria-label", text);
     el.dataset.flapBuilt = "1";
-    delete el.dataset.flapLine;
+    el.dataset.flapText = text;
+    if (!explicitText) delete el.dataset.flapLine;
 
     const cells = [];
     for (const ch of text) {
@@ -74,16 +103,15 @@
       el.appendChild(cell);
     }
 
-    cells.forEach((cell, i) => {
-      setTimeout(() => rollCell(cell), 140 + i * 46);
-    });
+    cells.forEach((cell, i) => setTimeout(() => rollCell(cell), 140 + i * 24));
     fitFlapLine(el);
   }
 
   function init() {
     if (window.__azzleInfoboardInit) return;
     window.__azzleInfoboardInit = true;
-    document.querySelectorAll("[data-flap-line]").forEach(buildFlapLine);
+    document.querySelectorAll("[data-flap-line]").forEach((el) => buildFlapLine(el));
+    startCountdown();
     window.addEventListener("resize", () => {
       document.querySelectorAll(".rd-infoboard-line").forEach(fitFlapLine);
     });

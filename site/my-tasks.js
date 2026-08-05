@@ -25,10 +25,10 @@
     return addr.slice(0, 6) + "…" + addr.slice(-4);
   }
 
-  function fmtUsdc(n) {
+  function fmtAzl(n) {
     const v = Number(n);
     if (!Number.isFinite(v)) return "—";
-    return "$" + (Math.round(v * 100) / 100).toLocaleString();
+    return (Math.round(v / 1e18 * 100) / 100).toLocaleString() + " AZL";
   }
 
   function fmtDate(ts) {
@@ -65,18 +65,10 @@
         hint: "Work is underway. You'll be notified when proof is submitted.",
         tone: "live",
       },
-      IN_REVIEW: {
-        label: "Ready to review",
-        hint: "The agent submitted proof — accept to pay out or open a dispute.",
-        tone: "action",
-      },
       COMPLETED: { label: "Complete", hint: "Escrow released to the agent.", tone: "done" },
       DISPUTED: { label: "Disputed", hint: "Escrow is frozen while arbitration runs.", tone: "warn" },
       RESOLVED: { label: "Resolved", hint: "Dispute settled onchain.", tone: "done" },
       CANCELLED: { label: "Cancelled", hint: "", tone: "muted" },
-      EXPIRED: { label: "Expired", hint: "", tone: "muted" },
-      PAUSED: { label: "Paused", hint: "Deposit below solvency floor — top up to resume.", tone: "warn" },
-      DELETED: { label: "Deleted", hint: "", tone: "muted" },
     };
     return map[state] ?? { label: state, hint: "", tone: "muted" };
   }
@@ -91,12 +83,20 @@
   }
 
   async function fetchTasks(address) {
-    const res = await fetch("/api/get-poster-tasks?address=" + encodeURIComponent(address), {
+    const res = await fetch("/api/get-open-tasks-v2?limit=100&state=ALL", {
       cache: "no-store",
     });
     const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(data.error || "Could not load tasks");
-    return data.tasks ?? [];
+    return (data.tasks ?? [])
+      .filter((task) => task.poster?.toLowerCase() === address.toLowerCase())
+      .map((task) => ({
+        ...task,
+        taskAmountAzl: task.totalAmountAzlWei,
+        fundedAzl: task.fundedAzlWei,
+        lockedAzl: task.fundedAzlWei,
+        registryAddress: task.registry,
+      }));
   }
 
   async function fetchTaskDetail(taskId) {
@@ -129,10 +129,10 @@
     let hint = "";
     if (isPrivate) {
       hint =
-        '<p class="rd-mytasks-scope-hint">Scope is not public. Share full terms via XMTP. Updating below publishes scope onchain (open discovery).</p>';
+        '<p class="rd-mytasks-scope-hint">Scope is not public. Share full terms via XMTP. Publishing is one-time and must exactly match the committed acceptance-criteria hash.</p>';
     } else if (isOpen) {
       hint =
-        '<p class="rd-mytasks-scope-hint">Scope is onchain — agents and the market can read it. Only you can update it.</p>';
+        '<p class="rd-mytasks-scope-hint">Scope is onchain — agents and the market can read it. Published scope is immutable.</p>';
     }
 
     return (
@@ -148,7 +148,7 @@
       '<button type="button" class="rd-action rd-mytasks-btn rd-mytasks-scope-save" data-action="scope" data-id="' +
       task.id +
       '">' +
-      (isOpen ? "Update scope onchain" : "Publish scope onchain") +
+      (isOpen ? "Scope published onchain" : "Publish committed scope onchain") +
       "</button>" +
       "</div>"
     );
@@ -156,7 +156,7 @@
 
   function actionButtons(task, detail) {
     const state = detail?.state ?? task.state;
-    const budget = detail?.budgetUsdc ?? task.budgetUsdc;
+    const budget = detail?.taskAmountAzl ?? task.taskAmountAzl;
     const funded = detail?.funded;
     const parts = [];
 
@@ -168,7 +168,7 @@
             '" data-budget="' +
             budget +
             '">Fund escrow (' +
-            fmtUsdc(budget) +
+            fmtAzl(budget) +
             ")</button>"
         );
       }
@@ -183,11 +183,11 @@
       );
     }
 
-    if (state === "IN_REVIEW") {
+    if (state === "ACTIVE" && detail?.deliveredAt) {
       parts.push(
         '<button type="button" class="rd-action rd-action--primary rd-mytasks-btn" data-action="accept" data-id="' +
           task.id +
-          '">Accept & pay out</button>'
+          '">Complete & pay out</button>'
       );
       parts.push(
         '<button type="button" class="rd-action rd-mytasks-btn rd-mytasks-btn--danger" data-action="dispute" data-id="' +
@@ -204,8 +204,8 @@
   function renderTaskCard(task, detail) {
     const meta = stateMeta(detail?.state ?? task.state);
     const worker = detail?.worker ?? task.worker;
-    const locked = detail?.lockedUsdc;
-    const budget = detail?.budgetUsdc ?? task.budgetUsdc;
+    const locked = detail?.lockedAzl;
+    const budget = detail?.taskAmountAzl ?? task.taskAmountAzl;
 
     return (
       '<article class="rd-mytasks-card rd-mytasks-card--' +
@@ -222,10 +222,10 @@
       "</span>" +
       "</div>" +
       '<div class="rd-mytasks-meta">' +
-      "<span>Budget " +
-      fmtUsdc(budget) +
-      " USDC</span>" +
-      (locked != null ? "<span>Escrow " + fmtUsdc(locked) + "</span>" : "") +
+      "<span>Amount " +
+      fmtAzl(budget) +
+      "</span>" +
+      (locked != null ? "<span>Escrow " + fmtAzl(locked) + "</span>" : "") +
       "<span>Posted " +
       fmtDate(task.createdAt) +
       "</span>" +
@@ -261,6 +261,22 @@
       list.hidden = true;
       empty.hidden = false;
       return;
+    }
+
+    const ledger = $("rd-mytasks-ledger");
+    const totals = tasks.reduce((sum, task) => {
+      sum.funded += Number(task.fundedAzlWei ?? 0) / 1e18;
+      sum.locked += Number(task.lockedAzl ?? task.fundedAzlWei ?? 0) / 1e18;
+      sum.released += Number(task.releasedAzlWei ?? 0) / 1e18;
+      if (task.state === "DISPUTED") sum.disputed += 1;
+      return sum;
+    }, { funded: 0, locked: 0, released: 0, disputed: 0 });
+    if (ledger) {
+      ledger.hidden = false;
+      $("rd-mytasks-funded").textContent = totals.funded.toLocaleString() + " AZL";
+      $("rd-mytasks-locked").textContent = totals.locked.toLocaleString() + " AZL";
+      $("rd-mytasks-released").textContent = totals.released.toLocaleString() + " AZL";
+      $("rd-mytasks-disputed").textContent = String(totals.disputed);
     }
 
     empty.hidden = true;
@@ -307,24 +323,27 @@
         const scope = (textarea?.value ?? "").trim();
         if (!scope) throw new Error("Scope cannot be empty");
         const detail = taskDetails.get(taskId);
+        if (detail?.discoveryOpen) {
+          throw new Error("Scope is already published and cannot be updated.");
+        }
         if (detail?.discoveryPrivate && !window.confirm(
-          "Publish scope onchain? Agents and the market will be able to read it."
+          "Publish this exact committed scope onchain? It is public and cannot be changed afterward."
         )) {
           throw new Error("Cancelled");
         }
         await api.setTaskScope(taskId, scope, progress);
-        progress("Scope updated onchain.", "ok");
+        progress("Scope published onchain.", "ok");
       } else if (action === "fund") {
-        await api.fundEscrow(taskId, budget, progress);
+        await api.fundV2(taskId, budget, progress);
         progress("Escrow funded.", "ok");
       } else if (action === "fund-start") {
-        await api.fundAndStart(taskId, budget, progress);
+        await api.fundAndActivate(taskId, budget, progress);
         progress("Work started — agent is on the job.", "ok");
       } else if (action === "accept") {
         if (!window.confirm("Accept this delivery and release escrow to the agent?")) {
           throw new Error("Cancelled");
         }
-        await api.acceptWork(taskId, progress);
+        await api.completeV2(taskId, progress);
         progress("Accepted — escrow released.", "ok");
       } else if (action === "dispute") {
         if (
@@ -374,8 +393,20 @@
 
     setStatus("Loading your tasks…", "busy");
     try {
+      const ledgerResponse = await fetch("/api/get-market-ledger?address=" + encodeURIComponent(walletAddress), { cache: "no-store" });
+      if (ledgerResponse.ok) {
+        const ledger = await ledgerResponse.json();
+        const ledgerEl = $("rd-mytasks-ledger");
+        if (ledgerEl) {
+          ledgerEl.hidden = false;
+          $("rd-mytasks-funded").textContent = fmtAzl(ledger.fundedAzlWei);
+          $("rd-mytasks-locked").textContent = fmtAzl(ledger.lockedAzlWei);
+          $("rd-mytasks-released").textContent = fmtAzl(ledger.releasedAzlWei);
+          $("rd-mytasks-disputed").textContent = String(ledger.disputed);
+        }
+      }
       const tasks = await fetchTasks(walletAddress);
-      const active = tasks.filter((t) => !["DELETED", "CANCELLED"].includes(t.state));
+      const active = tasks.filter((t) => t.state !== "CANCELLED");
       await renderTasks(active.length ? active : tasks);
       if (tasks.length) {
         setStatus(active.length + " task" + (active.length === 1 ? "" : "s") + " on Base.", "ok");

@@ -24,15 +24,15 @@ export default async function handler(req, res) {
     const billingWallet =
       process.env.AZZLE_BILLING_WALLET || MANIFEST?.feeRecipient || "";
     if (!billingWallet) throw new Error("Billing wallet not configured on server.");
-    if (!MANIFEST?.usdc) throw new Error("USDC address missing from manifest.");
+    if (!MANIFEST?.external?.usdc) throw new Error("USDC address missing from V2 manifest.");
     const { applyUpgrade } = await import("./lib/posting-limits.js");
     const quota = await applyUpgrade({
       address: body.address,
       tier: body.tier,
       txHash: body.txHash,
       billingWallet,
-      usdcAddress: MANIFEST.usdc,
-      azlAddress: MANIFEST.azlToken,
+      usdcAddress: MANIFEST.external.usdc,
+      azlAddress: MANIFEST.external.azl,
       rpcUrl: process.env.BASE_RPC_URL || "https://mainnet.base.org",
       payWith: body.payWith ?? "usdc",
       quoteId: body.quoteId,

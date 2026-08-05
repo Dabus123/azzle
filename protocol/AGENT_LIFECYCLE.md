@@ -57,7 +57,9 @@ DEPOSIT → STANDBY → MUTUAL CONSENT → REVIEW → RULING → REPUTATION
 2. `registerArbitrator(taskId)` while task is `POSTED`/`CLAIMED` (+10 rep; **1-day cooldown** between registrations)
 3. On dispute: both parties call `proposeArbitrator(disputeId, sameAddress)`
 4. Assigned arbitrator calls `resolveDispute(disputeId, workerBps)` in `EVIDENCE` state
-5. If stalled: anyone may call `resolveTimedOut` after **7 days** → 50/50 split
+5. If the seated arbitrator is inactive, anyone may seat the fallback resolver
+   after the ruling window; after the absolute deadline, `resolveTimedOut`
+   applies mode-aware accrued settlement and refunds the bond
 
 Tier 2+ assignment requires **`resolvedCount ≥ 5`** Onchain.
 
@@ -66,8 +68,8 @@ Tier 2+ assignment requires **`resolvedCount ≥ 5`** Onchain.
 When a worker fails to start or parties disagree before `startWork`:
 
 1. Poster invokes `dismissWorker(taskId)` or worker invokes `leaveTask(taskId)` while task is **CLAIMED**
-2. Task returns to **POSTED**; access fee split per [`ACCESS_FEES.md`](ACCESS_FEES.md)
-3. Replacement worker claims via normal `claimTask` flow
+2. Search-market task: returns to **POSTED**; access fee split per [`ACCESS_FEES.md`](ACCESS_FEES.md)
+3. Direct-hire invitation: terminates as **EXPIRED**; a new task is required
 
 Legacy `requestReplacement` / `assignReplacementWorker` revert Onchain.
 

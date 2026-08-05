@@ -92,6 +92,17 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
       return buildSiteConfigResponse();
     }
 
+    if (method === "GET" && pathname === "/api/union/overview") {
+      try {
+        const { getUnionOverview } = await import("../api/lib/union-staking.js");
+        return apiJson(200, await getUnionOverview(), {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+        });
+      } catch (e) {
+        return apiJson(502, { error: e.message ?? String(e) });
+      }
+    }
+
     if (method === "GET" && pathname === "/api/posting/plans") {
       return apiJson(200, {
         plans: Object.values(PLANS),
@@ -166,7 +177,7 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         });
       } catch (e) {
-        return apiJson(502, { error: "Base RPC unavailable", detail: e.message ?? String(e) });
+        return apiJson(502, { error: e.message ?? String(e) });
       }
     }
 
@@ -179,7 +190,7 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         });
       } catch (e) {
-        return apiJson(502, { error: "Base RPC unavailable", detail: e.message ?? String(e) });
+        return apiJson(502, { error: e.message ?? String(e) });
       }
     }
 
@@ -192,7 +203,25 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
         if (!task) return apiJson(404, { error: "Task not found" });
         return apiJson(200, { task });
       } catch (e) {
-        return apiJson(502, { error: "Base RPC unavailable", detail: e.message ?? String(e) });
+        return apiJson(503, { error: e.message ?? String(e) });
+      }
+    }
+
+    if (method === "GET" && (pathname === "/api/get-legacy-open-tasks" || pathname === "/api/market/legacy")) {
+      try {
+        const { listLegacyTasks } = await import("../api/get-legacy-open-tasks.js");
+        const limit = searchParams.get("limit");
+        return apiJson(200, await listLegacyTasks(limit ?? 100), {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+        });
+      } catch (e) {
+        const message = e.message ?? String(e);
+        return apiJson(502, {
+          error: /rate limit|429|too many requests/i.test(message)
+            ? "legacy_rpc_rate_limited"
+            : "legacy_archive_unavailable",
+          message,
+        });
       }
     }
 
@@ -226,15 +255,15 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
     if (method === "POST" && pathname === "/api/posting/upgrade") {
       try {
         if (!BILLING_WALLET) throw new Error("Billing wallet not configured on server.");
-        if (!MANIFEST?.usdc) throw new Error("USDC address missing from manifest.");
+        if (!MANIFEST?.external?.usdc) throw new Error("USDC address missing from V2 manifest.");
         const { applyUpgrade } = await postingLimits();
         const quota = await applyUpgrade({
           address: body.address,
           tier: body.tier,
           txHash: body.txHash,
           billingWallet: BILLING_WALLET,
-          usdcAddress: MANIFEST.usdc,
-          azlAddress: MANIFEST.azlToken,
+          usdcAddress: MANIFEST.external.usdc,
+          azlAddress: MANIFEST.external.azl,
           rpcUrl: BASE_RPC,
           payWith: body.payWith ?? "usdc",
           quoteId: body.quoteId,

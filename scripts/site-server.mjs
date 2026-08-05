@@ -45,6 +45,7 @@ async function serveStatic(pathname, res) {
   if (rel === "/post" || rel === "/post/") rel = "/post.html";
   if (rel === "/pricing" || rel === "/pricing/") rel = "/pricing.html";
   if (rel === "/market" || rel === "/market/") rel = "/market.html";
+  if (rel === "/union" || rel === "/union/") rel = "/union.html";
   if (rel === "/my-tasks" || rel === "/my-tasks/") rel = "/my-tasks.html";
   if (rel === "/wallet" || rel === "/wallet/") rel = "/wallet.html";
   if (rel === "/docs" || rel === "/docs/") rel = "/docs/index.html";
@@ -55,6 +56,7 @@ async function serveStatic(pathname, res) {
   if (rel === "/docs/agents" || rel === "/docs/agent-guide") rel = "/docs/agent-guide.html";
   if (rel === "/docs/authentication") rel = "/docs/authentication.html";
   if (rel === "/docs/reliability") rel = "/docs/reliability.html";
+  if (rel === "/docs/union-staking") rel = "/docs/union-staking.html";
   if (rel === "/docs/changelog") rel = "/docs/changelog.html";
   if (rel === "/docs/support") rel = "/docs/support.html";
   if (rel === "/docs/examples" || rel === "/docs/examples/") rel = "/docs/examples/index.html";

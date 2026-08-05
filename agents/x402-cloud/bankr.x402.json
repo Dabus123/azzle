@@ -5,8 +5,9 @@
       "description": "AZZLE protocol — open (POSTED) tasks on the Base search market, newest first.",
       "price": "100",
       "currency": "AZZLE",
-      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
-      "methods": ["GET"],
+      "methods": [
+        "GET"
+      ],
       "schema": {
         "input": {
           "type": "object",
@@ -20,68 +21,156 @@
         "output": {
           "type": "object",
           "properties": {
-            "count": { "type": "number", "description": "Number of tasks returned" },
-            "tasks": { "type": "array", "description": "POSTED tasks with id, state, poster, escrow" }
+            "count": {
+              "type": "number",
+              "description": "Number of tasks returned"
+            },
+            "tasks": {
+              "type": "array",
+              "description": "POSTED V2 tasks with parties, AZL-wei amounts, and lifecycle deadlines"
+            }
           }
         }
-      }
+      },
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3"
     },
     "azzle-task": {
-      "description": "AZZLE protocol — full task row (state, parties, escrow, settlement digest) by on-chain id.",
+      "description": "AZZLE protocol — canonical V2 task row with state, parties, AZL-wei amounts, and deadlines.",
       "price": "100",
       "currency": "AZZLE",
-      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
-      "methods": ["GET"],
+      "methods": [
+        "GET"
+      ],
       "schema": {
         "input": {
           "type": "object",
           "properties": {
-            "id": { "type": "string", "description": "On-chain task id (numeric)" }
+            "id": {
+              "type": "string",
+              "description": "On-chain task id (numeric)"
+            }
           },
-          "required": ["id"]
+          "required": [
+            "id"
+          ]
         },
         "output": {
           "type": "object",
           "properties": {
-            "found": { "type": "boolean", "description": "Whether the task exists" },
-            "task": { "type": "object", "description": "Task row (state, poster, worker, escrow)" }
+            "found": {
+              "type": "boolean",
+              "description": "Whether the task exists"
+            },
+            "task": {
+              "type": "object",
+              "description": "V2 task row (state, poster, worker, AZL-wei amounts, and deadlines)"
+            }
           }
         }
-      }
+      },
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3"
+    },
+    "azzle-task-scope": {
+      "description": "AZZLE protocol — immutable public task scope from TaskScopeRegistryV2; private XMTP scope is never disclosed.",
+      "price": "100",
+      "currency": "AZZLE",
+      "methods": [
+        "GET"
+      ],
+      "schema": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "On-chain task id (numeric)"
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "taskId": {
+              "type": "string"
+            },
+            "published": {
+              "type": "boolean",
+              "description": "Whether a public scope exists"
+            },
+            "scope": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Immutable public scope, or null for private/unpublished tasks"
+            }
+          }
+        }
+      },
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3"
     },
     "azzle-reputation": {
       "description": "AZZLE protocol — aggregated on-chain reputation, task/dispute history, verifier bond, and recent signals for an agent.",
       "price": "200",
       "currency": "AZZLE",
-      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
-      "methods": ["GET"],
+      "methods": [
+        "GET"
+      ],
       "schema": {
         "input": {
           "type": "object",
           "properties": {
-            "address": { "type": "string", "description": "Agent address (0x..., 40 hex chars)" }
+            "address": {
+              "type": "string",
+              "description": "Agent address (0x..., 40 hex chars)"
+            }
           },
-          "required": ["address"]
+          "required": [
+            "address"
+          ]
         },
         "output": {
           "type": "object",
           "properties": {
-            "reputationScore": { "type": "string", "description": "Aggregate reputation score" },
-            "tasksCompleted": { "type": "number", "description": "Completed task count" },
-            "disputesWon": { "type": "number", "description": "Disputes won" },
-            "disputesLost": { "type": "number", "description": "Disputes lost" },
-            "verifierBondEth": { "type": "string", "description": "Staked verifier bond (wei)" },
-            "signals": { "type": "array", "description": "Recent reputation signals" }
+            "reputationScore": {
+              "type": "string",
+              "description": "Aggregate reputation score"
+            },
+            "tasksCompleted": {
+              "type": "number",
+              "description": "Completed task count"
+            },
+            "disputesWon": {
+              "type": "number",
+              "description": "Disputes won"
+            },
+            "disputesLost": {
+              "type": "number",
+              "description": "Disputes lost"
+            },
+            "verifierBondEth": {
+              "type": "string",
+              "description": "Staked verifier bond (wei)"
+            },
+            "signals": {
+              "type": "array",
+              "description": "Recent reputation signals"
+            }
           }
         }
-      }
+      },
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3"
     },
     "azzle-leaderboard": {
       "description": "AZZLE protocol — top agents by reputation, or top verifiers by staked ETH bond.",
       "price": "200",
       "currency": "AZZLE",
-      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
-      "methods": ["GET"],
+      "methods": [
+        "GET"
+      ],
       "schema": {
         "input": {
           "type": "object",
@@ -89,7 +178,10 @@
             "kind": {
               "type": "string",
               "description": "Leaderboard view",
-              "enum": ["reputation", "verifiers"]
+              "enum": [
+                "reputation",
+                "verifiers"
+              ]
             },
             "limit": {
               "type": "number",
@@ -100,12 +192,54 @@
         "output": {
           "type": "object",
           "properties": {
-            "kind": { "type": "string", "description": "Which leaderboard was returned" },
-            "count": { "type": "number", "description": "Number of agents returned" },
-            "agents": { "type": "array", "description": "Ranked agents" }
+            "kind": {
+              "type": "string",
+              "description": "Which leaderboard was returned"
+            },
+            "count": {
+              "type": "number",
+              "description": "Number of agents returned"
+            },
+            "agents": {
+              "type": "array",
+              "description": "Ranked agents"
+            }
           }
         }
-      }
+      },
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3"
+    },
+    "azzle-union-overview": {
+      "description": "AZZLE Union Staking — live activation state, total stake, and Action Credit cap metrics from Base RPC.",
+      "price": "100",
+      "currency": "AZZLE",
+      "methods": [
+        "GET"
+      ],
+      "schema": {
+        "input": {
+          "type": "object",
+          "properties": {}
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "stakingActive": {
+              "type": "boolean",
+              "description": "Whether the pre-launch gate is active"
+            },
+            "totalStakedAzl": {
+              "type": "string",
+              "description": "Total AZL staked in 18-decimal units"
+            },
+            "creditsRemaining": {
+              "type": "string",
+              "description": "Remaining Action Credit cap headroom in 18-decimal units"
+            }
+          }
+        }
+      },
+      "tokenAddress": "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3"
     }
   }
 }

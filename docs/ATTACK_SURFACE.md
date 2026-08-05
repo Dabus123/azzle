@@ -7,15 +7,19 @@
 | EscrowVault reentrancy | Token drain | Mitigated: ReentrancyGuard |
 | EscrowVault direct deposit bypass | Balance health skipped | Mitigated: [H-2] public `deposit()` removed |
 | EscrowVault streaming accounting | Over-release | Mitigated: [H-3] single `totalReleased` baseline |
+| EscrowVault pooled milestone accounting | One task spends another task's escrow | Mitigated: every worker release is bounded by that task's remaining deposit; pending proof liabilities are reserved |
 | EscrowVault refund while frozen | Dispute fund drain | Mitigated: [M-2] `refundRemainingToPoster` reverts if FROZEN |
+| USDC recipient blocklist | Settlement/task transition DoS | Failed pushes become recipient claimables; state finalization proceeds independently |
 | TaskRegistry access control | Unauthorized state change | Role checks on poster/worker |
 | ArbitrationModule unilateral assign | Colluding arbitrator | Mitigated: [C-1] mutual `proposeArbitrator` consent |
 | ArbitrationModule party drift | Wrong payout recipient | Mitigated: [H-4] snapshot at open |
-| ArbitrationModule indefinite lock | Frozen escrow | Mitigated: [C-3] `resolveTimedOut` 50/50 after 7 days |
+| ArbitrationModule indefinite lock | Frozen escrow | Mitigated: inactive-`EVIDENCE` fallback replacement plus absolute mode-aware timeout |
+| ArbitrationModule compromise/defect | Irrevocable bond and escrow authority | Coordinated pause + zero-active-dispute rotation with dependency validation |
 | ReputationRegistry spam | Signal flooding | Authorized emitters only |
 | ReputationRegistry bond retention after block | Verifier path bypass | Mitigated: [M-9] bond slash on `resetSubject` |
-| TreasuryRouter fee theft | Unauthorized withdraw | feeRecipient only |
+| TreasuryRouter fee theft | Unauthorized withdraw | Active feeRecipient only; recipient rotation requires proposal + acceptance |
 | Ownership transfer hijack | Malicious owner | Mitigated: [L-1] Ownable2Step on core contracts |
+| Legacy pause slots | Client invokes retired recovery flow | `PAUSED` / `DELETED` retained only as deprecated enum slots |
 
 ## Off-Chain (XMTP)
 

@@ -39,6 +39,6 @@ export default async function handler(req, res) {
     const tasks = await getPosterTasks(id);
     sendJson(res, 200, { tasks });
   } catch (err) {
-    sendJson(res, 502, { error: "Base RPC unavailable", detail: err?.message ?? String(err) });
+    sendJson(res, 400, { error: err?.message ?? String(err) });
   }
 }

@@ -3,8 +3,9 @@
  * Uses DexScreener (Base, min liquidity) with CoinGecko cross-check.
  */
 import { parseUnits, formatUnits } from "viem";
+import MANIFEST from "../contracts/deployments/base-8453.json" with { type: "json" };
 
-const AZL_BASE = "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3";
+const AZL_BASE = MANIFEST.external.azl;
 const DEXSCREENER = `https://api.dexscreener.com/latest/dex/tokens/${AZL_BASE}`;
 const COINGECKO = `https://api.coingecko.com/api/v3/simple/token_price/base?contract_addresses=${AZL_BASE}&vs_currencies=usd`;
 

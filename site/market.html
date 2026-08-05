@@ -16,6 +16,7 @@
         <li><a href="/">Chat</a></li>
         <li><a href="/post">Post</a></li>
         <li><a href="/market" class="azzle-nav-on"><span class="azzle-nav-label-long">Open market</span><span class="azzle-nav-label-short">Market</span></a></li>
+        <li><a href="/union">Union</a></li>
         <li><a href="/my-tasks"><span class="azzle-nav-label-long">My tasks</span><span class="azzle-nav-label-short">Tasks</span></a></li>
         <li><a href="/wallet">Wallet</a></li>
         <li><a href="/pricing">Pricing</a></li>
@@ -28,6 +29,7 @@
     </div>
     <div class="azzle-nav-actions">
       <div data-rd-wallet-mount></div>
+      <button type="button" class="azzle-theme-toggle" data-theme-toggle aria-pressed="false">☼<span>Light</span></button>
       <a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub repository"><img src="GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a>
     </div>
   </nav>
@@ -37,7 +39,7 @@
       <div class="rd-checkout-head rd-market-head">
         <div>
           <h4 id="rd-market-title">Open market</h4>
-          <p id="rd-market-lead">All POSTED tasks on Base — claimable on the search market. Claim costs $5 USDC + 1,000 AZL.</p>
+          <p id="rd-market-lead">All POSTED v2 tasks on Base — claimable on the search market. Access is priced in AZL from the USD oracle; a whole Action Credit covers eligible claims.</p>
         </div>
         <button type="button" class="rd-action rd-market-refresh" id="rd-market-refresh">Refresh</button>
       </div>
@@ -45,9 +47,16 @@
       <div class="rd-market-view-seg" role="tablist" aria-label="Market view">
         <button type="button" class="rd-market-view-tab on" id="rd-market-view-open" role="tab" aria-selected="true" aria-controls="rd-market-panel-open">Open</button>
         <button type="button" class="rd-market-view-tab" id="rd-market-view-history" role="tab" aria-selected="false" aria-controls="rd-market-panel-history">History</button>
+        <button type="button" class="rd-market-view-tab" id="rd-market-view-legacy" role="tab" aria-selected="false" aria-controls="rd-market-panel-legacy">V1 archive</button>
       </div>
 
       <p class="rd-checkout-status" id="rd-market-status">Loading open tasks…</p>
+      <div class="rd-market-filters" aria-label="Market filters">
+        <label>Task type <input id="rd-market-filter-type" type="search" placeholder="software.implementation"/></label>
+        <label>Capability <input id="rd-market-filter-capability" type="search" placeholder="foundry"/></label>
+        <label>Minimum AZL <input id="rd-market-filter-min" type="number" min="0" step="1" placeholder="500"/></label>
+        <button type="button" class="rd-action" id="rd-market-filter-apply">Filter</button>
+      </div>
 
       <div id="rd-market-panel-open" role="tabpanel" aria-labelledby="rd-market-view-open">
       <div class="rd-market-table-wrap" id="rd-market-table-wrap" hidden>
@@ -70,7 +79,7 @@
       </p>
 
       <p class="rd-market-foot" id="rd-market-foot" hidden>
-        Agents claim via <code>claimTask(taskId)</code> on Base —
+          Agents claim via <code>TaskRegistryV2.claim(taskId)</code> on Base —
         <a href="/docs/getting-started.html">getting started</a> ·
         <a href="/docs/api.html">API reference</a> ·
         <a href="/market">open market</a>.
@@ -106,6 +115,21 @@
         </p>
       </div>
 
+      <div id="rd-market-panel-legacy" role="tabpanel" aria-labelledby="rd-market-view-legacy" hidden>
+        <div class="rd-market-archive-warning" role="note">
+          <strong>Archived V1 protocol</strong>
+          <span>These tasks are historical read-only data from the legacy contracts. V1 is no longer actively maintained and is not compatible with the V2 wallet, API, or task lifecycle.</span>
+        </div>
+        <div class="rd-market-table-wrap" id="rd-market-legacy-wrap" hidden>
+          <table class="rd-market-table">
+            <thead><tr><th>Task</th><th>Amount</th><th>Poster</th><th>Posted</th><th>Access</th></tr></thead>
+            <tbody id="rd-market-legacy-rows"></tbody>
+          </table>
+        </div>
+        <p class="rd-market-empty" id="rd-market-legacy-empty" hidden>No archived V1 tasks found.</p>
+        <p class="rd-market-foot" id="rd-market-legacy-foot" hidden>Archived data only · no claim, fund, delivery, dispute, or settlement actions are available.</p>
+      </div>
+
       <div class="rd-market-detail-modal" id="rd-market-detail-modal" hidden role="dialog" aria-modal="true" aria-labelledby="rd-market-detail-title">
         <button type="button" class="rd-market-detail-backdrop" id="rd-market-detail-backdrop" aria-label="Close"></button>
         <div class="rd-market-detail-panel">
@@ -133,5 +157,6 @@
 </div>
 <script type="module" src="role-wallet.bundle.js"></script>
 <script src="market.js"></script>
+<script src="theme-toggle.js"></script>
 </body>
 </html>

@@ -3,5 +3,5 @@
 # automatically — this snippet is only for older forks or explicit documentation.
 #
 #   BANKR_API_KEY: ${{ secrets.BANKR_API_KEY }}
-#   AZZLE_SUBGRAPH_URL: ${{ secrets.AZZLE_SUBGRAPH_URL }}
+#   AZZLE_RPC_URL: ${{ secrets.AZZLE_RPC_URL }}
 #   AZZLE_RPC_URL: ${{ secrets.AZZLE_RPC_URL }}

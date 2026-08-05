@@ -1,0 +1,96 @@
+(function (global) {
+  "use strict";
+
+  // Generated from contracts/deployments/base-8453.json.
+  // Keep this object read-only in browser code; writes still go through the
+  // wallet bridge and must be confirmed by the user.
+  const config = Object.freeze({
+    version: "2.0.0",
+    chainId: 8453,
+    network: "base",
+    deploymentBlock: 49500861,
+    governance: "0xB459145b74Ca4B198f73C0d573a161e85CA76D27",
+    factory: "0xB2A2705867E5776e956cB6dAAa2545E7ee08772f",
+    bundleHash: "0x6410808b72caa94aba508b5e612440edaf4abdf21e6f39fae21885eaa6ca6d90",
+    contracts: Object.freeze({
+      observationOracle: "0x724c5cF1Cd1dc331BD5Bb314224ed38c41607b9B",
+      twapAdapter: "0xf9CD67d49859343bD9B9C7dbb86ae039411d5040",
+      usdOracle: "0xDc3bffd0E0B1325F227567fc3514C18d69057993",
+      pricingPolicy: "0xd19E9A25d138d6D9A1d0E4CEe81075051AEF5813",
+      depositVault: "0x1A7eD8154dbc0a4914cf8D2181A5d5441fdDaca6",
+      escrowVault: "0x8AaF6c200132d82Ffc3bDE3767B8b8780188b563",
+      reputationRegistry: "0x48D201570dAeabf32182b1371509daBDB993bf40",
+      verifierBondVault: "0xF3b9b03BEF4C35ACc94AE39fc5A8D0AAB4BC904A",
+      stakingVault: "0xE1D883C0A0ADb2f60828E6876cA4eBA80691a9d0",
+      treasuryRouter: "0xa64E6Cf8F01C56c905EcAA978C4B4388090dCbf5",
+      taskRegistry: "0x5126022A836d47A1c39Cea48A9ef89fAE88772B6",
+      arbitrationModule: "0x2501988000Df2CF1c98c14d33113DF5Dc1a4DC90",
+      paymentGateway: "0x0391302DE456c7E1f50244676C5C01723AEf17D0",
+      taskScopeRegistry: "0x788FA4BF2462Ed91bdFee7Ab0a962bFfa721dAC8",
+      usdcWethLeg: "0x483EfAc0E6242E230f3756D66178A71eE0Bd4B5c",
+      exactInputExecutor: "0x00DBcAfB070b7615A7F7d539faa63427DFf8d4D7",
+    }),
+    tokens: Object.freeze({
+      usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      azl: "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
+      weth: "0x4200000000000000000000000000000000000006",
+    }),
+    taskStates: Object.freeze([
+      "NONE",
+      "POSTED",
+      "CLAIMED",
+      "ACTIVE",
+      "DISPUTED",
+      "COMPLETED",
+      "CANCELLED",
+      "RESOLVED",
+    ]),
+    resolutions: Object.freeze(["NONE", "POSTER_WINS", "WORKER_WINS", "SPLIT", "MUTUAL"]),
+    economics: Object.freeze({
+      entryDepositUsd: 25,
+      liveTaskReserveUsd: 8,
+      accessFeeUsd: 5,
+      exitCompensationUsd: 2.5,
+      exitProtocolShareUsd: 2.5,
+      accessFee: "oracle-derived AZL via AzlPricingPolicy.accessFeeAzl()",
+      taskUnit: "AZL",
+      maxTaskDurationDays: 30,
+      fundingWindowDays: 1,
+      deliveryGraceWindowDays: 1,
+    }),
+    external: Object.freeze({
+      chainId: 8453,
+      usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      weth: "0x4200000000000000000000000000000000000006",
+      azl: "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
+      poolManager: "0x498581fF718922c3f8e6A244956aF099B2652b2b",
+      universalRouter: "0x6fF5693b99212Da76ad316178A184AB56D299b43",
+      hook: "0xBDF938149ac6a781F94FAa0ed45E6A0e984c6544",
+      ethUsdFeed: "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+      poolId: "0xaa7a431d1f79ea1f96f4299cce18267b278eb417bd8457b33f3be3c2645254ad",
+    }),
+    finalizedTx: "0x17a8c5345d6d72a970ecd0b5bfa0d711d0971e894f23a1d69bb8b7ee93af8811",
+    risk: Object.freeze({
+      burnRecipient: "0x41f35485Dea9e5e7C683d1C6CA650e8179c606ba",
+      minimumVerifierBondAzl: "10000000000000000000000",
+      stakingRewardDuration: 604800,
+      maxFeedAge: 3600,
+      twapWindow: 7200,
+      maxObservationGap: 900,
+      minimumActiveLiquidity: "500000000000000000000000",
+      evidenceWindow: 259200,
+      rulingWindow: 172800,
+      slashCapBps: 1000,
+      maxExecutionDeviationBps: 500,
+      creditContext: "0xe91d6ee3c1d1bdaac72313c14a9aed7f57d85be1424544bf74fe86adb3054f5a",
+    }),
+    credits: Object.freeze({
+      baseStakeAzl: 100000000,
+      periodDays: 30,
+      lifetimeCap: 600000,
+      activationRequired: true,
+    }),
+  });
+
+  global.AZZLE_V2_CONFIG = config;
+})(window);

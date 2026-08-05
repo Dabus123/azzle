@@ -20,12 +20,13 @@ export function buildSiteConfigResponse() {
     rpcUrl: BASE_RPC,
     contracts: MANIFEST
       ? {
-          usdc: MANIFEST.usdc,
-          azlToken: MANIFEST.azlToken,
-          TaskRegistry: MANIFEST.TaskRegistry,
-          AgentDepositVault: MANIFEST.AgentDepositVault,
-          TreasuryRouter: MANIFEST.TreasuryRouter,
-          EscrowVault: MANIFEST.EscrowVault,
+          usdc: MANIFEST.external.usdc,
+          azlToken: MANIFEST.external.azl,
+          taskRegistry: MANIFEST.taskRegistry,
+          depositVault: MANIFEST.depositVault,
+          treasuryRouter: MANIFEST.treasuryRouter,
+          escrowVault: MANIFEST.escrowVault,
+          stakingVault: MANIFEST.stakingVault,
         }
       : null,
     billingWallet: BILLING_WALLET || null,

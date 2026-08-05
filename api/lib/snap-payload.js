@@ -51,13 +51,40 @@ function total(state) {
   return state.human + state.agent || 1;
 }
 
+function variantCopy(variant) {
+  const v = String(variant ?? "").toLowerCase();
+  if (v === "builders") {
+    return {
+      title: "Builder mode — prompting or agentic?",
+      body: "Quick vibe check for builders: are you still prompting, or running agents end-to-end?",
+    };
+  }
+  if (v === "mcp") {
+    return {
+      title: "MCP mode — manual or agentic?",
+      body: "Are you still hand-wiring tools, or shipping agentic loops? Vote and watch the split.",
+    };
+  }
+  if (v === "work") {
+    return {
+      title: "Work mode — coordinating or agentic?",
+      body: "Do you still coordinate tasks manually, or run autonomous loops with proof + payout?",
+    };
+  }
+  return {
+    title: "Escape Prompting Hell?",
+    body: "AZZLE on Base — USDC escrow task markets. Vote: still prompting or went agentic?",
+  };
+}
+
 /**
  * @param {{ human: number; agent: number; voters: number[] }} state
- * @param {{ fid?: number|null; snapUrl?: string }} opts
+ * @param {{ fid?: number|null; snapUrl?: string; snapId?: string; variant?: string|null }} opts
  */
 export function buildSnapPayload(state, opts = {}) {
-  const { fid = null, snapUrl = SNAP_BASE } = opts;
+  const { fid = null, snapUrl = SNAP_BASE, snapId = "global", variant = null } = opts;
   const snapBase = snapUrl.replace(/\/$/, "");
+  const copy = variantCopy(variant);
   const humanPct = Math.round((state.human / total(state)) * 100);
   const agentPct = 100 - humanPct;
   const voted = fid != null && state.voters.includes(fid);
@@ -76,13 +103,13 @@ export function buildSnapPayload(state, opts = {}) {
         },
         title: {
           type: "text",
-          props: { content: "Escape Prompting Hell?", weight: "bold", align: "center" },
+          props: { content: copy.title, weight: "bold", align: "center" },
         },
         body: {
           type: "text",
           props: {
             content:
-              "AZZLE on Base — USDC escrow task markets. Vote: still prompting or went agentic?",
+              copy.body,
             size: "sm",
           },
         },
@@ -109,7 +136,7 @@ export function buildSnapPayload(state, opts = {}) {
           on: {
             press: {
               action: "submit",
-              params: { target: `${snapBase}/?action=human` },
+              params: { target: `${snapBase}/?i=${encodeURIComponent(snapId)}&v=${encodeURIComponent(String(variant ?? \"\"))}&action=human` },
             },
           },
         },
@@ -119,7 +146,7 @@ export function buildSnapPayload(state, opts = {}) {
           on: {
             press: {
               action: "submit",
-              params: { target: `${snapBase}/?action=agent` },
+              params: { target: `${snapBase}/?i=${encodeURIComponent(snapId)}&v=${encodeURIComponent(String(variant ?? \"\"))}&action=agent` },
             },
           },
         },
@@ -141,7 +168,7 @@ export function buildSnapPayload(state, opts = {}) {
               action: "compose_cast",
               params: {
                 text: `Human Terminal: agents post, claim, prove, and get paid on Base. ${MINIAPP_URL}`,
-                embeds: [snapBase, MINIAPP_URL],
+                embeds: [`${snapBase}/?i=${encodeURIComponent(snapId)}&v=${encodeURIComponent(String(variant ?? \"\"))}`, MINIAPP_URL],
               },
             },
           },
@@ -151,10 +178,13 @@ export function buildSnapPayload(state, opts = {}) {
   };
 }
 
-export function snapFallbackHtml(snapUrl = SNAP_BASE) {
+export function snapFallbackHtml(snapUrl = SNAP_BASE, opts = {}) {
   const snap = snapUrl.replace(/\/$/, "");
-  const miniapp = miniappEmbedJson(snap);
-  const frame = frameEmbedJson(snap);
+  const snapId = String(opts.snapId ?? "global");
+  const variant = opts.variant != null ? String(opts.variant) : "";
+  const snapWithParams = `${snap}/?i=${encodeURIComponent(snapId)}${variant ? `&v=${encodeURIComponent(variant)}` : ""}`;
+  const miniapp = miniappEmbedJson(snapWithParams);
+  const frame = frameEmbedJson(snapWithParams);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -165,14 +195,14 @@ export function snapFallbackHtml(snapUrl = SNAP_BASE) {
 <meta property="og:title" content="AZZLE Snap — Human Terminal"/>
 <meta property="og:description" content="Vote your mode. Live poll + Human Terminal mini app on Base."/>
 <meta property="og:image" content="${OG_IMAGE}"/>
-<meta property="og:url" content="${snap}"/>
-<link rel="alternate" type="application/vnd.farcaster.snap+json" href="${snap}"/>
+<meta property="og:url" content="${snapWithParams}"/>
+<link rel="alternate" type="application/vnd.farcaster.snap+json" href="${snapWithParams}"/>
 <meta name="fc:miniapp" content='${miniapp}'/>
 <meta name="fc:frame" content='${frame}'/>
-<link rel="canonical" href="${snap}"/>
+<link rel="canonical" href="${snapWithParams}"/>
 </head>
 <body>
-<p>AZZLE Human Terminal Snap — <a href="${snap}">open interactive poll</a> · <a href="${MINIAPP_URL}">mini app</a></p>
+<p>AZZLE Human Terminal Snap — <a href="${snapWithParams}">open interactive poll</a> · <a href="${MINIAPP_URL}">mini app</a></p>
 </body>
 </html>`;
 }

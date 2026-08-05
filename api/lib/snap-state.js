@@ -1,7 +1,7 @@
 /**
  * Human Terminal snap vote tallies — Redis in production, memory in dev.
  */
-const KV_KEY = "snap:human-terminal:votes";
+const KV_KEY_BASE = "snap:human-terminal:votes";
 
 /** @type {{ human: number; agent: number; voters: number[] }} */
 const memory = { human: 0, agent: 0, voters: [] };
@@ -16,6 +16,16 @@ function useRedis() {
 /** @type {import("@upstash/redis").Redis | null} */
 let redisClient = null;
 
+function normalizeSnapId(id) {
+  const raw = String(id ?? "global").trim();
+  const safe = raw.replace(/[^a-zA-Z0-9:_-]/g, "_").slice(0, 120);
+  return safe || "global";
+}
+
+function kvKey(id) {
+  return `${KV_KEY_BASE}:${normalizeSnapId(id)}`;
+}
+
 async function getRedis() {
   if (redisClient) return redisClient;
   const { Redis } = await import("@upstash/redis");
@@ -26,9 +36,9 @@ async function getRedis() {
 }
 
 /** @returns {Promise<{ human: number; agent: number; voters: number[] }>} */
-export async function getVoteState() {
+export async function getVoteState(id = "global") {
   if (useRedis()) {
-    const data = await (await getRedis()).get(KV_KEY);
+    const data = await (await getRedis()).get(kvKey(id));
     if (data && typeof data === "object") {
       return {
         human: Number(data.human ?? 0),
@@ -42,8 +52,8 @@ export async function getVoteState() {
 }
 
 /** @param {"human"|"agent"} action @param {number|null} fid */
-export async function recordVote(action, fid) {
-  const state = await getVoteState();
+export async function recordVote(action, fid, id = "global") {
+  const state = await getVoteState(id);
   const voters = new Set(state.voters);
 
   if (fid != null) {
@@ -57,7 +67,7 @@ export async function recordVote(action, fid) {
   state.voters = [...voters];
 
   if (useRedis()) {
-    await (await getRedis()).set(KV_KEY, state);
+    await (await getRedis()).set(kvKey(id), state);
   } else {
     memory.human = state.human;
     memory.agent = state.agent;

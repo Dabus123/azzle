@@ -14,7 +14,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { BaseRpcIndexer } from "../dist/sdk/base-rpc-indexer.js";
+import { RpcDiscovery } from "../dist/sdk/rpc-discovery.js";
 import {
   AZZLE_TOOLS,
   BANKR_PROMPTS,
@@ -30,11 +30,13 @@ import {
   verifySettlementDigest,
 } from "./xmtp-helpers.mjs";
 
+const indexer = new RpcDiscovery();
 const manifest = JSON.parse(
   readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../deployments/base-8453.json"), "utf8")
 );
-
-const indexer = new BaseRpcIndexer();
+if (manifest.version !== "2.0.0" || manifest.chainId !== "8453") {
+  throw new Error("AZZLE V2 manifest has the wrong version or chain");
+}
 
 const server = new Server(
   { name: "azzle", version: "0.4.0" },
@@ -51,6 +53,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+  const requestedVersion = String(args?.protocolVersion ?? "v2");
+  if (requestedVersion !== "v2") {
+    return { content: [{ type: "text", text: "Only AZZLE V2 is supported." }], isError: true };
+  }
 
   try {
     switch (name) {
@@ -75,11 +81,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
       case "azzle_get_agent_reputation": {
+        const address = String(args?.address ?? "");
+        const agent = await indexer.getAgentReputation(address);
         return {
           content: [
             {
               type: "text",
-              text: "Use the paid azzle-reputation x402 Cloud endpoint for reputation history.",
+              text: agent ? JSON.stringify(agent, null, 2) : `No agent ${address}`,
             },
           ],
         };
@@ -94,9 +102,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 "1. Fund wallet with ETH + USDC on Base",
                 "2. Swap to ≥ 10,000 AZZLE",
                 "3. approve USDC → AgentDepositVault",
-                "4. approve AZZLE → TreasuryRouter",
-                "5. AgentDepositVault.topUp(≥ $25 USDC)",
-                "6. postTask or claimTask ($5 USDC + 1,000 AZZLE each)",
+                "4. approve AZZLE → TreasuryRouter when not using an Action Credit",
+                "5. AgentDepositVault.topUp (entry minimum is $25 USDC; bound tasks also reserve $8 + bond)",
+                "6. postTask or claimTask (standard $5 USDC + 1,000 AZZLE; a whole Action Credit covers eligible post/create/claim fees)",
                 "",
                 "Prepare helpers (agents/): npm run mcp:prepare -- hash-criteria --text \"...\"",
                 "  npm run mcp:prepare -- prepare-receipt --task-id ... --worker ... --artifact-hash ...",

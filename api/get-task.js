@@ -39,6 +39,6 @@ export default async function handler(req, res) {
 
     sendJson(res, 200, { task });
   } catch (err) {
-    sendJson(res, 502, { error: "Base RPC unavailable", detail: err?.message ?? String(err) });
+    sendJson(res, 503, { error: err?.message ?? String(err) });
   }
 }

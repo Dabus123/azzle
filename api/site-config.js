@@ -1,19 +1,12 @@
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const MANIFEST = require("../contracts/deployments/base-8453.json");
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
-};
-
-const MANIFEST = {
-  chainId: "8453",
-  usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-  azlToken: "0x931517E9502F9d52CDF6F5AC7fca7925e2A1BBA3",
-  feeRecipient: "0x41f35485Dea9e5e7C683d1C6CA650e8179c606ba",
-  EscrowVault: "0xd1f3058650ab22250d139dba5b2b48118071dc36",
-  TaskRegistry: "0x0a47c3a2d515ec3a23f225a7bac1b0a1654e4d48",
-  TreasuryRouter: "0x6bEBf56a67c8B38cB4d8FF328252FbE9662201b6",
-  AgentDepositVault: "0x62808379CbDEfe7E8b2FcD659158E49463c34e5D",
-  TaskScopeRegistry: "0x6D6074b5eff00f549fD9329Cd1F280F2558Ce6b0",
 };
 
 const PLANS = [
@@ -45,9 +38,9 @@ export default function handler(req, res) {
     return;
   }
 
-  const billingWallet = process.env.AZZLE_BILLING_WALLET || MANIFEST.feeRecipient || "";
+  const billingWallet = process.env.AZZLE_BILLING_WALLET || MANIFEST.governance || "";
   const taskScopeRegistry =
-    process.env.NEXT_TASK_SCOPE_ADDRESS?.trim() || MANIFEST.TaskScopeRegistry || null;
+    process.env.NEXT_TASK_SCOPE_ADDRESS?.trim() || MANIFEST.taskScopeRegistry || null;
 
   sendJson(res, 200, {
     privyAppId: process.env.PRIVY_APP_ID || "",
@@ -56,13 +49,40 @@ export default function handler(req, res) {
     chainName: "Base",
     rpcUrl: process.env.BASE_RPC_URL || "https://mainnet.base.org",
     contracts: {
-      usdc: MANIFEST.usdc,
-      azlToken: MANIFEST.azlToken,
-      TaskRegistry: MANIFEST.TaskRegistry,
-      AgentDepositVault: MANIFEST.AgentDepositVault,
-      TreasuryRouter: MANIFEST.TreasuryRouter,
-      EscrowVault: MANIFEST.EscrowVault,
-      TaskScopeRegistry: taskScopeRegistry,
+      usdc: MANIFEST.external.usdc,
+      azlToken: MANIFEST.external.azl,
+      taskRegistry: MANIFEST.taskRegistry,
+      depositVault: MANIFEST.depositVault,
+      treasuryRouter: MANIFEST.treasuryRouter,
+      escrowVault: MANIFEST.escrowVault,
+      stakingVault: MANIFEST.stakingVault,
+      arbitrationModule: MANIFEST.arbitrationModule,
+      reputationRegistry: MANIFEST.reputationRegistry,
+      verifierBondVault: MANIFEST.verifierBondVault,
+      usdOracle: MANIFEST.usdOracle,
+      pricingPolicy: MANIFEST.pricingPolicy,
+      paymentGateway: MANIFEST.paymentGateway,
+      taskScopeRegistry,
+      observationOracle: MANIFEST.observationOracle,
+      twapAdapter: MANIFEST.twapAdapter,
+      usdcWethLeg: MANIFEST.usdcWethLeg,
+      exactInputExecutor: MANIFEST.exactInputExecutor,
+      factory: MANIFEST.factory,
+      governance: MANIFEST.governance,
+      external: MANIFEST.external,
+      risk: MANIFEST.risk,
+      actionCredits: MANIFEST.actionCredits,
+    },
+    v2: true,
+    taskUnit: "AZL",
+    taskStates: ["NONE", "POSTED", "CLAIMED", "ACTIVE", "DISPUTED", "COMPLETED", "CANCELLED", "RESOLVED"],
+    economics: {
+      entryDepositUsd: 25,
+      liveTaskReserveUsd: 8,
+      accessFeeUsd: 5,
+      exitCompensationUsd: 2.5,
+      exitProtocolShareUsd: 2.5,
+      accessFee: "oracle-derived AZL via AzlPricingPolicy.accessFeeAzl()",
     },
     billingWallet: billingWallet || null,
     postingPlans: PLANS,

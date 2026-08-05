@@ -1,0 +1,22 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "mocha", "@nomicfoundation/hardhat-ethers"]
+  },
+  "include": [
+    "../hardhat.config.ts",
+    "./check-contract-size.ts",
+    "./check-v2-manifest.ts",
+    "./deploy-v2.ts",
+    "./deploy-utils.ts",
+    "./inspect-wiring.ts",
+    "./preflight-deploy.ts",
+    "./promote-manifest.ts",
+    "./record-v2-observation.ts",
+    "./record-v2-observations-loop.ts",
+    "./suite-manifest.ts",
+    "./transfer-protocol-ownership.ts",
+    "./verify-base.ts"
+  ]
+}

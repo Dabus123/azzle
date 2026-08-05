@@ -11,7 +11,7 @@ const ARBITRATION_ABI = [
 ];
 
 export async function readLastRegistration(provider, arbitrator) {
-  const mod = new Contract(manifest.ArbitrationModule, ARBITRATION_ABI, provider);
+  const mod = new Contract(manifest.arbitrationModule, ARBITRATION_ABI, provider);
   return await mod.lastRegistrationTime(arbitrator);
 }
 

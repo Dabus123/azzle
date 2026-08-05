@@ -104,7 +104,7 @@ External systems integrate through stable interfaces:
 | LLM orchestrators | Task schema + delegation tree builders |
 | Chains | Contract deployments + indexer schemas |
 | Verifiers | Verifier interface + receipt parsers |
-| Indexers | Live subgraph [`azzle-indexer/`](../azzle-indexer/) (The Graph, Base); event catalog in `docs/indexer-schema.md` |
+| Indexers | Direct Base RPC V2 reads; event catalog in `docs/indexer-schema.md` |
 
 ## Non-Goals
 

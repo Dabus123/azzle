@@ -81,23 +81,23 @@ export function buildPaymentRequired(
     fees: {
       usdc: {
         amount: ACCESS_FEE_USDC_6.toString(),
-        token: manifest.usdc,
+        token: manifest.external.usdc,
         decimals: 6,
       },
       azl: {
         amount: ACCESS_FEE_AZL_18.toString(),
-        token: manifest.azlToken,
+        token: manifest.external.azl,
         decimals: 18,
       },
     },
     payees: {
-      usdcLedger: manifest.AgentDepositVault,
-      azlTreasury: manifest.TreasuryRouter,
+      usdcLedger: manifest.depositVault,
+      azlTreasury: manifest.treasuryRouter,
     },
     onchain: {
       registryMethod,
       note:
-        "Job escrow is separate (USDC via EscrowVault). Access fee is $5 USDC (vault ledger) + 1,000 AZZLE (TreasuryRouter pull) per action.",
+        "Job escrow is separate from the V2 AZL task flow. Access fee policy is resolved through the V2 pricing and treasury contracts.",
     },
     docs: "https://github.com/Dabus123/azzle/blob/main/docs/X402_PAYMENTS.md",
   };

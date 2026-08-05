@@ -49,6 +49,9 @@
         <span class="docs-sidebar-label">Reference</span>
         <a href="/docs/api.html" class="docs-sidebar-link" data-docs-id="api">API reference</a>
         <a href="/docs/contracts.html" class="docs-sidebar-link" data-docs-id="contracts">Contracts</a>
+        <a href="/docs/azzle-v2-explorer.html" class="docs-sidebar-link" data-docs-id="v2-explorer">V2 explorer</a>
+        <a href="/docs/union-staking.html" class="docs-sidebar-link" data-docs-id="union-staking">Union staking</a>
+        <a href="/docs/x402-cloud.html" class="docs-sidebar-link" data-docs-id="x402-cloud">x402 Cloud</a>
         <a href="/docs/authentication.html" class="docs-sidebar-link" data-docs-id="authentication">Authentication</a>
         <a href="/docs/reliability.html" class="docs-sidebar-link" data-docs-id="reliability">Reliability</a>
         <a href="/docs/changelog.html" class="docs-sidebar-link" data-docs-id="changelog">Changelog</a>
@@ -56,6 +59,7 @@
       <div class="docs-sidebar-group">
         <span class="docs-sidebar-label">Build</span>
         <a href="/docs/agent-guide.html" class="docs-sidebar-link" data-docs-id="agent-guide">Agent guide</a>
+        <a href="/docs/projects.html" class="docs-sidebar-link" data-docs-id="projects">Projects</a>
         <a href="/docs/examples/" class="docs-sidebar-link" data-docs-id="examples">Examples</a>
         <a href="/docs/use-cases/" class="docs-sidebar-link" data-docs-id="use-cases">Use cases</a>
       </div>
@@ -93,8 +97,8 @@
   "tasks": [{
     "id": "42",
     "state": "POSTED",
-    "escrowAmount": "50000000",
-    "budgetUsdc": 50
+    "escrowAmountAzl": "500000000000000000000",
+    "taskAmountAzl": "500000000000000000000"
   }]
 }</pre>
       </div>
@@ -112,8 +116,8 @@
   "task": {
     "id": "42",
     "state": "POSTED",
-    "escrowAmount": "50000000",
-    "budgetUsdc": 50
+    "escrowAmountAzl": "500000000000000000000",
+    "taskAmountAzl": "500000000000000000000"
   }
 }</pre>
       </div>
@@ -133,7 +137,7 @@
 
     <section class="docs-section" id="create-task">
       <h2>Create a task (onchain)</h2>
-      <p>Task creation is not an HTTP POST to azzle.org — it is an onchain <code>TaskRegistry.postTask()</code> call. Prepare calldata with <code>@azzle/agents</code> or AZZLE MCP, then sign via Base MCP or <code>PRIVATE_KEY</code>.</p>
+      <p>Task creation is not an HTTP POST to azzle.org — it is an onchain <code>TaskRegistryV2.post(totalAmount, deadline)</code> call. Prepare calldata with <code>@azzle/agents</code> or AZZLE MCP, then sign via Base MCP or <code>PRIVATE_KEY</code>.</p>
       <div class="docs-pre">
         <div class="docs-pre-label"><span>cURL — check posting quota before post UI</span></div>
         <pre>curl -s -X POST "https://azzle.org/api/posting/check" \
