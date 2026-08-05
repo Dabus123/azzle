@@ -29,6 +29,10 @@ for (const key of required) {
 }
 
 async function main() {
+  if (!process.env.BASE_RPC_URL?.trim()) {
+    console.log("Skipping live V2 manifest bytecode check: BASE_RPC_URL is not configured.");
+    return;
+  }
   const network = await ethers.provider.getNetwork();
   if (network.chainId !== 8453n) throw new Error(`expected Base, got chain ${network.chainId}`);
 

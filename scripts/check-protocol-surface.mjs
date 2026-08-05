@@ -3,9 +3,10 @@
  * surfaces. Historical audit and x-ray materials are intentionally excluded.
  */
 import { readdir, readFile } from "node:fs/promises";
-import { join, relative, sep } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("..", import.meta.url).pathname.replace(/^\//, "");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ignored = new Set([
   "node_modules", ".git", "public", ".tmp", ".tmp-size-check", "audit", "x-ray",
   "fizz_data", "coverage", "dist", ".agents",
