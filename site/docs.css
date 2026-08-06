@@ -2,7 +2,47 @@
 body.page-docs{
   padding-top:var(--nav-h);
   min-height:100vh;
+  /*
+   * Documentation is intentionally a fixed reading surface. It does not
+   * inherit the app's dark/light preference: yellow paper and high-contrast
+   * ink keep long protocol references calm and printable.
+   */
+  --bg:#dfff00;
+  --surface:#edff56;
+  --s2:#d4f500;
+  --card:#f5ff84;
+  --b:rgba(20,28,0,.28);
+  --b2:rgba(20,28,0,.46);
+  --b3:#4b5700;
+  --text:#151b00;
+  --muted:#354000;
+  --dim:#586600;
+  --heading:#0a0e00;
+  --accent:#263300;
+  --accent-hi:#121900;
+  --accent-lo:#465400;
+  --accent-dim:rgba(38,51,0,.14);
+  --accent-glow:rgba(38,51,0,.22);
+  --on-accent:#eaff00;
+  --purple:#4c4ca5;
+  --purple-dim:rgba(76,76,165,.10);
+  --warn:#8b4300;
+  --danger:#a51f20;
+  --row-hover:rgba(20,28,0,.11);
+  --border-faint:rgba(20,28,0,.22);
+  --shadow:0 10px 28px rgba(38,51,0,.20);
+  background:var(--bg);
+  color:var(--text);
 }
+
+body.page-docs .azzle-nav,
+body.page-docs .rd-subnav{
+  background:rgba(223,255,0,.94);
+  border-color:var(--b);
+}
+body.page-docs .azzle-nav-logo img,
+body.page-docs .rd-subnav-logo img{filter:invert(1)}
+body.page-docs .azzle-theme-toggle--floating{display:none}
 
 /* Top bar extras */
 .docs-topnav-cta{
@@ -104,15 +144,15 @@ body.page-docs{
 }
 .docs-sidebar-link:hover{
   color:var(--heading);
-  background:rgba(255,255,255,.04);
+  background:var(--row-hover);
   border-color:var(--b);
 }
 .docs-sidebar-link.on,
 .docs-sidebar-link[aria-current="page"]{
   color:var(--heading);
   background:var(--accent-dim);
-  border-color:rgba(220,255,40,.22);
-  box-shadow:0 0 0 1px rgba(220,255,40,.12);
+  border-color:var(--accent-lo);
+  box-shadow:0 0 0 1px var(--accent-glow);
 }
 .docs-sidebar-link.on::before,
 .docs-sidebar-link[aria-current="page"]::before{
@@ -134,7 +174,7 @@ body.page-docs{
 .docs-sidebar-link--meta[aria-current="page"]{
   color:var(--heading);
   background:var(--s2);
-  border-color:rgba(220,255,40,.28);
+  border-color:var(--accent-lo);
 }
 .docs-sidebar-foot{
   margin-top:auto;
@@ -299,7 +339,7 @@ a.docs-sidebar-market:hover{
   border-bottom:1px solid var(--b);
   text-transform:uppercase;
   letter-spacing:.07em;
-  background:rgba(0,0,0,.2);
+  background:var(--s2);
 }
 .docs-pre pre{
   margin:0;
@@ -331,7 +371,7 @@ a.docs-sidebar-market:hover{
 @media(hover:hover) and (pointer:fine){
   .docs-card:hover{
     border-color:var(--accent-lo);
-    box-shadow:0 4px 20px rgba(0,0,0,.25);
+    box-shadow:var(--shadow);
     transform:translateY(-2px);
   }
 }
@@ -403,7 +443,7 @@ a.docs-sidebar-market:hover{
   font-size:12px;
   text-transform:uppercase;
   letter-spacing:.04em;
-  background:rgba(0,0,0,.15);
+  background:var(--s2);
 }
 .docs-table-wrap tr:hover td{background:var(--row-hover)}
 .docs-table-wrap a{color:var(--accent);text-decoration:none}
@@ -434,7 +474,7 @@ a.docs-sidebar-market:hover{
   padding:2px 8px;
   border-radius:4px;
   background:var(--s2);
-  border:1px solid rgba(220,255,40,.3);
+  border:1px solid var(--accent-lo);
   color:var(--heading);
   margin-left:8px;
   vertical-align:middle;
@@ -443,8 +483,8 @@ a.docs-sidebar-market:hover{
 /* Docs pages — keep active nav pill readable */
 .page-docs .azzle-nav-app a.azzle-nav-on{
   color:var(--heading);
-  background:rgba(220,255,40,.14);
-  box-shadow:inset 0 0 0 1px rgba(220,255,40,.28);
+  background:var(--accent-dim);
+  box-shadow:inset 0 0 0 1px var(--accent-lo);
 }
 
 /* Legacy wrap alias */
