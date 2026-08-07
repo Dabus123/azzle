@@ -13,7 +13,9 @@ const ABI = [
   { type: "function", name: "tasks", stateMutability: "view", inputs: [{ type: "uint256" }], outputs: [
     { name: "poster", type: "address" }, { name: "worker", type: "address" },
     { name: "totalAmount", type: "uint256" }, { name: "funded", type: "uint256" },
-    { name: "released", type: "uint256" }, { name: "deadline", type: "uint64" }, { name: "state", type: "uint8" },
+    { name: "released", type: "uint256" }, { name: "deadline", type: "uint64" },
+    { name: "fundingDeadline", type: "uint64" }, { name: "deliveredAt", type: "uint64" },
+    { name: "state", type: "uint8" },
   ] },
 ];
 
@@ -41,9 +43,9 @@ export async function listV2Tasks({
     const row = await client.readContract({ address: m.taskRegistry, abi: ABI, functionName: "tasks", args: [BigInt(id)] });
     const task = {
       protocolVersion: "v2", id: `v2:${id}`, localTaskId: String(id), asset: "AZL",
-      state: STATES[Number(row[6])] ?? "UNKNOWN", poster: row[0], worker: row[1] === zeroAddress ? null : row[1],
+      state: STATES[Number(row[8])] ?? "UNKNOWN", poster: row[0], worker: row[1] === zeroAddress ? null : row[1],
       totalAmountAzlWei: row[2].toString(), fundedAzlWei: row[3].toString(), releasedAzlWei: row[4].toString(),
-      deadline: Number(row[5]), registry: m.taskRegistry,
+      deadline: Number(row[5]), fundingDeadline: Number(row[6]), deliveredAt: Number(row[7]), registry: m.taskRegistry,
     };
     if (metadataUri) task.metadata = await resolveMetadata(metadataUri);
     if (task.metadata) task.metadataTrust = metadataTrust(task.metadata);

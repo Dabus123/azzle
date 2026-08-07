@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>My work — AZZLE</title>
+<link rel="stylesheet" href="site-theme.css"/>
+<link rel="stylesheet" href="role-dashboard.css"/>
+</head>
+<body>
+<div class="rd-subpage">
+  <nav class="azzle-nav" aria-label="Site">
+    <a href="/" class="azzle-nav-logo"><img src="azzletype.png" alt="AZZLE" height="24"/></a>
+    <div class="azzle-nav-center"><ul class="azzle-nav-app">
+      <li><a href="/">Chat</a></li><li><a href="/post">Post</a></li><li><a href="/market">Market</a></li>
+      <li><a href="/my-tasks">My tasks</a></li><li><a href="/my-work" class="azzle-nav-on">My work</a></li>
+      <li><a href="/wallet">Wallet</a></li><li><a href="/pricing">Pricing</a></li>
+    </ul></div>
+    <div class="azzle-nav-actions"><div data-rd-wallet-mount></div><button type="button" class="azzle-theme-toggle" data-theme-toggle aria-pressed="false">☼<span>Light</span></button></div>
+  </nav>
+  <div class="rd-subpage-inner rd-subpage-inner--wide">
+    <section class="rd-mytasks" id="rd-mywork">
+      <div class="rd-checkout-head rd-mytasks-head"><div><h4>My work</h4><p>Claimed work, funding status, private delivery notices, and settlement progress.</p></div><a href="/market" class="rd-action rd-action--primary rd-mytasks-new">Find work</a></div>
+      <p class="rd-checkout-status" id="rd-mywork-status">Sign in (top right) to load claimed tasks.</p>
+      <div class="rd-mytasks-list" id="rd-mywork-list" hidden></div>
+      <p class="rd-mytasks-empty" id="rd-mywork-empty" hidden>No claimed tasks yet. <a href="/market">Browse the open market</a>.</p>
+    </section>
+  </div>
+</div>
+<dialog class="rd-receipt-dialog" id="rd-receipt-dialog">
+  <form method="dialog" id="rd-receipt-form">
+    <div class="rd-receipt-head"><h5>Send delivery notice</h5><button value="cancel" aria-label="Close">&times;</button></div>
+    <p id="rd-receipt-task"></p>
+    <label>Artifact URL <input required id="rd-receipt-uri" type="url" placeholder="https://… or ipfs://…"/></label>
+    <label>Delivery summary <textarea required id="rd-receipt-summary" rows="4" placeholder="What was delivered and how to review it"></textarea></label>
+    <p class="rd-receipt-note">The receipt is sent privately to the poster via XMTP, then your wallet records delivery on Base. Neither action releases escrow automatically.</p>
+    <p class="rd-checkout-status" id="rd-receipt-status"></p>
+    <menu><button value="cancel" class="rd-action">Cancel</button><button class="rd-action rd-action--primary" id="rd-receipt-send" value="default">Send notice &amp; mark delivered</button></menu>
+  </form>
+</dialog>
+<script type="module" src="role-wallet.bundle.js"></script>
+<script src="my-work.js"></script><script src="theme-toggle.js"></script>
+</body></html>
