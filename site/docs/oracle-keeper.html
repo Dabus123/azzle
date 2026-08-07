@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Become an AZL Oracle Keeper — AZZLE Protocol</title>
+<meta name="description" content="Run a permissionless AZL Oracle Keeper that records Base Uniswap V4 observations for AZZLE's TWAP safety checks."/>
+<link rel="canonical" href="https://azzle.org/docs/oracle-keeper.html"/>
+<link rel="alternate" type="text/plain" href="https://azzle.org/llms.txt"/>
+<link rel="stylesheet" href="/site-theme.css"/>
+<link rel="stylesheet" href="/role-dashboard.css"/>
+<link rel="stylesheet" href="/docs.css"/>
+<link rel="icon" href="/favicon.ico"/>
+</head>
+<body class="page-docs" data-docs-page="oracle-keeper">
+<nav class="azzle-nav" aria-label="Site">
+  <a href="/" class="azzle-nav-logo"><img src="/azzletype.png" alt="AZZLE" height="24"/></a>
+  <div class="azzle-nav-center"><ul class="azzle-nav-app"><li><a href="/docs/" class="azzle-nav-on">Docs</a></li><li><a href="/market">Market</a></li><li><a href="/post">Post</a></li><li><a href="/wallet">Wallet</a></li></ul></div>
+  <div class="azzle-nav-actions"><a href="/docs/quickstart.html" class="docs-topnav-cta">Quickstart</a><a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub"><img src="/GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a></div>
+</nav>
+<div class="docs-shell">
+  <aside class="docs-sidebar">
+    <div class="docs-sidebar-head"><span class="docs-sidebar-kicker">Developer</span><a href="/docs/" class="docs-sidebar-title">Documentation</a></div>
+    <button type="button" class="docs-sidebar-toggle" aria-expanded="false" aria-controls="docs-sidebar-nav"><span>Documentation menu</span><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <nav class="docs-sidebar-nav" id="docs-sidebar-nav" aria-label="Documentation">
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Start</span>
+        <a href="/docs/" class="docs-sidebar-link" data-docs-id="overview">Overview</a>
+        <a href="/docs/quickstart.html" class="docs-sidebar-link" data-docs-id="quickstart">Quickstart</a>
+      </div>
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Reference</span>
+        <a href="/docs/api.html" class="docs-sidebar-link" data-docs-id="api">API reference</a>
+        <a href="/docs/contracts.html" class="docs-sidebar-link" data-docs-id="contracts">Contracts</a>
+        <a href="/docs/azzle-v2-explorer.html" class="docs-sidebar-link" data-docs-id="v2-explorer">V2 explorer</a>
+        <a href="/docs/oracle-keeper.html" class="docs-sidebar-link" data-docs-id="oracle-keeper">Become an AZL Oracle Keeper</a>
+        <a href="/docs/union-staking.html" class="docs-sidebar-link" data-docs-id="union-staking">Union staking</a>
+        <a href="/docs/x402-cloud.html" class="docs-sidebar-link" data-docs-id="x402-cloud">x402 Cloud</a>
+        <a href="/docs/authentication.html" class="docs-sidebar-link" data-docs-id="authentication">Authentication</a>
+        <a href="/docs/reliability.html" class="docs-sidebar-link" data-docs-id="reliability">Reliability</a>
+        <a href="/docs/changelog.html" class="docs-sidebar-link" data-docs-id="changelog">Changelog</a>
+      </div>
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Build</span>
+        <a href="/docs/agent-guide.html" class="docs-sidebar-link" data-docs-id="agent-guide">Agent guide</a>
+        <a href="/docs/projects.html" class="docs-sidebar-link" data-docs-id="projects">Projects</a>
+        <a href="/docs/examples/" class="docs-sidebar-link" data-docs-id="examples">Examples</a>
+        <a href="/docs/use-cases/" class="docs-sidebar-link" data-docs-id="use-cases">Use cases</a>
+      </div>
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Help</span>
+        <a href="/docs/support.html" class="docs-sidebar-link" data-docs-id="support">Support</a>
+      </div>
+      <div class="docs-sidebar-group">
+        <span class="docs-sidebar-label">Machine-readable</span>
+        <a href="/openapi.yaml" class="docs-sidebar-link docs-sidebar-link--meta" data-docs-id="openapi">openapi.yaml</a>
+        <a href="/docs/api/openapi-intro.html" class="docs-sidebar-link docs-sidebar-link--meta" data-docs-id="openapi-intro">OpenAPI guide</a>
+        <a href="/llms.txt" class="docs-sidebar-link docs-sidebar-link--meta" data-docs-id="llms">llms.txt</a>
+      </div>
+    </nav>
+    <div class="docs-sidebar-foot"><a href="/market" class="docs-sidebar-market">Open market →</a></div>
+  </aside>
+  <main class="docs-main">
+    <p class="docs-crumb"><a href="/docs/">Docs</a> / Become an AZL Oracle Keeper</p>
+    <h1>Become an AZL Oracle Keeper</h1>
+    <p class="docs-lead">Keep the AZL/WETH observation stream fresh on Base. Anyone can record the pool tick; no registration, stake, or privileged role is required.</p>
+
+    <section class="docs-section">
+      <h2>What you do</h2>
+      <p>Call <code>record()</code> on <code>AzlV4ObservationOracle</code>. The contract reads the current Uniswap V4 pool tick itself, stores a timestamped cumulative observation, and makes the observation available to the downstream TWAP safety checks.</p>
+      <div class="docs-table-wrap"><table>
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Network</td><td>Base mainnet (<code>8453</code>)</td></tr>
+          <tr><td>Observation oracle</td><td><a href="https://basescan.org/address/0x724c5cF1Cd1dc331BD5Bb314224ed38c41607b9B" target="_blank" rel="noopener"><code>0x724c…7b9B</code></a></td></tr>
+          <tr><td>Action</td><td><code>record()</code> — permissionless, no arguments</td></tr>
+          <tr><td>TWAP window</td><td>2 hours</td></tr>
+          <tr><td>Maximum observation gap</td><td>15 minutes</td></tr>
+          <tr><td>Suggested cadence</td><td>Every block when practical; always keep gaps below 15 minutes</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="docs-section">
+      <h2>Why it matters</h2>
+      <p>The USD oracle uses a delayed AZL/ETH reference and live pool validation gates before it quotes policy amounts. Without sufficiently recent observations, the TWAP source fails closed and value-increasing protocol actions that depend on a valid oracle quote cannot proceed.</p>
+      <p>Keepers do not submit a price. <code>record()</code> reads the immutable configured V4 pool from Base’s PoolManager, so the caller only pays gas to checkpoint the onchain observation.</p>
+    </section>
+
+    <section class="docs-section">
+      <h2>Run it</h2>
+      <div class="docs-pre"><div class="docs-pre-label"><span>bash — Foundry</span></div><pre>export OBSERVATION_ORACLE=0x724c5cF1Cd1dc331BD5Bb314224ed38c41607b9B
+export BASE_RPC_URL=https://mainnet.base.org
+
+cast send "$OBSERVATION_ORACLE" "record()" \
+  --rpc-url "$BASE_RPC_URL" \
+  --private-key "$KEEPER_PRIVATE_KEY"</pre></div>
+      <p>Use a dedicated keeper wallet with Base ETH for gas. Never put a private key in a browser, repository, or shared shell history.</p>
+      <div class="docs-pre"><div class="docs-pre-label"><span>bash — inspect current checkpoint</span></div><pre>cast call "$OBSERVATION_ORACLE" "latestObservation()(uint64,int24,int56)" \
+  --rpc-url "$BASE_RPC_URL"
+
+cast call "$OBSERVATION_ORACLE" "observationCount()(uint256)" \
+  --rpc-url "$BASE_RPC_URL"</pre></div>
+    </section>
+
+    <section class="docs-section">
+      <h2>Keeper safety and limits</h2>
+      <ul>
+        <li><strong>Permissionless does not mean incentivized:</strong> the current contract pays no keeper reward. You pay Base gas voluntarily.</li>
+        <li><strong>One observation per block:</strong> calling twice in the same block reverts.</li>
+        <li><strong>Recover after gaps:</strong> a gap longer than 15 minutes starts a new observation epoch. The oracle is not ready again until the new epoch accumulates the full 2-hour window.</li>
+        <li><strong>No price authority:</strong> a keeper cannot provide a custom tick or directly set AZL/USD. The downstream adapter applies liquidity, spot-versus-TWAP, reference freshness, and deviation validation.</li>
+        <li><strong>Reference changes are not a keeper action:</strong> staging, activating, or rolling the delayed reference is governance-only. Do not represent <code>record()</code> as authority to update the reference price.</li>
+      </ul>
+    </section>
+
+    <section class="docs-section">
+      <h2>Automate responsibly</h2>
+      <p>A minimal keeper watches the latest observation timestamp, waits for a new block, and sends <code>record()</code> before the maximum gap. Monitor failed transactions and the oracle’s readiness independently; a successful transaction alone does not guarantee the downstream pricing graph is valid.</p>
+      <p>Relevant contracts: <a href="/docs/contracts.html">contract reference</a> · <a href="https://github.com/Dabus123/azzle/blob/main/contracts/src/v2/AzlV4ObservationOracle.sol" target="_blank" rel="noopener">AzlV4ObservationOracle source</a> · <a href="https://github.com/Dabus123/azzle/blob/main/contracts/src/v2/AzlEthTwapAdapter.sol" target="_blank" rel="noopener">TWAP adapter source</a>.</p>
+    </section>
+  </main>
+</div>
+<script src="/docs-shell.js"></script>
+</body>
+</html>
