@@ -5,11 +5,16 @@
   let openTaskId = null;
   let currentView = "open";
   let closeModalTimer = 0;
+  let activeTask = null;
   const v2Tasks = new Map();
   const legacyTasks = new Map();
 
   const $ = (id) => document.getElementById(id);
   const BASESCAN = "https://basescan.org";
+
+  function walletApi() {
+    return window.azzlePoster ?? null;
+  }
 
   function setStatus(text, kind) {
     const el = $("rd-market-status");
@@ -202,6 +207,7 @@
     const title = $("rd-market-detail-title");
     const sub = $("rd-market-detail-sub");
     const status = $("rd-market-detail-status");
+    const actions = $("rd-market-detail-actions");
 
     if (!grid || !task) return;
 
@@ -286,6 +292,61 @@
           : "");
       links.hidden = false;
     }
+
+    if (actions) {
+      const api = walletApi();
+      const address = api?.address?.toLowerCase();
+      const canClaim =
+        task.protocolVersion !== "v1-archived" &&
+        task.state === "POSTED" &&
+        address &&
+        address !== task.poster?.toLowerCase();
+      actions.innerHTML = canClaim
+        ? '<button type="button" class="rd-action rd-action--primary" id="rd-market-claim">Claim task</button>' +
+          '<p class="rd-market-claim-note" id="rd-market-claim-note">Checking AZL collateral and Base gas…</p>'
+        : "";
+      actions.hidden = !canClaim;
+      if (canClaim) {
+        $("rd-market-claim")?.addEventListener("click", () => claimTask(task));
+        showClaimReadiness(api);
+      }
+    }
+  }
+
+  async function showClaimReadiness(api) {
+    const note = $("rd-market-claim-note");
+    try {
+      const readiness = await api.claimReadiness();
+      if (!note) return;
+      const collateral = readiness.hasCollateral
+        ? "Collateral ready"
+        : "Need " + fmtAzl(Number(readiness.requiredDepositAzl) * 1e18) + " protocol collateral";
+      note.textContent = collateral + " · " + (readiness.hasGas ? "Base gas ready" : "add ETH for Base gas") + ". Final eligibility is checked onchain.";
+    } catch {
+      if (note) note.textContent = "Readiness unavailable. The contract checks eligibility when you claim.";
+    }
+  }
+
+  async function claimTask(task) {
+    const api = walletApi();
+    if (!api?.address) {
+      setDetailStatus("Sign in top-right to claim.", "err");
+      return;
+    }
+    const button = $("rd-market-claim");
+    if (button) button.disabled = true;
+    try {
+      setDetailStatus("Confirm the claim in your wallet…", "busy");
+      const result = await api.claimV2(String(task.localTaskId ?? task.id).replace(/^v2:/, ""), (message) => {
+        setDetailStatus(message, "busy");
+      });
+      setDetailStatus("Claimed on Base: " + result.hash, "ok");
+      await loadOpenTasks();
+      if (openTaskId) await openDetail(openTaskId);
+    } catch (error) {
+      setDetailStatus(error?.message ?? "Could not claim task", "err");
+      if (button) button.disabled = false;
+    }
   }
 
   function setDetailStatus(text, kind) {
@@ -351,6 +412,7 @@
 
     try {
       const task = await fetchTaskDetail(openTaskId);
+      activeTask = task;
       renderDetail(task);
     } catch (e) {
       setDetailStatus((e && e.message) || "Could not load task", "err");
@@ -630,6 +692,9 @@
     $("rd-market-view-legacy")?.addEventListener("click", () => setView("legacy"));
     $("rd-market-detail-close")?.addEventListener("click", closeDetail);
     $("rd-market-detail-backdrop")?.addEventListener("click", closeDetail);
+    window.addEventListener("azzle-wallet-change", () => {
+      if (activeTask && !($("rd-market-detail-modal")?.hidden)) renderDetail(activeTask);
+    });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !$("rd-market-detail-modal")?.hidden) closeDetail();
     });

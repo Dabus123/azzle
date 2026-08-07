@@ -1,5 +1,18 @@
 /* AZZLE — full-page chat app (Railway-inspired dark) */
 :root{--azzle-nav-h:56px}
+
+.rd-market-detail-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.rd-market-claim-note{margin:0;font-size:12px;color:var(--muted);flex:1 1 220px}
+.rd-receipt-dialog{width:min(560px,calc(100vw - 32px));border:1px solid var(--b);border-radius:var(--radius);background:var(--surface);color:var(--text);box-shadow:var(--shadow);padding:0}
+.rd-receipt-dialog::backdrop{background:rgba(0,0,0,.56)}
+.rd-receipt-dialog form{padding:20px;display:grid;gap:14px}
+.rd-receipt-dialog label{display:grid;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.rd-receipt-dialog input,.rd-receipt-dialog textarea{width:100%;border:1px solid var(--b);border-radius:8px;background:var(--surface-2);color:var(--text);padding:10px;font:inherit;resize:vertical}
+.rd-receipt-head{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.rd-receipt-head h5{margin:0;color:var(--heading);font-size:18px}
+.rd-receipt-head button{border:0;background:transparent;color:var(--muted);font-size:24px;cursor:pointer}
+.rd-receipt-note{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+.rd-receipt-dialog menu{display:flex;justify-content:flex-end;gap:8px;padding:0;margin:0}
 .rd-app{
   position:relative;
   z-index:1;
@@ -1440,7 +1453,7 @@ html[data-theme="light"] .rd-disc-tab.on .rd-disc-hint{
 }
 .azzle-nav-app,
 .rd-subnav-links{
-  display:flex;list-style:none;margin:0;padding:4px;gap:2px;
+  display:flex;list-style:none;margin:0;padding:3px;gap:1px;
   background:var(--s2);border:1px solid var(--b);
   border-radius:var(--radius-pill);
   max-width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
@@ -1452,8 +1465,8 @@ html[data-theme="light"] .rd-disc-tab.on .rd-disc-hint{
 .rd-subnav-links li{flex-shrink:0}
 .azzle-nav-app a,
 .rd-subnav-links a{
-  display:block;padding:7px 14px;
-  font-size:13px;font-weight:500;
+  display:block;padding:7px 10px;
+  font-size:12px;font-weight:500;
   color:var(--muted);text-decoration:none;white-space:nowrap;
   border-radius:var(--radius-pill);
   transition:color var(--dur-ui) var(--ease-out),background var(--dur-ui) var(--ease-out),transform var(--dur-press) var(--ease-out);
@@ -2511,7 +2524,7 @@ a.rd-wallet-btn{text-decoration:none;display:inline-flex;align-items:center}
 }
 @media(max-width:640px){
   .azzle-nav-app a,
-  .rd-subnav-links a{padding:7px 10px;font-size:8px;letter-spacing:.07em}
+  .rd-subnav-links a{padding:7px 8px;font-size:8px;letter-spacing:.07em}
 }
 
 /* Docs panel */

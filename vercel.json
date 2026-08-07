@@ -28,6 +28,8 @@
     { "source": "/union/", "destination": "/union.html" },
     { "source": "/my-tasks", "destination": "/my-tasks.html" },
     { "source": "/my-tasks/", "destination": "/my-tasks.html" },
+    { "source": "/my-work", "destination": "/my-work.html" },
+    { "source": "/my-work/", "destination": "/my-work.html" },
     { "source": "/wallet", "destination": "/wallet.html" },
     { "source": "/wallet/", "destination": "/wallet.html" },
     { "source": "/docs", "destination": "/docs/index.html" },
