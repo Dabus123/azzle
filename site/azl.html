@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="AZL is the Base-native utility token for the AZZLE task coordination protocol."/>
+<title>$AZL — AZZLE</title>
+<link rel="stylesheet" href="site-theme.css"/>
+<link rel="stylesheet" href="role-dashboard.css"/>
+</head>
+<body>
+<div class="rd-subpage">
+  <nav class="azzle-nav" aria-label="Site">
+    <a href="/" class="azzle-nav-logo"><img src="azzletype.png" alt="AZZLE" height="24"/></a>
+    <div class="azzle-nav-center">
+      <ul class="azzle-nav-app">
+        <li><a href="/">Chat</a></li><li><a href="/post">Post</a></li><li><a href="/market">Market</a></li>
+        <li><a href="/union">Union</a></li><li><a href="/my-tasks">Tasks</a></li><li><a href="/my-work">Work</a></li><li><a href="/wallet">Wallet</a></li>
+      </ul>
+      <ul class="azzle-nav-docs"><li><a href="/docs/union-staking.html">Union guide</a></li><li><a href="/docs/">Docs</a></li></ul>
+    </div>
+    <div class="azzle-nav-actions"><a class="azzle-nav-azl-ticker" data-azl-nav-ticker href="/azl" aria-label="Open AZL market page"><span class="azzle-nav-azl-dot" aria-hidden="true"></span><span class="azzle-nav-azl-symbol">AZL</span><strong data-azl-nav-price>Loading</strong></a><div data-rd-wallet-mount></div><button type="button" class="azzle-theme-toggle" data-theme-toggle aria-pressed="false">☼<span>Light</span></button><a href="https://github.com/Dabus123/azzle" class="azzle-nav-gh" target="_blank" rel="noopener" aria-label="GitHub repository"><img src="GitHub_Invertocat_White.png" alt="" class="azzle-nav-gh-icon" width="20" height="20"/></a></div>
+  </nav>
+
+  <main class="rd-subpage-inner rd-subpage-inner--wide">
+    <section class="rd-azl-page">
+      <header class="rd-azl-hero">
+        <div>
+          <p class="rd-union-eyebrow">Base-native protocol utility</p>
+          <h1>$AZL</h1>
+          <p>AZL coordinates work on AZZLE: it settles fixed task escrow, secures verifier bonds, and powers access to the task market.</p>
+        </div>
+        <div class="rd-union-hero-actions">
+          <a class="rd-action rd-action--primary" id="azl-buy-link" href="https://dexscreener.com/base" target="_blank" rel="noopener">View market</a>
+          <button type="button" class="rd-action" id="azl-refresh">Refresh</button>
+        </div>
+      </header>
+
+      <p class="rd-checkout-status" id="azl-status" aria-live="polite">Loading market data from Base…</p>
+
+      <div class="rd-azl-stats">
+        <article class="rd-union-stat"><span>AZL / USD</span><strong id="azl-price">—</strong><small id="azl-price-source">Liquidity-qualified market data</small></article>
+        <article class="rd-union-stat"><span>Pool liquidity</span><strong id="azl-liquidity">—</strong><small>Highest-liquidity eligible Base pair</small></article>
+        <article class="rd-union-stat"><span>Total supply</span><strong id="azl-supply">—</strong><small>Read directly from the token contract</small></article>
+        <article class="rd-union-stat"><span>Oracle health</span><strong id="azl-oracle-health">—</strong><small id="azl-oracle-summary">Reading AZL/ETH TWAP from Base</small></article>
+      </div>
+
+      <section class="rd-azl-price-compare" aria-labelledby="azl-price-compare-title">
+        <header><p class="rd-union-eyebrow">Price precision</p><h2 id="azl-price-compare-title">Onchain quote <span>vs</span> market spot</h2></header>
+        <dl class="rd-azl-price-compare-values">
+          <div><dt>Oracle · 1 AZL</dt><dd id="azl-oracle-usd-price">—</dd><small id="azl-oracle-price-precision">AZL/ETH × Chainlink ETH/USD</small></div>
+          <div><dt>DexScreener</dt><dd id="azl-dex-usd-price">—</dd><small id="azl-dex-price-precision">Live Base pair</small></div>
+          <div class="rd-azl-price-delta"><dt>Difference</dt><dd id="azl-price-deviation">—</dd><small>DEX relative to oracle</small></div>
+        </dl>
+      </section>
+
+      <div class="rd-azl-layout">
+        <article class="rd-union-card rd-union-card--main">
+          <div class="rd-union-card-head"><div><h2>Protocol utility</h2><p>AZL is used by the coordination layer, not merely displayed beside it.</p></div><span class="rd-union-card-tag">Onchain</span></div>
+          <ul class="rd-azl-utility-list">
+            <li><strong>Task settlement</strong><span>V2 task terms, escrow funding, refunds, and payouts are fixed AZL amounts once credited.</span></li>
+            <li><strong>Market access</strong><span>Fee-bearing task actions use an oracle-derived AZL amount; access-fee AZL is spent to the protocol treasury.</span></li>
+            <li><strong>Verifier security</strong><span>Verifiers post AZL bonds that can be slashed under the protocol’s dispute rules.</span></li>
+          </ul>
+        </article>
+
+        <article class="rd-union-card">
+          <div class="rd-union-card-head"><div><h2>Union staking</h2><p>Optional protocol participation.</p></div></div>
+          <p class="rd-azl-copy">When governance activates staking, staked AZL can mine Action Credits. One whole credit can cover an eligible post or claim access fee; it never replaces task collateral or escrow.</p>
+          <p class="rd-azl-note">Staking availability is controlled by an onchain activation flag. Check the Union before sending any staking transaction.</p>
+          <a class="rd-action" href="/union">Open Union →</a>
+        </article>
+
+        <article class="rd-union-card">
+          <div class="rd-union-card-head"><div><h2>Verified on Base</h2><p>Always verify the token address before trading or transferring.</p></div></div>
+          <dl class="rd-azl-details">
+            <div><dt>Token</dt><dd>AZL</dd></div>
+            <div><dt>Decimals</dt><dd id="azl-decimals">18</dd></div>
+            <div><dt>Contract</dt><dd><a id="azl-contract" href="#" target="_blank" rel="noopener">Loading…</a></dd></div>
+          </dl>
+          <div class="rd-union-actions"><a class="rd-action" id="azl-basescan-link" href="#" target="_blank" rel="noopener">BaseScan ↗</a><a class="rd-action" id="azl-pair-link" href="https://dexscreener.com/base" target="_blank" rel="noopener">DEX pair ↗</a></div>
+        </article>
+      </div>
+
+      <aside class="rd-azl-disclosure">
+        <div><strong>Market data is informational</strong><span>Price and liquidity come from external market sources and may be delayed or unavailable. They are not an execution quote or investment advice.</span></div>
+        <div><strong id="azl-oracle-detail-title">Oracle validation</strong><span id="azl-oracle-detail">The protocol oracle validates its delayed TWAP, current observation freshness, Base sequencer state, and ETH/USD feed before it accepts value-increasing actions.</span></div>
+        <div><strong>Supply is not circulating supply</strong><span>Total supply is the ERC-20 <code>totalSupply()</code> value. No circulating-supply figure is presented because the protocol has no canonical excluded-address policy.</span></div>
+        <div><strong>Become a Keeper</strong><span>Keepers show proof-of-conviction by maintaining the protocol’s price stability. Become a keeper by maintaining contineous record() calls on the AzlV4ObservationOracle.</span></div>     
+      </aside>
+
+    </section>
+  </main>
+</div>
+<script type="module" src="role-wallet.bundle.js"></script>
+<script src="azl.js"></script>
+<script src="azl-nav-ticker.js"></script>
+<script src="theme-toggle.js"></script>
+</body>
+</html>

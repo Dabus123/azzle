@@ -46,6 +46,7 @@ async function serveStatic(pathname, res) {
   if (rel === "/pricing" || rel === "/pricing/") rel = "/pricing.html";
   if (rel === "/market" || rel === "/market/") rel = "/market.html";
   if (rel === "/union" || rel === "/union/") rel = "/union.html";
+  if (rel === "/azl" || rel === "/azl/") rel = "/azl.html";
   if (rel === "/my-tasks" || rel === "/my-tasks/") rel = "/my-tasks.html";
   if (rel === "/my-work" || rel === "/my-work/") rel = "/my-work.html";
   if (rel === "/wallet" || rel === "/wallet/") rel = "/wallet.html";
