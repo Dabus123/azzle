@@ -5,7 +5,7 @@ import { Contract, JsonRpcProvider, Wallet, getAddress, isAddress } from "ethers
 
 const INTERVAL_MS = 14 * 60 * 1000;
 const CONTRACTS_ROOT = path.resolve(__dirname, "..");
-const CANDIDATE_PATH = path.resolve(CONTRACTS_ROOT, "deployments", "base-8453-v2.candidate.json");
+const MANIFEST_PATH = path.resolve(CONTRACTS_ROOT, "deployments", "base-8453.json");
 const OBSERVER_ABI = [
   "function record()",
   "function observationCount() view returns (uint256)",
@@ -19,21 +19,21 @@ let nextTimer: NodeJS.Timeout | undefined;
 async function runRecord(): Promise<void> {
   loadEnv({ path: path.resolve(CONTRACTS_ROOT, ".env"), override: true, quiet: true });
   const rpcUrl = process.env.BASE_RPC_URL?.trim();
-  const privateKey = process.env.DEPLOYER_PRIVATE_KEY?.trim();
-  if (!rpcUrl || !privateKey) throw new Error("BASE_RPC_URL and DEPLOYER_PRIVATE_KEY are required");
-  if (!fs.existsSync(CANDIDATE_PATH)) throw new Error(`V2 candidate receipt not found: ${CANDIDATE_PATH}`);
+  const privateKey = (process.env.KEEPER_PRIVATE_KEY ?? process.env.DEPLOYER_PRIVATE_KEY)?.trim();
+  if (!rpcUrl || !privateKey) throw new Error("BASE_RPC_URL and KEEPER_PRIVATE_KEY are required");
+  if (!fs.existsSync(MANIFEST_PATH)) throw new Error(`V2 deployment manifest not found: ${MANIFEST_PATH}`);
 
-  const candidate = JSON.parse(fs.readFileSync(CANDIDATE_PATH, "utf8")) as {
+  const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8")) as {
     chainId?: string;
     observationOracle?: string;
   };
-  if (candidate.chainId !== "8453" || !candidate.observationOracle || !isAddress(candidate.observationOracle)) {
-    throw new Error("V2 candidate receipt has no valid Base observationOracle address");
+  if (manifest.chainId !== "8453" || !manifest.observationOracle || !isAddress(manifest.observationOracle)) {
+    throw new Error("V2 deployment manifest has no valid Base observationOracle address");
   }
 
   const provider = new JsonRpcProvider(rpcUrl, 8453, { staticNetwork: true });
   const wallet = new Wallet(privateKey, provider);
-  const observer = new Contract(getAddress(candidate.observationOracle), OBSERVER_ABI, wallet);
+  const observer = new Contract(getAddress(manifest.observationOracle), OBSERVER_ABI, wallet);
   const tx = await observer.record();
   console.log(`Submitted observation record: ${tx.hash}`);
   const receipt = await tx.wait();
