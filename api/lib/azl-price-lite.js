@@ -31,9 +31,16 @@ async function fetchDexPrice() {
     )
     .sort((a, b) => Number(b.liquidity?.usd ?? 0) - Number(a.liquidity?.usd ?? 0));
   const top = pairs[0];
-  const priceUsd = Number(top?.priceUsd);
+  const priceUsdExact = top?.priceUsd ?? null;
+  const priceUsd = Number(priceUsdExact);
   if (!priceUsd || priceUsd <= 0) return null;
-  return { priceUsd, source: "dexscreener", pair: top.pairAddress ?? null, liquidityUsd: Number(top.liquidity?.usd ?? 0) };
+  return {
+    priceUsd,
+    priceUsdExact,
+    source: "dexscreener",
+    pair: top.pairAddress ?? null,
+    liquidityUsd: Number(top.liquidity?.usd ?? 0),
+  };
 }
 
 async function fetchCoinGeckoPrice() {
@@ -41,9 +48,10 @@ async function fetchCoinGeckoPrice() {
   if (!res.ok) return null;
   const json = await res.json();
   const hit = json[AZL_BASE.toLowerCase()];
-  const priceUsd = Number(hit?.usd);
+  const priceUsdExact = hit?.usd ?? null;
+  const priceUsd = Number(priceUsdExact);
   if (!priceUsd || priceUsd <= 0) return null;
-  return { priceUsd, source: "coingecko", pair: null, liquidityUsd: null };
+  return { priceUsd, priceUsdExact, source: "coingecko", pair: null, liquidityUsd: null };
 }
 
 export async function fetchAzlUsdPrice() {
@@ -59,6 +67,7 @@ export async function fetchAzlUsdPrice() {
   if (!pick) throw new Error("Could not fetch AZL/USD price — try again or pay in USDC.");
   const data = {
     priceUsd: pick.priceUsd,
+    priceUsdExact: pick.priceUsdExact ?? String(pick.priceUsd),
     source: pick.source,
     pair: pick.pair,
     liquidityUsd: pick.liquidityUsd,

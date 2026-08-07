@@ -29,6 +29,7 @@
   <url><loc>https://azzle.org/docs/api/openapi-intro.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://azzle.org/market</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://azzle.org/post</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://azzle.org/azl</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://azzle.org/pricing</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://azzle.org/wallet</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://azzle.org/llms.txt</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>

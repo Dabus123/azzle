@@ -103,6 +103,17 @@ export async function handleSiteApi({ method, pathname, searchParams, body = {} 
       }
     }
 
+    if (method === "GET" && (pathname === "/api/azl/market" || pathname === "/api/get-azl-market")) {
+      try {
+        const { getAzlMarket } = await import("../api/lib/azl-market.js");
+        return apiJson(200, await getAzlMarket(), {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
+        });
+      } catch (e) {
+        return apiJson(502, { error: e.message ?? String(e) });
+      }
+    }
+
     if (method === "GET" && pathname === "/api/posting/plans") {
       return apiJson(200, {
         plans: Object.values(PLANS),
