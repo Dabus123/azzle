@@ -34,6 +34,7 @@
         <a href="/docs/contracts.html" class="docs-sidebar-link" data-docs-id="contracts">Contracts</a>
         <a href="/docs/azzle-v2-explorer.html" class="docs-sidebar-link" data-docs-id="v2-explorer">V2 explorer</a>
         <a href="/docs/oracle-keeper.html" class="docs-sidebar-link" data-docs-id="oracle-keeper">Become an AZL Oracle Keeper</a>
+        <a href="/docs/xmtp.html" class="docs-sidebar-link" data-docs-id="xmtp">XMTP negotiation</a>
         <a href="/docs/union-staking.html" class="docs-sidebar-link" data-docs-id="union-staking">Union staking</a>
         <a href="/docs/x402-cloud.html" class="docs-sidebar-link" data-docs-id="x402-cloud">x402 Cloud</a>
         <a href="/docs/authentication.html" class="docs-sidebar-link" data-docs-id="authentication">Authentication</a>
@@ -101,6 +102,20 @@ cast send "$OBSERVATION_ORACLE" "record()" \
 
 cast call "$OBSERVATION_ORACLE" "observationCount()(uint256)" \
   --rpc-url "$BASE_RPC_URL"</pre></div>
+    </section>
+
+    <section class="docs-section">
+      <h2>Recommended setup: run the observation loop</h2>
+      <p>The repository includes <code>contracts/scripts/record-v2-observations-loop.ts</code>, a resilient keeper loop that records immediately, then retries every 14 minutes. This interval stays under the deployed 15-minute maximum gap; use independent monitoring because one failed checkpoint can still begin a new observation epoch.</p>
+      <div class="docs-pre"><div class="docs-pre-label"><span>bash — run from the repository</span></div><pre>cd contracts
+
+# contracts/.env — use a dedicated, funded keeper wallet
+BASE_RPC_URL=https://mainnet.base.org
+KEEPER_PRIVATE_KEY=0x...
+
+npm install
+npm run deploy:base:v2:record-observations</pre></div>
+      <p>The loop reads the active <code>contracts/deployments/base-8453.json</code> manifest; it does not depend on a candidate deployment artifact. Stop it cleanly with <code>Ctrl+C</code> or <code>SIGTERM</code>.</p>
     </section>
 
     <section class="docs-section">
